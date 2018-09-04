@@ -1,4 +1,7 @@
+
 ## Introduction
+
+本项目基于laravel 框架开发,用于简便的生成所需代码,通过EXCEL实现一些基础的代码.
 
 ### 使用步骤
 第一步: 在config/app.php 的 providers 添加 provider
