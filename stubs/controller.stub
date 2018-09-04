@@ -1,0 +1,136 @@
+<?php
+
+namespace $controller_ns;
+
+$controller_bu
+use $service_ns\$service_name;
+use Illuminate\Http\Request;
+
+class $controller_name $controller_bn
+{
+    protected $modular='$modular_name';
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        //
+        $service = new $service_name();
+        $result = $service->index($request->all());
+        return response()->json($result);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        //
+        $service = new $service_name();
+        $result = $service->store($request->post());
+        return response()->json($result);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+        $service = new $service_name();
+        $result = $service->show($id);
+        return response()->json($result);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        //
+        $service = new $service_name();
+        $result = $service->update($request->post(), $id);
+        return response()->json($result);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        //
+        $service = new $service_name();
+        $result = $service->destroy($id);
+        return response()->json($result);
+    }
+
+    /**
+     * 启用（审批）一组记录
+     */
+    public function up(Request $request)
+    {
+        $service = new $service_name();
+        $result = $service->up($request->input('ids'));
+        return response()->json($result);
+    }
+
+    /**
+     * 停用或拒绝 一组记录
+     */
+    public function down(Request $request)
+    {
+        $service = new $service_name();
+        $result = $service->down($request->input('ids'));
+        return response()->json($result);
+    }
+
+    /**
+     * 导入数据
+     */
+    public function import(Request $request)
+    {
+        $file = $request->file('$table_names');
+        if (empty($file)) {
+            return response()->json(['code'=>-1,'message'=>'请上传文件!']);
+        }
+        $mimeType = $file->getClientMimeType();
+        if ($mimeType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            $type = 'Xlsx';
+        } elseif ($mimeType == 'application/vnd.ms-excel') {
+            $type = 'Xls';
+        } else {
+            return response()->json(['code'=>-1,'message'=>'请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType]);
+        }
+        // 是否覆盖
+        $cover = $request->post('cover',false)?true:false;
+        // 本地存储
+        $path = $file->store('$table_names');
+        $service = new $service_name();
+        $result = $service->import(storage_path('app').DIRECTORY_SEPARATOR.$path,$type,$cover);
+        return response()->json($result);
+    }
+
+    /**
+     * 导出模板
+     */
+    public function template()
+    {
+        $service = new $service_name();
+        $service->template();
+    }
+}

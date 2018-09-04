@@ -1,0 +1,50 @@
+{
+    "name": "callmecsx/mvcs",
+    "description": "Laravel MVCS command to Laravel.",
+    "keywords": ["laravel", "mvcs"],
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/poxuan/mvcs/issues",
+        "source": "https://github.com/poxuan/mvcs"
+    },
+    "authors": [
+        {
+            "name": "poxuan",
+            "email": "958718201@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.4",
+        "illuminate/support": ">=5.1",
+        "illuminate/filesystem": ">=5.1",
+        "illuminate/console": ">=5.1",
+        "phpoffice/phpspreadsheet": "^1.4"
+    },
+    "require-dev": {
+        "mockery/mockery": "~0.9",
+        "phpunit/phpunit": "~5.0"
+    },
+    "suggest": {
+
+    },
+    "autoload": {
+        "psr-4": {
+            "Laravel\\Passport\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "4.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Laravel\\Passport\\PassportServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
