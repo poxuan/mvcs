@@ -41,7 +41,7 @@
 
 ### 增加的artisan make:report命令
 
-该命令用于将excel导入成数据库表
+该命令用于将excel导入成数据库表,支持多sheet批量生成
 
 > php artisan make:report {file} {--type=} \
 > \
