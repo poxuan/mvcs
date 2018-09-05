@@ -5,7 +5,7 @@
 
 ### 使用步骤
 第一步: 在config/app.php 的 providers 添加 provider
-> Poxuan\Mvcs\MvcsServiceProvider::class
+> Callmecsx\Mvcs\MvcsServiceProvider::class
 
 第二步: 发布 MVCS
 
@@ -18,10 +18,13 @@
 
 > php artisan make:mvcs {model} {--force=} {--only=} {--connect=} \
 > \
-> model 为驼峰式或骆驼式,如UserAccount 或 userAccount 对应表为 user_account \
+> model 为驼峰式或骆驼式,如UserAccount 或 userAccount 对应表为 user_account,也可以加路径如 test/UserAccount \
 > --force   表示强制覆盖文件,默认为空,可选值为:all 或 (M)(V)(C)(S) 如 --force=SVM 则将强制覆盖除C的三个文件 \
 > --only    表示只生成一部分文件,默认为MVCS,可选值 (M)(V)(C)(S) 如--only=M 则将只生成model文件 \
-> --connect 表示连接的数据库,默认为default数据库,若找不到,将跳过一些数据的生成.
+> --connect 表示连接的数据库,默认为default数据库,若找不到,将跳过一些数据的生成. \
+> \
+> 使用前可编辑stubs模板以适用自身项目 \
+> 使用前应先建表,包括表中备注,可以省去很多操作,暂时只适配了mysql 
 
 通过该指令，将在app下自动生成 controller、validator、model、service 四个文件；
 
@@ -63,4 +66,4 @@
 
 ## License
 
-Poxuan mvcs is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+Callmecsx mvcs is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).

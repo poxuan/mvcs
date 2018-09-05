@@ -3,7 +3,7 @@
  * @var ${TYPE_HINT} ExcelRules
  */
 
-namespace Poxuan\Mvcs\Service;
+namespace Callmecsx\Mvcs\Service;
 
 
 trait ExcelRules

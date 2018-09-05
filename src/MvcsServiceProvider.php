@@ -1,8 +1,8 @@
 <?php
 
-namespace Poxuan\Mvcs;
+namespace Callmecsx\Mvcs;
 
-use Poxuan\Mvcs\Console\MakeCvmsConsole;
+use Callmecsx\Mvcs\Console\MakeCvmsConsole;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\ServiceProvider;

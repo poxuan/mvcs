@@ -1,8 +1,8 @@
 <?php
 
-namespace Poxuan\Mvcs\Console;
+namespace Callmecsx\Mvcs\Console;
 
-use Poxuan\Mvcs\Service\ExcelService;
+use Callmecsx\Mvcs\Service\ExcelService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;

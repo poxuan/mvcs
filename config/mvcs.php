@@ -16,4 +16,10 @@ return [
     "validator_base" => null,
     "controller_base" => ['namespace'=>'App\Http\Controllers','name'=>'Controller'],
     "model_base" => ['namespace'=>'App\Models','name'=>'BaseModel'],
+
+    // 表中不该用户填充的字段
+    "ignore_columns" => ['id','org_id','created_at','updated_at','deleted_at',
+        'created_by','updated_by','deleted_by'],
+
+    //
 ];

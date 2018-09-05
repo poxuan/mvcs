@@ -3,7 +3,7 @@
  * @var ${TYPE_HINT} ExcelService
  */
 
-namespace Poxuan\Mvcs\Service;
+namespace Callmecsx\Mvcs\Service;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;

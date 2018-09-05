@@ -1,6 +1,6 @@
 <?php
 
-namespace Poxuan\Mvcs\Console;
+namespace Callmecsx\Mvcs\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
@@ -46,8 +46,7 @@ class MakeCvmsConsole extends Command
     private $connect = null;
 
     // validator 中忽略的字段,指不该被用户填充的字段
-    private $ignoreColumns = ['id','org_id','created_at','updated_at','deleted_at',
-        'created_by','updated_by','deleted_by'];
+    private $ignoreColumns = [];
     /**
      * Create a new command instance.
      *
@@ -57,6 +56,7 @@ class MakeCvmsConsole extends Command
     {
         parent::__construct();
         $this->files    = new Filesystem();
+        $this->ignoreColumns = config("mvcs.ignore_columns")?:[];
     }
 
     /**

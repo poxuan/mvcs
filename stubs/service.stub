@@ -6,7 +6,7 @@ $service_bu
 use $model_ns\$model_name;
 use $validator_ns\$validator_name;
 use App\StatusCode;
-use Poxuan\Mvcs\Service\ExcelService;
+use Callmecsx\Mvcs\Service\ExcelService;
 
 class $service_name $service_bn
 {
