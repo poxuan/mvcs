@@ -22,10 +22,13 @@ class ExcelService
     public $error_lines = [];  //错误行错误原因
     public $update_lines = []; //更新行数据
 
-    private $offset  = 0;      //当前读取行数
-    private $limit   = 1000;   //每次读取行数
+    const OUT_FILE = 1;
+    const OUT_STREAM = 2;
+
+    private $offset = 0;      //当前读取行数
+    private $limit = 1000;   //每次读取行数
     private $hasMore = true;   //还有更多数据
-    private $type    = 'Xlsx'; //默认文档类型
+    private $type = 'Xlsx'; //默认文档类型
 
     private $trans = []; // 转换字段
 
@@ -35,9 +38,9 @@ class ExcelService
      *
      * @param int $limit 每次读取行数
      */
-    public function __construct($type = 'Xlsx',$limit = 1000)
+    public function __construct($type = 'Xlsx', $limit = 1000)
     {
-        if (!in_array(ucfirst($type),['Xlsx','Xls'])) {
+        if (!in_array(ucfirst($type), ['Xlsx', 'Xls', 'Csv'])) {
             throw new \Exception('文件类型不支持！');
         }
         $this->type = ucfirst($type);
@@ -49,17 +52,17 @@ class ExcelService
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-06 19:31:08
-     * @param string $file         文件,暂只支持xlsx
-     * @param array  $keys         顺序读取的键,
-     * @param int    $rowStart     开始读取行
-     * @param int    $columnStart  开始读取列
+     * @param string $file 文件,暂只支持xlsx
+     * @param array $keys 顺序读取的键,
+     * @param int $rowStart 开始读取行
+     * @param int $columnStart 开始读取列
      * @return array
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    private function getDataFromExcel($file,$keys,$rowStart = 2,$columnStart = 1,$sheet = 0)
+    private function getDataFromExcel($file, $keys, $rowStart = 2, $columnStart = 1, $sheet = 0)
     {
-        $reader =  IOFactory::createReader($this->type);
+        $reader = IOFactory::createReader($this->type);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($file); //载入excel表格
         if ($sheet) {
@@ -72,29 +75,30 @@ class ExcelService
 
         // 剩余行数
         $rows = $highestRow - $rowStart - $this->offset;
-        if ($rows < $this->limit){
+        if ($rows < $this->limit) {
             $this->hasMore = false;
         }
         // 开始读取行
-        $start = $rowStart+$this->offset;
+        $start = $rowStart + $this->offset;
         // 下标增加
         $this->offset += $this->limit;
         // 结束行
-        $end   = min($highestRow,$this->offset+$rowStart);
+        $end = min($highestRow, $this->offset + $rowStart);
         $data = [];
         for ($row = $start; $row <= $end; $row++) {
             $l = array();
             foreach ($keys as $k => $v) {
-                $value = $worksheet->getCellByColumnAndRow($k + $columnStart,$row)->getValue();
+                $value = $worksheet->getCellByColumnAndRow($k + $columnStart, $row)->getValue();
                 $value = trim($value);
-                if ($value !== null && $value !== ''){
+                if ($value !== null && $value !== '') {
+                    $value = str_replace(['\n', '\r', '\t'], ["\n", "\r", "\t"], $value);
                     $l[$v] = $value;
                 }
             }
             if ($l) {
                 $data[$row] = $l;
             } else {
-                $this->error_lines[] = 'Line '.$row.' is empty.';
+                $this->error_lines[] = 'Line ' . $row . ' is empty.';
             }
         }
         return $data;
@@ -109,17 +113,17 @@ class ExcelService
      * @param $validate_class
      * @param $validate_func
      */
-    private function validate(& $data,$validate_class,$validate_func)
+    private function validate(& $data, $validate_class, $validate_func)
     {
         foreach ($data as $row => $item) {
             try {
                 $validate_class::$validate_func($item);
-            } catch (ValidationException $e){
+            } catch (ValidationException $e) {
                 $message = array_values($e->errors())[0][0];
-                $this->error_lines[] = 'Line '.$row.' is error:'.$message;
+                $this->error_lines[] = 'Line ' . $row . ' is error:' . $message;
                 unset($data[$row]);
             } catch (\Exception $e) {
-                $this->error_lines[] = 'Line '.$row.' is error:'.$e->getMessage();
+                $this->error_lines[] = 'Line ' . $row . ' is error:' . $e->getMessage();
                 unset($data[$row]);
             }
         }
@@ -133,7 +137,7 @@ class ExcelService
      * @param $data
      * @param $columns
      */
-    private function transData(& $data,$columns)
+    private function transData(& $data, $columns)
     {
         $trans = [];
         foreach ($data as $key => $item) {
@@ -141,16 +145,16 @@ class ExcelService
                 if (isset($columns[$column][2])) {
                     $regulation = $columns[$column][2];
                     if (is_array($regulation)) {
-                        $item[$column] = array_search($value,$regulation);
-                    } elseif (class_exists($regulation) && (new $regulation() instanceof BaseModel)) {
-                        if(!in_array($column,$trans)) {
+                        $item[$column] = array_search($value, $regulation);
+                    } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
+                        if (!in_array($column, $trans)) {
 
-                            $this->trans[$column] = $this->getTransValues($data,$column,$regulation);
+                            $this->trans[$column] = $this->getTransValues($data, $column, $regulation);
                             $trans[] = $column;
                         }
-                        $this->replaceColumn($item,$column,$columns[$column]);
+                        $this->replaceColumn($item, $column, $columns[$column]);
                     } else {
-                        throw new \Exception('unknown rule:'.$regulation);
+                        throw new \Exception('unknown rule:' . $regulation);
                     }
                 }
             }
@@ -168,24 +172,24 @@ class ExcelService
      * @param $regulation
      * @return array
      */
-    private function getTransValues($data,$column,$regulation)
+    private function getTransValues($data, $column, $regulation)
     {
 
         $values = [];
-        foreach ($data as $item){
-            if ($v = $item[$column]??''){
-                if(!in_array($v,$values)) {
+        foreach ($data as $item) {
+            if ($v = $item[$column] ?? '') {
+                if (!in_array($v, $values)) {
                     $values[] = $v;
                 }
             }
         }
         $model = new $regulation();
-        $column = explode('-',$column)[0];
-        $result = $model->default()->whereIn($column,$values)->select('id',$column)->get();
+        $column = explode('-', $column)[0];
+        $result = $model->default()->whereIn($column, $values)->select('id', $column)->get();
 
         $res = [];
-        foreach ($result as $item){
-            if(!isset($res[$item->$column])) {
+        foreach ($result as $item) {
+            if (!isset($res[$item->$column])) {
                 $res[$item->$column] = $item->id;
             }
         }
@@ -208,29 +212,29 @@ class ExcelService
         // 替换字段
         $replaceColumn = $columnRule[4];
         // 依赖字段
-        $relyColumn = $columnRule[5]??'';
+        $relyColumn = $columnRule[5] ?? '';
         // 关联model
         $model = new $columnRule[2]();
         // 查找字段
-        $searchColumn = explode('-',$column)[0];
+        $searchColumn = explode('-', $column)[0];
         // 当前字段值
-        $currentValue = $data[$column]??'';
+        $currentValue = $data[$column] ?? '';
         // 新建时的填充字段
         $fillColumn = [];
         if (isset($columnRule[6]) && is_array($columnRule[6])) {
-            foreach ($columnRule[6] as $k=>$v){
+            foreach ($columnRule[6] as $k => $v) {
                 // % 包围的字段,使用数组内的值替换.
-                if (preg_match('/%[_a-z0-9]+%/',$v,$matches)) {
-                    foreach ($matches as $match){
-                        $co = str_replace('%','',$match);
-                        $v = str_replace($match,$data[$co]??'',$v);
+                if (preg_match('/%[_a-z0-9]+%/', $v, $matches)) {
+                    foreach ($matches as $match) {
+                        $co = str_replace('%', '', $match);
+                        $v = str_replace($match, $data[$co] ?? '', $v);
                     }
                 }
                 // # 包围的字段,使用数组内转化后的值替换.
-                if (preg_match('/#[_\-a-z0-9]+#/',$v,$matches)) {
-                    foreach ($matches as $match){
-                        $co = str_replace('#','',$match);
-                        $v = str_replace($match,$this->trans[$relyColumn][$data[$co]??'0']??'',$v);
+                if (preg_match('/#[_\-a-z0-9]+#/', $v, $matches)) {
+                    foreach ($matches as $match) {
+                        $co = str_replace('#', '', $match);
+                        $v = str_replace($match, $this->trans[$relyColumn][$data[$co] ?? '0'] ?? '', $v);
                     }
                 }
                 if ($v) {
@@ -240,22 +244,22 @@ class ExcelService
         }
 
         if ($relyColumn) { //如果存在依赖,即父子关系
-            $relyColumnValue = $data[$relyColumn]??'';
-            if(empty($relyColumnValue) || !isset($this->trans[$relyColumn][$relyColumnValue])){
-                return ;
+            $relyColumnValue = $data[$relyColumn] ?? '';
+            if (empty($relyColumnValue) || !isset($this->trans[$relyColumn][$relyColumnValue])) {
+                return;
             }
         }
         //查看是否存在
         if (isset($this->trans[$column][$currentValue])) {
             $data[$replaceColumn] = $this->trans[$column][$currentValue];
-        } elseif($creatable) { //如果可创建的话,就创建一个
-            $info =  [
-                'org_id' => defined('CURRENT_ORG_ID')?CURRENT_ORG_ID:0,
+        } elseif ($creatable) { //如果可创建的话,就创建一个
+            $info = [
+                'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
                 $searchColumn => $currentValue,
             ];
-            $info = array_merge($info,$fillColumn);
+            $info = array_merge($info, $fillColumn);
             $item = $model->create($info);
-            if( $item ) {
+            if ($item) {
                 $this->trans[$column][$currentValue] = $item->id;
                 $data[$replaceColumn] = $item->id;
             }
@@ -269,21 +273,21 @@ class ExcelService
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-07 09:57:05
-     * @param string $file_path  //路径
-     * @param array  $columns    //列
+     * @param string $file_path //路径
+     * @param array $columns //列
      * @param string $validator_class //验证类
      * @param string $validator_func //验证类方法
-     * @param int    $rowStart //数据开始行
-     * @param int    $columnStart //数据结束行
+     * @param int $rowStart //数据开始行
+     * @param int $columnStart //数据结束行
      * @return array
      */
-    public function importData($file_path,$columns,$validator_class = '',
-                               $validator_func = 'excel',$rowStart = 2,$columnStart =1,$sheet = "")
+    public function importData($file_path, $columns, $validator_class = '',
+                               $validator_func = 'excel', $rowStart = 2, $columnStart = 1, $sheet = "")
     {
         if (is_file($file_path)) {
             try {
                 $column_keys = array_keys($columns);
-                $data = $this->getDataFromExcel($file_path, $column_keys, $rowStart, $columnStart,$sheet);
+                $data = $this->getDataFromExcel($file_path, $column_keys, $rowStart, $columnStart, $sheet);
 
                 if ($data) {
                     $this->transData($data, $columns);
@@ -301,9 +305,9 @@ class ExcelService
     }
 
 
-    public function getAllData($file,$rowStart = 0,$columnStart = 1)
+    public function getAllData($file, $rowStart = 0, $columnStart = 1)
     {
-        $reader =  IOFactory::createReader($this->type);
+        $reader = IOFactory::createReader($this->type);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($file); //载入excel表格
         $worksheets = $spreadsheet->getAllSheets();
@@ -344,7 +348,7 @@ class ExcelService
                     $data[$row] = $l;
                 }
             }
-            $result[]=$data;
+            $result[] = $data;
         }
         return $result;
     }
@@ -359,11 +363,11 @@ class ExcelService
     private function getBaseColumns()
     {
         return [
-            'org_id'     => defined('CURRENT_ORG_ID')?CURRENT_ORG_ID:0,
+            'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
             'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => defined('USER_ID')?USER_ID:0,
+            'created_by' => defined('USER_ID') ? USER_ID : 0,
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => defined('USER_ID')?USER_ID:0,
+            'updated_by' => defined('USER_ID') ? USER_ID : 0,
         ];
     }
 
@@ -372,21 +376,21 @@ class ExcelService
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-07 16:15:51
-     * @param array  $data 待添加数据
-     * @param array  $defaultColumn  可选字段默认值
+     * @param array $data 待添加数据
+     * @param array $defaultColumn 可选字段默认值
      * @param string $table 表名
-     * @param array  $unsetColumn 过滤字段
+     * @param array $unsetColumn 过滤字段
      * @return bool
      */
-    public function insertToTable($data,$defaultColumn,$table,$unsetColumn = [])
+    public function insertToTable($data, $defaultColumn, $table, $unsetColumn = [])
     {
         if (!$data) {
             return false;
         }
         $baseColumns = $this->getBaseColumns();
         foreach ($data as & $item) {
-            $item = array_merge($defaultColumn,$item,$baseColumns);
-            $item = array_except($item,$unsetColumn);
+            $item = array_merge($defaultColumn, $item, $baseColumns);
+            $item = array_except($item, $unsetColumn);
         }
         return DB::table($table)->insert($data);
     }
@@ -397,16 +401,16 @@ class ExcelService
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-15 18:18:00
      * @param \App\Models\BaseModel $model
-     * @param array                 $unsetColumn  不可用键
-     * @param string                $updateKey
+     * @param array $unsetColumn 不可用键
+     * @param string $updateKey
      */
-    public function updateByModel(Builder $model,$unsetColumn = [],$updateKey = 'id')
+    public function updateByModel(Builder $model, $unsetColumn = [], $updateKey = 'id')
     {
-        foreach ($this->update_lines as $key => $item){
+        foreach ($this->update_lines as $key => $item) {
             try {
-                $model->where($updateKey, '=', $item[$updateKey])->update(array_except($item,$unsetColumn));
-            } catch(\Exception $e) {
-                $this->error_lines[] = 'Line '.$key.' update failed!';
+                $model->where($updateKey, '=', $item[$updateKey])->update(array_except($item, $unsetColumn));
+            } catch (\Exception $e) {
+                $this->error_lines[] = 'Line ' . $key . ' update failed!';
             }
         }
         return true;
@@ -420,8 +424,8 @@ class ExcelService
      */
     public function failUpdateLines()
     {
-        foreach ($this->update_lines as $key => $item){
-            $this->error_lines[] = 'Line '.$key.' is existed and not be covered!';
+        foreach ($this->update_lines as $key => $item) {
+            $this->error_lines[] = 'Line ' . $key . ' is existed and not be covered!';
         }
     }
 
@@ -439,28 +443,30 @@ class ExcelService
     }
 
     /**
-     * 生成模板
+     * 导出模板
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-07 15:59:12
-     * @param $name
-     * @param $columns
+     * @date 2018-10-13 16:28:02
+     * @param string $name
+     * @param array $columns
+     * @param int $out
+     * @return string
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public function template(string $name, array $columns)
+    public function template(string $name, array $columns, int $out = self::OUT_STREAM)
     {
         $spreadSheet = new Spreadsheet();
         $workSheet = $spreadSheet->getActiveSheet();
         $workSheet->setTitle($name);
         $i = 1;
         foreach ($columns as $column) {
-            $workSheet->setCellValueByColumnAndRow($i, 1,$column[0]);
+            $workSheet->setCellValueByColumnAndRow($i, 1, $column[0]);
             //设置自动宽度
             $workSheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
-            $workSheet->setCellValueByColumnAndRow($i, 2,$column[1]);
+            $workSheet->setCellValueByColumnAndRow($i, 2, $column[1]);
             if (isset($column[2]) && is_array($column[2])) { //设置可选项
-                $objValidate = $workSheet->getCellByColumnAndRow($i,2)->getDataValidation();
+                $objValidate = $workSheet->getCellByColumnAndRow($i, 2)->getDataValidation();
                 $objValidate->setType(DataValidation::TYPE_LIST)
                     ->setErrorStyle(DataValidation::STYLE_INFORMATION)
                     ->setShowInputMessage(true)
@@ -469,17 +475,71 @@ class ExcelService
                     ->setErrorTitle('输入的值有误')
                     ->setError('您输入的值不在下拉框列表内.')
                     ->setPromptTitle($column[0])
-                    ->setFormula1('"'.implode(',',$column[2]).'"');
+                    ->setFormula1('"' . implode(',', $column[2]) . '"');
             }
-            $i ++ ;
+            $i++;
         }
-        $filename = $name.'.xlsx';
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="'.$filename.'"');
-        header('Cache-Control: max-age=0');
+        if ($out == self::OUT_STREAM) {
+            $filename = $name . '.xlsx';
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
 
-        $writer = IOFactory::createWriter($spreadSheet, 'Xlsx');
-        $writer->save('php://output');
+            $writer = IOFactory::createWriter($spreadSheet, 'Xlsx');
+            return $writer->save('php://output');
+        } else {
+            $filename = $name . '.' . strtolower($this->type);
+            $writer = IOFactory::createWriter($spreadSheet, $this->type);
+            $writer->save(storage_path('data/' . $filename));
+            return storage_path('data/' . $filename);
+        }
     }
 
+    /**
+     * 导出数据
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date 2018-10-13 16:30:38
+     * @param string $name
+     * @param array $columns
+     * @param array $data
+     * @param int $out
+     * @return string
+     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     */
+    public function export(string $name, array $columns, array $data, int $out = self::OUT_FILE)
+    {
+        $spreadSheet = new Spreadsheet();
+        $workSheet = $spreadSheet->getActiveSheet();
+        $workSheet->setTitle($name);
+        $i = 1;
+        foreach ($columns as $key => $column) {
+            $workSheet->setCellValueByColumnAndRow($i, 1, $column[0]);
+            //设置自动宽度
+            $workSheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
+            $row = 2;
+            foreach ($data as $item) {
+                $value = $item[$key] ?? '';
+                $value = is_array($value) ? implode(',', $value) : $value;
+                $workSheet->setCellValueByColumnAndRow($i, $row, str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $value));
+                $row++;
+            }
+            $i++;
+        }
+        if ($out == self::OUT_STREAM) {
+            $filename = $name . '.xlsx';
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer = IOFactory::createWriter($spreadSheet, 'Xlsx');
+            return $writer->save('php://output');
+        } else {
+            $filename = $name . '.' . strtolower($this->type);
+            $writer = IOFactory::createWriter($spreadSheet, $this->type);
+            $writer->save(storage_path('data/' . $filename));
+            return storage_path('data/' . $filename);
+        }
+    }
 }

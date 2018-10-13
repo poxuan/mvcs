@@ -21,5 +21,15 @@ return [
     "ignore_columns" => ['id','org_id','created_at','updated_at','deleted_at',
         'created_by','updated_by','deleted_by'],
 
-    //
+    //report 相关
+    "report" => [
+        "extra_columns" => [
+            //'$table->integer("org_id")->nullable()->comment("组织ID");',
+            //'$table->string("report_id",100)->nullable()->comment("报表ID");',
+            '$table->timestamps();',
+        ],
+        "table_prefix"  => "",
+        "table_postfix" => "",
+        "default_varchar_length" => 50,
+    ],
 ];

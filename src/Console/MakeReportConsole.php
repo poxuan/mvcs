@@ -36,18 +36,14 @@ class MakeReportConsole extends Command
     private $type = self::TYPE_STRUCTURE_DATA;
 
     // 额外字段,默认ID未主键
-    private $extraColumns = [
-        '$table->integer("org_id")->nullable()->comment("组织ID");',
-        '$table->string("amazon_seller_id",50)->nullable()->comment("卖家ID");',
-        '$table->string("report_id",100)->nullable()->comment("报表ID");',
-    ];
+    private $extraColumns = [];
 
     // 默认列宽
     private $defaultVarCharLen = 50;
 
     // 表前后缀
-    private $table_prefix  = 'fba';
-    private $table_postfix = 'test';
+    private $table_prefix  = '';
+    private $table_postfix = '';
 
     /**
      * Execute the console command.
@@ -63,6 +59,10 @@ class MakeReportConsole extends Command
         if ($type && in_array($type,[self::TYPE_STRUCTURE_ONLY,self::TYPE_DATA_ONLY,self::TYPE_STRUCTURE_DATA])) {
             $this->type = $type;
         }
+        $this->extraColumns      = config('mvcs.report.extra_columns',[]);
+        $this->defaultVarCharLen = config('mvcs.report.default_varchar_length',50);
+        $this->table_prefix      = config('mvcs.report.table_prefix','');
+        $this->table_postfix     = config('mvcs.report.table_postfix','');
         if(($this->type & 1) == 1) {
             $this->makeStruct($file);
         }
@@ -84,7 +84,7 @@ class MakeReportConsole extends Command
         $result = $excelService->getAllData($file);
         foreach ($result as $data) {
             // 表名,取第一行第二列,行从1开始,列从0开始
-            $report_name = $data[1][1]??"";
+            $report_name = $data[1][1]?:"";
             if(!$report_name || !is_string($report_name) || !preg_match('/^[ a-zA-Z0-9\-_]*$/',$report_name)){
                 continue;
             }
@@ -93,7 +93,7 @@ class MakeReportConsole extends Command
                 return strtolower(str_replace([' ','-'],'_',$_item));
             },$data[2]);
             // 示例
-            $example = $data[3]??[];
+            $example = $data[3]?:[];
             $this->table = $this->table_prefix . strtolower($report_name) . $this->table_postfix;
             if (strlen($this->table) > 64) {
                 $this->table = substr($this->table,0,64);
