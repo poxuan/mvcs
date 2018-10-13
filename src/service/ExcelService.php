@@ -542,4 +542,9 @@ class ExcelService
             return storage_path('data/' . $filename);
         }
     }
+
+    public function registerRules(string $ruleName,callable $callable)
+    {
+        $this->$ruleName = $callable;
+    }
 }
