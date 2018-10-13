@@ -38,7 +38,7 @@
         },
         "laravel": {
             "providers": [
-                "Callmecsx\\Mvcs\\MvcsServiceProvidor"
+                "Callmecsx\\Mvcs\\MvcsServiceProvider"
             ]
         }
     },
