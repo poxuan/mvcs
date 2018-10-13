@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
-class MakeCvmsAllConsole extends Command
+class MakeMvcsAllConsole extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'make:all_mvcs {--connect=}';
+    protected $signature = 'make:mvcs_all {--connect=}';
 
     /**
      * The console command description.

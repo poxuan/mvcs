@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class MakeReportConsole extends Command
+class ImportMvcsDbConsole extends Command
 {
 
     // 导入类型: 1 结构 2 数据 3结构和数据
@@ -20,14 +20,14 @@ class MakeReportConsole extends Command
      *
      * @var string
      */
-    protected $signature = 'make:report {file} {--type=}';
+    protected $signature = 'import:mvcs_db {file} {--type=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'create report';
+    protected $description = 'create import db ';
 
     // 当前表名
     protected $table;

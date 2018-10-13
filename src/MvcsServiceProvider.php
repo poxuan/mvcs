@@ -2,7 +2,9 @@
 
 namespace Callmecsx\Mvcs;
 
+use Callmecsx\Mvcs\Console\MakeMvcsAllConsole;
 use Callmecsx\Mvcs\Console\MakeCvmsConsole;
+use Callmecsx\Mvcs\Console\ImportMvcsDbConsole;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\ServiceProvider;
@@ -47,7 +49,15 @@ class MvcsServiceProvider extends ServiceProvider
             return new MakeCvmsConsole();
         });
 
-        $this->commands(['command.mvcs']);
+        $this->app->singleton('command.import', function () {
+            return new ImportMvcsDbConsole();
+        });
+
+        $this->app->singleton('command.mvcs_all', function () {
+            return new MakeMvcsAllConsole();
+        });
+
+        $this->commands(['command.mvcs','command.import','command.mvcs_all']);
     }
 
     /**
@@ -57,6 +67,6 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['command.mvcs'];
+        return ['command.mvcs','command.import','command.mvcs_all'];
     }
 }

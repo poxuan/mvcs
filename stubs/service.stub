@@ -5,11 +5,15 @@ namespace $service_ns;
 $service_bu
 use $model_ns\$model_name;
 use $validator_ns\$validator_name;
-use App\StatusCode;
 use Callmecsx\Mvcs\Service\ExcelService;
 
 class $service_name $service_bn
 {
+    // 返回数据
+    private $response = [
+        'code'=> 200,
+        'message' => '操作成功!'
+    ];
     // 可用的查询规则
     protected $searchRule = [
         '$table_name_name'   => 'like',
@@ -29,12 +33,12 @@ class $service_name $service_bn
     public function index(array $filter = [])
     {
         $page = array_get($filter,'page',1);
-        $pageSize = array_get($filter,'pageSize',config('erp.pageSize',15));
+        $pageSize = array_get($filter,'pageSize',config('app.pageSize',15));
         $validator_name::select($filter);
         $model = $model_name::with('creator');
-        // 限定组织，无组织字段表删除此行
-        $model = $model->default();
-        $model = $this->makeSearch($model,$filter);
+        // 定义默认查询操作及搜索条件
+        // $model = $model->default();
+        // $model = $this->makeSearch($model,$filter);
 
         $count = $model->count();
         $offset = ($page - 1)* $pageSize;
@@ -44,15 +48,15 @@ class $service_name $service_bn
             $result = array();
             foreach ($list as $item) {
                 $l = $item->toArray();
-                $l['creator'] = $item->creator?$item->creator->user_name:'';
-                //todo 其他数据及格式转换
+                //todo 数据及格式转换如下
+                //$l['creator'] = $item->creator?$item->creator->user_name:'';
 
                 $result[] = $l;
             }
             $this->response['data'] = $result;
             $this->response['total'] = $count;
         } else {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '没有更多数据!';
         }
         return $this->response;
@@ -78,7 +82,7 @@ class $service_name $service_bn
             $this->response['data'] = $result->toArray();
             $this->response['message'] = '添加成功!';
         } else {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '添加失败!';
         }
         return $this->response;
@@ -102,7 +106,7 @@ class $service_name $service_bn
             $this->response['data'] = [];
             $this->response['message'] = '更新成功!';
         } else {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '更新失败!';
         }
         return $this->response;
@@ -126,7 +130,7 @@ class $service_name $service_bn
             $this->response['data'] = $data;
             $this->response['message'] = '获取成功!';
         } else {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '获取失败!';
         }
         return $this->response;
@@ -146,7 +150,7 @@ class $service_name $service_bn
         $result = $model_name::destroy($id);
         $this->response['message'] = '删除成功!';
         if (!$result) {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '删除失败!';
         }
         return $this->response;
@@ -169,7 +173,7 @@ class $service_name $service_bn
         $result = $model_name::whereIn('id', $ids)->update($data);
         $this->response['message'] = '更新成功!';
         if (!$result) {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '编辑失败!';
         }
         return $this->response;
@@ -192,35 +196,11 @@ class $service_name $service_bn
         $result = $model_name::whereIn('id', $ids)->update($data);
         $this->response['message'] = '更新成功!';
         if (!$result) {
-            $this->response['code']    = StatusCode::ERROR;
+            $this->response['code']    = -1;
             $this->response['message'] = '编辑失败!';
         }
         return $this->response;
     }
-
-
-    /**
-     * 通过ID获取对象
-     *
-     * @author
-     * @date   $create_date
-     * @param  array  $ids
-     * @return array
-     */
-    public static function get$model_nameById($id,$allOrg=false)
-    {
-        if (empty($id)){
-            throw new \Exception('$model_name id is required');
-        }
-        $orm =new $model_name();
-        if (!$allOrg){
-            $orm = $orm->default();
-        }
-        $orm = $orm->where('id','=',$id)->first();
-
-        return $orm;
-    }
-
 
     /**
      * 导入数据
@@ -228,6 +208,8 @@ class $service_name $service_bn
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-07 15:55:54
      * @param string $file_path 文件名
+     * @param string $type 文件类型
+     * @param bool   $cover 重复数据是否覆盖
      * @return array
      */
     public function import(string $filePath,string $type,bool $cover = false)
@@ -244,7 +226,7 @@ class $service_name $service_bn
                 // $this->decimalToIntFor2DArray($data,'list_price');
                 // $this->decimalToIntFor2DArray($excelService->update_lines,'list_price');
                 // 批量导入数据库,成功一次就认为导入成功!
-                // 添加时过滤字段,一般为关联表name
+                // 添加时过滤字段
                 $unsetColumn = [];
                 $result = $excelService->insertToSql($data,$validator_name::excelDefault(),'$table_name',$unsetColumn) || $result;
                 if ($cover) {
@@ -256,11 +238,12 @@ class $service_name $service_bn
                 // 是否还要导入其他数据
             }
         } while ($excelService->hasMore());
-        // 返回所有失败的行
+        // 需要的话,返回所有失败的行
         $this->response['errors'] = $excelService->error_lines;
-        @unlink($filePath); //销毁导入文件
+        // 需要的话,销毁导入文件
+        @unlink($filePath);
         if (!$result) {
-            $this->response['code'] = StatusCode::ERROR_FILE_FORMAT;
+            $this->response['code'] = -1;
             $this->response['message'] = 'Can\'t got a valid data in the file!';
         }
         return $this->response;

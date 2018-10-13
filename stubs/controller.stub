@@ -8,16 +8,14 @@ use Illuminate\Http\Request;
 
 class $controller_name $controller_bn
 {
-    protected $modular='$modular_name';
+    //protected $modular='$modular_name';
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request, $service_name $service)
     {
-        //
-        $service = new $service_name();
         $result = $service->index($request->all());
         return response()->json($result);
     }
@@ -28,10 +26,8 @@ class $controller_name $controller_bn
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $service_name $service)
     {
-        //
-        $service = new $service_name();
         $result = $service->store($request->post());
         return response()->json($result);
     }
@@ -42,10 +38,8 @@ class $controller_name $controller_bn
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($service_name $service,$id)
     {
-        //
-        $service = new $service_name();
         $result = $service->show($id);
         return response()->json($result);
     }
@@ -57,10 +51,8 @@ class $controller_name $controller_bn
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $service_name $service, $id)
     {
-        //
-        $service = new $service_name();
         $result = $service->update($request->post(), $id);
         return response()->json($result);
     }
@@ -71,10 +63,8 @@ class $controller_name $controller_bn
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($service_name $service, $id)
     {
-        //
-        $service = new $service_name();
         $result = $service->destroy($id);
         return response()->json($result);
     }
@@ -82,9 +72,8 @@ class $controller_name $controller_bn
     /**
      * 启用（审批）一组记录
      */
-    public function up(Request $request)
+    public function up(Request $request, $service_name $service)
     {
-        $service = new $service_name();
         $result = $service->up($request->input('ids'));
         return response()->json($result);
     }
@@ -92,9 +81,8 @@ class $controller_name $controller_bn
     /**
      * 停用或拒绝 一组记录
      */
-    public function down(Request $request)
+    public function down(Request $request, $service_name $service)
     {
-        $service = new $service_name();
         $result = $service->down($request->input('ids'));
         return response()->json($result);
     }
@@ -102,7 +90,7 @@ class $controller_name $controller_bn
     /**
      * 导入数据
      */
-    public function import(Request $request)
+    public function import(Request $request, $service_name $service)
     {
         $file = $request->file('$table_names');
         if (empty($file)) {
@@ -120,7 +108,6 @@ class $controller_name $controller_bn
         $cover = $request->post('cover',false)?true:false;
         // 本地存储
         $path = $file->store('$table_names');
-        $service = new $service_name();
         $result = $service->import(storage_path('app').DIRECTORY_SEPARATOR.$path,$type,$cover);
         return response()->json($result);
     }
@@ -128,9 +115,8 @@ class $controller_name $controller_bn
     /**
      * 导出模板
      */
-    public function template()
+    public function template($service_name $service)
     {
-        $service = new $service_name();
         $service->template();
     }
 }
