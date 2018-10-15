@@ -485,8 +485,8 @@ class MakeCvmsConsole extends Command
                     $v = [];
                     $columns[] = $v['column'] = "'".$column->Field."'";
                     $e['column'] = $v['column'];
-                    $e['comment'] = $v['comment'] = $column->Comment;
-                    $e['comment'] = mb_substr($e['comment'],0,8);
+                    $e['comment'] = $v['comment'] = $column->Comment?:$column->Field;
+                    $e['example'] = '';
                     if ($column->Null == 'NO' && $column->Default === null) {
                         $v['rule'][] = 'required';
                         $e['comment'].= '(必填)';

@@ -27,16 +27,6 @@ class MakeMvcsAllConsole extends Command
     private $connect = null;
 
     /**
-     * Create a new command instance.
-     *
-     * @param Filesystem $filesystem
-     */
-    public function __construct()
-    {
-
-    }
-
-    /**
      * Execute the console command.
      *
      * @return void
