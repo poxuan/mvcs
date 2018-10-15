@@ -35,7 +35,7 @@ class MakeMvcsAllConsole extends Command
     {
         $tables = $this->getTables();
         foreach ($tables as $table) {
-            $tableName = array_values($table)[0];
+            $tableName = array_values((array)$table)[0];
             Artisan::call('make:mvcs', ['model' => $this->lineToHump($tableName)]);
         }
         $this->info("处理完成!");
