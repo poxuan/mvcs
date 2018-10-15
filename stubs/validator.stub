@@ -4,14 +4,11 @@ namespace $validator_ns;
 
 $validator_bu
 use $model_ns\$model_name;
-use App\Traits\ValidCommon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Validator;
 
 class $validator_name $validator_bn
 {
-    use ValidCommon;
-
     /**
      * 添加验证规则
      *
@@ -41,7 +38,8 @@ class $validator_name $validator_bn
             $validator_rule
         ],$model_name::$message)->validate();
         $model = $model_name::findOrFail($id);
-        self::validOrg($model);
+        // 可以使用父类的额外验证
+        // self::validOrg($model);
     }
 
     /**
@@ -55,7 +53,8 @@ class $validator_name $validator_bn
     public static function destroy($id)
     {
         $model = $model_name::findOrFail($id);
-        self::validOrg($model);
+        // 可以使用父类的额外验证
+        // self::validOrg($model);
     }
 
 
@@ -74,7 +73,8 @@ class $validator_name $validator_bn
             throw new ModelNotFoundException('404 not found！');
         }
         foreach ($models as $item) {
-            self::validOrg($item);
+            // todo 额外验证
+            // self::validOrg($item);
         }
     }
 
