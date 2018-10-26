@@ -14,7 +14,7 @@ class MakeCvmsConsole extends Command
      *
      * @var string
      */
-    protected $signature = 'make:mvcs {model} {--force=} {--only=} {--connect=}';
+    protected $signature = 'make:mvcs {model} {--force=} {--only=} {--connect=} {--middleware=}';
 
     /**
      * The console command description.
@@ -35,6 +35,10 @@ class MakeCvmsConsole extends Command
     private $table;
 
     private $files;
+
+    private $middleware = [];
+
+    private $namespace = ''; 
 
     private $extraSpace = "";
     private $extraPath  = "";
@@ -88,7 +92,11 @@ class MakeCvmsConsole extends Command
         if ($connect) {
             $this->connect = $connect;
         }
-        $this->controller = $model."Controller";
+        $middleware = $this->option('middleware')?:[];
+        if ($middleware) {
+            $middleware = explode(',',$middleware);
+        }
+        $this->middleware = config('mvcs.routes.middleware') + $middleware;
         $this->model      = $model;
         $this->table      = $this->humpToLine($model);
         $this->service    = $model."Service";
@@ -117,7 +125,7 @@ class MakeCvmsConsole extends Command
             return strtoupper($matches[2]);
         },$str);
         return $str;
-    }
+    }                         
 
     /**
      * 生成mvcs文件
@@ -132,6 +140,50 @@ class MakeCvmsConsole extends Command
         if($this->createClass()){
             //若生成成功,则输出信息
             $this->info('Success to make '.$this->only.' files !');
+            $this->addRoutes();
+        }
+    }
+
+    function addRoutes() 
+    {
+        if (config('mvcs.add_route')) {
+            $routeStr = "";
+            $group = false;
+            $type = config('mvcs.route_type')?:'api';
+            $routes = config('mvcs.routes');
+            if ($this->middleware) {
+                $routeStr .= "Route::middleware(".\json_encode($this->middleware).")";
+                $group = true;
+            }
+            if ($prefix = config('mvcs.routes.prefix')) {
+                $routeStr .= ($routeStr?"->prefix('$prefix')":"Route::prefix('$prefix')");
+                $group = true;
+            }
+            if ($namespace = config('mvcs.routes.namespace')) {
+                $routeStr .= ($routeStr?"->namespace('$namespace')":"Route::namespace('$namespace')");
+                $group = true;
+            }
+            if ($group) {
+                $routeStr .= "->group(function(){\n";
+            }
+            $method = ['get','post','put','delete','patch'];
+            foreach ($method as $met) {
+                $rs = config('mvcs.routes.'.$met);
+                foreach($rs as $m => $r) {
+                    $routeStr .= "    Route::$net('{$this->table}/$r','{$this->controller}@$m');\n";
+                }
+            }
+            if(config('mvcs.routes.apiResource')) {
+                $routeStr .= "    Route::apiResource('{$this->table}','{$this->controller}');\n";
+            } elseif (config('mvcs.routes.resource')) {
+                $routeStr .= "    Route::resource('{$this->table}','{$this->controller}');\n";
+            }
+            if ($group) {
+                $routeStr .= "});\n\n";
+            }
+            $handle = fopen(base_path("routes/$type.php"),'a+');
+            fwrite($handle,$routeStr);
+            fclose($handle);
         }
     }
 
