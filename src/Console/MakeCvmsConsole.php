@@ -100,6 +100,7 @@ class MakeCvmsConsole extends Command
         $this->model      = $model;
         $this->table      = $this->humpToLine($model);
         $this->service    = $model."Service";
+        $this->controller = $model."Controller";
         $this->validator  = $model."Validator";
         // 自动生成MVCS文件
         $this->writeMVCS();
@@ -170,7 +171,7 @@ class MakeCvmsConsole extends Command
             foreach ($method as $met) {
                 $rs = config('mvcs.routes.'.$met);
                 foreach($rs as $m => $r) {
-                    $routeStr .= "    Route::$net('{$this->table}/$r','{$this->controller}@$m');\n";
+                    $routeStr .= "    Route::$met('{$this->table}/$r','{$this->controller}@$m');\n";
                 }
             }
             if(config('mvcs.routes.apiResource')) {
