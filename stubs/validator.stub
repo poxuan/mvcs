@@ -2,18 +2,18 @@
 
 namespace $validator_ns;
 
-$validator_bu
+$validator_use
 use $model_ns\$model_name;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Validator;
 
-class $validator_name $validator_bn
+class $validator_name $validator_extands
 {
     /**
      * 添加验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  array $data 验证字段
      * @return void
      */
@@ -26,8 +26,8 @@ class $validator_name $validator_bn
     /**
      * 更新验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  array $data 验证数据
      * @param  int   $id 要更新的行
      * @return void
@@ -45,8 +45,8 @@ class $validator_name $validator_bn
     /**
      * 删除验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  int $id 要删除的行
      * @return void
      */
@@ -61,8 +61,8 @@ class $validator_name $validator_bn
     /**
      * 启用/停用验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  array $ids 要筛选字段
      * @return void
      */
@@ -81,8 +81,8 @@ class $validator_name $validator_bn
     /**
      * 筛选验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  array $filter 要筛选字段
      * @return void
      */
@@ -97,8 +97,8 @@ class $validator_name $validator_bn
     /**
      * 批量导入验证规则
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @param  array $data 要验证的数据
      * @return void
      */
@@ -125,8 +125,8 @@ class $validator_name $validator_bn
      * 数组下标5 内部依赖字段,在其依赖不存在且无法查找到该数据时,不能进行添加操作,用于父子关系
      * 数组下标6 关联表创建时的填充字段,
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:31:45
+     * @author $author_info
+     * @date   $create_date
      * @return array
      */
     public static function excelColumn()
@@ -141,8 +141,8 @@ class $validator_name $validator_bn
     /**
      * 导入时可选字段默认值
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-07 16:17:07
+     * @author $author_info
+     * @date   $create_date
      * @return array
      */
     public static function excelDefault()

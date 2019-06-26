@@ -52,7 +52,7 @@ class ExcelService
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-06 19:31:08
-     * @param string $file 文件,暂只支持xlsx
+     * @param string $file 文件
      * @param array $keys 顺序读取的键,
      * @param int $rowStart 开始读取行
      * @param int $columnStart 开始读取列

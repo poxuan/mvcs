@@ -3,7 +3,7 @@
 namespace Callmecsx\Mvcs;
 
 use Callmecsx\Mvcs\Console\MakeMvcsAllConsole;
-use Callmecsx\Mvcs\Console\MakeCvmsConsole;
+use Callmecsx\Mvcs\Console\MakeMvcsConsole;
 use Callmecsx\Mvcs\Console\ImportMvcsDbConsole;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application as LaravelApplication;
@@ -46,7 +46,7 @@ class MvcsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('command.mvcs', function () {
-            return new MakeCvmsConsole();
+            return new MakeMvcsConsole();
         });
 
         $this->app->singleton('command.import', function () {

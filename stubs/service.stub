@@ -2,19 +2,19 @@
 
 namespace $service_ns;
 
-$service_bu
+$service_use
 use $model_ns\$model_name;
 use $validator_ns\$validator_name;
 use Callmecsx\Mvcs\Service\ExcelService;
 
-class $service_name $service_bn
+class $service_name $service_extands
 {
     // 返回数据
     private $response = [
         'code'=> 200,
         'message' => '操作成功!'
     ];
-    // 可用的查询规则
+    // 可用的查询规则,在基类中构造查询
     protected $searchRule = [
         '$table_name_name'   => 'like',
         '$table_name_status' => 'eq',
@@ -23,7 +23,7 @@ class $service_name $service_bn
     /**
      *  获取显示列表
      *
-     * @author
+     * @author $author_info
      * @date   $create_date
      * @param  array $filter
      * @param  int   $page
@@ -65,7 +65,7 @@ class $service_name $service_bn
     /**
      *  创建新数据
      *
-     * @author
+     * @author $author_info
      * @date   $create_date
      * @param $post
      * @return array
@@ -91,7 +91,7 @@ class $service_name $service_bn
     /**
      *  更新一条记录
      *
-     * @author
+     * @author $author_info
      * @date   $create_date
      * @param array $post
      * @param int   $id
@@ -115,7 +115,7 @@ class $service_name $service_bn
     /**
      *  获取一条记录详情
      *
-     * @author
+     * @author $author_info
      * @date   $create_date
      * @param  int  $id
      * @return array
@@ -205,7 +205,7 @@ class $service_name $service_bn
     /**
      * 导入数据
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @author $author_info
      * @date   2018-08-07 15:55:54
      * @param string $file_path 文件名
      * @param string $type 文件类型
@@ -252,7 +252,7 @@ class $service_name $service_bn
     /**
      * 导出模板
      *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @author $author_info
      * @date   2018-08-07 15:56:10
      */
     public function template()

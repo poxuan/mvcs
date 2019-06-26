@@ -7,7 +7,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
-class MakeCvmsConsole extends Command
+class MakeMvcsConsole extends Command
 {
     /**
      * The name and signature of the console command.
@@ -60,7 +60,8 @@ class MakeCvmsConsole extends Command
     {
         parent::__construct();
         $this->files    = new Filesystem();
-        $this->ignoreColumns = config("mvcs.ignore_columns")?:[];
+        $this->ignoreColumns = config("mvcs.ignore_columns") ?: [];
+        $this->only = config("mvcs.default_stubs") ?: 'MVCS';
     }
 
     /**
@@ -75,17 +76,17 @@ class MakeCvmsConsole extends Command
         if (empty($model)){
             die("you must input your model!");
         }
-        if (count($modelArray = explode('/',$model)) > 1){
+        if (count($modelArray = explode(DIRECTORY_SEPARATOR,$model)) > 1){
             $model = array_pop($modelArray);
             $this->extraSpace = '\\'.implode('\\',$modelArray);
-            $this->extraPath = '/'.implode('/',$modelArray);
+            $this->extraPath = DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$modelArray);
         }
         $force = $this->option('force');
         if ($force) {
             $this->force = $force;
         }
         $only = $this->option('only');
-        if ($only) {
+        if ($only && $only != 'all') {
             $this->only = $only;
         }
         $connect = $this->option('connect');
@@ -99,9 +100,6 @@ class MakeCvmsConsole extends Command
         $this->middleware = config('mvcs.routes.middleware') + $middleware;
         $this->model      = $model;
         $this->table      = $this->humpToLine($model);
-        $this->service    = $model."Service";
-        $this->controller = $model."Controller";
-        $this->validator  = $model."Validator";
         // 自动生成MVCS文件
         $this->writeMVCS();
 
@@ -145,6 +143,12 @@ class MakeCvmsConsole extends Command
         }
     }
 
+    /**
+     * 添加路由
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:17:55
+     */
     function addRoutes() 
     {
         if (config('mvcs.add_route')) {
@@ -189,7 +193,7 @@ class MakeCvmsConsole extends Command
     }
 
     /**
-     * 创建 service 目录
+     * 创建目录
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:17:37
@@ -198,26 +202,13 @@ class MakeCvmsConsole extends Command
     private function createDirectory()
     {
 
-        $directory = $this->getServiceDirectory();
-        //检查路径是否存在,不存在创建一个,并赋予775权限
-        if(! $this->files->isDirectory($directory)){
-            $this->files->makeDirectory($directory, 0755, true);
-        }
-
-        $directory = $this->getControllerDirectory();
-        //检查路径是否存在,不存在创建一个,并赋予775权限
-        if(! $this->files->isDirectory($directory)){
-            $this->files->makeDirectory($directory, 0755, true);
-        }
-        $directory = $this->getValidatorDirectory();
-        //检查路径是否存在,不存在创建一个,并赋予775权限
-        if(! $this->files->isDirectory($directory)){
-            $this->files->makeDirectory($directory, 0755, true);
-        }
-        $directory = $this->getModelDirectory();
-        //检查路径是否存在,不存在创建一个,并赋予775权限
-        if(! $this->files->isDirectory($directory)){
-            $this->files->makeDirectory($directory, 0755, true);
+        for($i=0; $i< strlen($this->only); $i ++) {
+            $d = $this->only[$i];
+            $directory = $this->getDirectory($d);
+            //检查路径是否存在,不存在创建一个,并赋予775权限
+            if(! $this->files->isDirectory($directory)){
+                $this->files->makeDirectory($directory, 0755, true);
+            }
         }
         return true;
     }
@@ -248,90 +239,14 @@ class MakeCvmsConsole extends Command
         return $class;
     }
 
-    private function getPath($class)
+    private function getPath($d)
     {
-        // 两个模板文件,对应的两个路径
-        $path = null;
-        switch($class){
-            case 'S':
-                $path = $this->getServiceDirectory().DIRECTORY_SEPARATOR.$this->getService().'.php';
-                break;
-            case 'V':
-                $path = $this->getValidatorDirectory().DIRECTORY_SEPARATOR.$this->getValidator().'.php';
-                break;
-            case "C":
-                $path = $this->getControllerDirectory().DIRECTORY_SEPARATOR.$this->getController().'.php';
-                break;
-            case 'M':
-                $path = $this->getModelDirectory().DIRECTORY_SEPARATOR.$this->getModel().'.php';
-                break;
-        }
-
-        return $path;
+        return $this->getDirectory($d).DIRECTORY_SEPARATOR.$this->getClassName($d).'.php';
     }
 
-    private function getServiceDirectory()
+    private function getDirectory($d)
     {
-        return Config::get('mvcs.service_path').$this->extraPath;
-    }
-
-    private function getModelDirectory()
-    {
-        return Config::get('mvcs.model_path').$this->extraPath;
-    }
-
-    private function getValidatorDirectory()
-    {
-        return Config::get('mvcs.validator_path').$this->extraPath;
-    }
-
-    private function getControllerDirectory()
-    {
-        return Config::get('mvcs.controller_path').$this->extraPath;
-    }
-
-
-    private function getServiceNameSpace()
-    {
-        return Config::get('mvcs.service_namespace').$this->extraSpace;
-    }
-
-    private function getModelNameSpace()
-    {
-        return Config::get('mvcs.model_namespace').$this->extraSpace;
-    }
-
-    private function getValidatorNameSpace()
-    {
-        return Config::get('mvcs.validator_namespace').$this->extraSpace;
-    }
-
-    private function getControllerNameSpace()
-    {
-        return Config::get('mvcs.controller_namespace').$this->extraSpace;
-    }
-    /**
-     * @return mixed
-     */
-    public function getService()
-    {
-        return $this->service;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getModel()
-    {
-        return $this->model;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTable()
-    {
-        return $this->table;
+        return Config::get("mvcs.stubs.$d.path").$this->extraPath;
     }
 
     /**
@@ -361,23 +276,6 @@ class MakeCvmsConsole extends Command
             return [];
         }
 
-    }
-
-
-    /**
-     * @return mixed
-     */
-    public function getValidator()
-    {
-        return $this->validator;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getController()
-    {
-        return $this->controller;
     }
 
     /**
@@ -413,18 +311,46 @@ class MakeCvmsConsole extends Command
      */
     private function getStub()
     {
-        $stubs = [
-            'S'     => $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR."service.stub"),
-            'C'     => $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR."controller.stub"),
-            'V'     => $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR."validator.stub"),
-            'M'     => $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR."model.stub"),
-        ];
+        $configs = Config::get('mvcs.stubs');
+        $stubs = [];
+        foreach($configs as $key => $stub) {
+            $stubs[$key] = $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR.$stub['name'].".stub");
+        }
         foreach ($stubs as $k=>$v) {
             if (strpos($this->only,$k) === false){
                 unset($stubs[$k]);
             }
         }
         return $stubs;
+    }
+
+    public function getClassName($d)
+    {
+        return $this->model.Config::get("mvcs.stubs.$d.post_fix");
+    }
+
+    private function getNameSpace($d)
+    {
+        return $this->model.Config::get("mvcs.stubs.$d.namespace").$this->extraSpace;
+    }
+
+    private function getBaseUse($d)
+    {
+        $ens = config("mvcs.stubs.$d.extands.namespace",'');
+        $en = config("mvcs.stubs.$d.extands.name",'');
+        if (empty($ens) || $ens == $this->getNameSpace($d)) {
+            return null;
+        }
+        return "use ".$ens.'\\'.$en.';';
+    }
+
+    private function getExtands($d)
+    {
+        $en = config("mvcs.stubs.$d.extands.name",'');
+        if (empty($en)) {
+            return null;
+        }
+        return " extends ".$en;
     }
 
     /**
@@ -436,83 +362,41 @@ class MakeCvmsConsole extends Command
      */
     private function getTemplateData()
     {
-        $modelName = $this->model;
-        $validatorName = $this->getValidator();
-        $serverName = $this->getService();
-        $create_date = date("Y-m-d H:i:s");
-        $controllerName = $this->getController();
-        $tableName = $this->getTable();
-        $modularName = strtoupper($tableName);
-
-
-        $modelNameSpace = $this->getModelNameSpace();
-        $validatorNameSpace = $this->getValidatorNameSpace();
-        $serverNameSpace = $this->getServiceNameSpace();
-        $controllerNameSpace = $this->getControllerNameSpace();
-
-
-        $modelBn = config('mvcs.model_base.name','');
-        $validatorBn = config('mvcs.validator_base.name','');
-        $serviceBn = config('mvcs.service_base.name','');
-        $controllerBn = config('mvcs.controller_base.name','');
-
-        $modelBu = config('mvcs.model_base.namespace',$modelNameSpace) == $modelNameSpace
-            ? ""
-            : config('mvcs.model_base.namespace','');
-        $modelBu = $modelBu?"use ".$modelBu.'\\'.$modelBn.';':"";
-        $validatorBu = config('mvcs.validator_base.namespace',$validatorNameSpace) == $validatorNameSpace
-            ? ""
-            : config('mvcs.validator_base.namespace','');
-        $validatorBu = $validatorBu?"use ".$validatorBu.'\\'.$validatorBn.';':"";
-        $serviceBu = config('mvcs.service_base.namespace',$serverNameSpace) == $serverNameSpace
-            ? ""
-            : config('mvcs.service_base.namespace','');
-        $serviceBu = $serviceBu?"use ".$serviceBu.'\\'.$serviceBn.';':"";
-        $controllerBu = config('mvcs.controller_base.namespace',$controllerNameSpace) == $controllerNameSpace
-            ? ""
-            : config('mvcs.controller_base.namespace','');
-        $controllerBu = $controllerBu?"use ".$controllerBu.'\\'.$controllerBn.';':"";
-
-        $validatorBn = $validatorBn?" extends ".$validatorBn:"";
-        $modelBn = $modelBn?" extends ".$modelBn:"";
-        $serviceBn = $serviceBn?" extends ".$serviceBn:"";
-        $controllerBn = $controllerBn?" extends ".$controllerBn:"";
+        $create_date  = date("Y-m-d H:i:s");
+        $tableName    = $this->table;
+        $modularName  = strtoupper($tableName);
         $tableColumns = $this->getTableColumns();
-
+        $templateVar  = [
+            'create_date'      => $create_date,
+            'table_name'       => $tableName,
+            'modular_name'     => $modularName,
+        ];
+        for($i=0; $i< strlen($this->only); $i ++) {
+            $d = $this->only[$i];
+            $name = Config::get("mvcs.stubs.$d.name");
+            $templateVar[$name.'_name'] = $this->getClassName($d);
+            $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
+            $templateVar[$name.'_use']   = $this->getBaseUse($d);
+            $templateVar[$name.'_extands']   = $this->getExtands($d);
+            $extra = Config::get("mvcs.stubs.$d.extra");
+            foreach($extra as $key => $func) {
+                $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
+            }
+        }
         $columns = [];
-
-
+        // 根据数据库字段生成一些模板数据。
         $this->getValidatorData($tableColumns,$columns,$validatorRule,$validatorExcel,$validatorExcelDefault,$modelRelaies);
 
         $fillableColumn = implode(',',$columns);
 
-        $templateVar = [
-            'validator_name'   => $validatorName,
-            'service_name'     => $serverName,
-            'create_date'      => $create_date,
-            'model_name'       => $modelName,
-            'controller_name'  => $controllerName,
-            'validator_bu'     => $validatorBu,
-            'service_bu'       => $serviceBu,
-            'model_bu'         => $modelBu,
-            'controller_bu'    => $controllerBu,
-            'validator_bn'     => $validatorBn,
-            'service_bn'       => $serviceBn,
-            'model_bn'         => $modelBn,
-            'controller_bn'    => $controllerBn,
-            'validator_ns'     => $validatorNameSpace,
-            'service_ns'       => $serverNameSpace,
-            'model_ns'         => $modelNameSpace,
-            'controller_ns'    => $controllerNameSpace,
-            'table_name'       => $tableName,
-            'modular_name'     => $modularName,
+        $templateVar2 = [ // 默认构造的数据
             'fillable_column'  => $fillableColumn,
             'validator_rule'   => trim($validatorRule),
             'excel_column_rule'=> trim($validatorExcel),
             'excel_column_default'=> trim($validatorExcelDefault),
             'model_relay'      => $modelRelaies,
         ];
-        return $templateVar;
+        return array_merge($templateVar,$templateVar2);
     }
 
     /**
@@ -573,7 +457,7 @@ class MakeCvmsConsole extends Command
                         $otherModel  = $this->lineToHump($otherTable);
                         $v['rule'][] = 'exist:'.$otherTable.',id';
                         $relaies[]   = "public function $otherModel() {\n".
-                            '        return $this->belongsTo("'.$this->getModelNameSpace().'\\'.ucfirst($otherModel).'");'."\n".
+                            '        return $this->belongsTo("'.$this->getNameSpace('M').'\\'.ucfirst($otherModel).'");'."\n".
                             "    }\n";
 
                     }
@@ -620,7 +504,7 @@ class MakeCvmsConsole extends Command
     }
 
     /**
-     * 获取模板文件
+     * 生成目标文件
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:13:56
@@ -633,7 +517,6 @@ class MakeCvmsConsole extends Command
         foreach ($templateData as $search => $replace) {
             $stub = str_replace('$'.$search, $replace, $stub);
         }
-
         return $stub;
     }
 }

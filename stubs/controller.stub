@@ -2,11 +2,11 @@
 
 namespace $controller_ns;
 
-$controller_bu
+$controller_use
 use $service_ns\$service_name;
 use Illuminate\Http\Request;
 
-class $controller_name $controller_bn
+class $controller_name $controller_extands
 {
     //protected $modular='$modular_name';
     /**
@@ -23,6 +23,8 @@ class $controller_name $controller_bn
     /**
      * Store a newly created resource in storage.
      *
+     * @author $author_info
+     * @date   $create_date
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
@@ -35,6 +37,8 @@ class $controller_name $controller_bn
     /**
      * Display the specified resource.
      *
+     * @author $author_info
+     * @date   $create_date
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -47,6 +51,8 @@ class $controller_name $controller_bn
     /**
      * Update the specified resource in storage.
      *
+     * @author $author_info
+     * @date   $create_date
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -60,6 +66,8 @@ class $controller_name $controller_bn
     /**
      * Remove the specified resource from storage.
      *
+     * @author $author_info
+     * @date   $create_date
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
