@@ -2,8 +2,11 @@
 
 
 return [
-    'default_stubs' => 'MVCS',
-    'author' => 'chentengfei <tengfei.chen@atommatrix.com>', // 用户
+
+    'default_stubs' => 'MVCS', //默认生成模板
+
+    'author' => 'chentengfei <tengfei.chen@atommatrix.com>', // 用户描述
+
     'stubs' => [
         'M' => [ // model 模板
             'name'      => 'model', // stabs文件名,及参数主名
@@ -20,7 +23,7 @@ return [
             'post_fix'  => 'Validator',
             'path'      => app_path().DIRECTORY_SEPARATOR.'Validators',
             'namespave' => 'App\Validators',
-            'extands'   => ['namespace'=>'App\Validators','name'=>'BaseValidator'],
+            'extands'   => [],
         ],
         'C' => [ // 控制器模板
             'name'      => 'controller',

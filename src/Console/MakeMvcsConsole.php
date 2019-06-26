@@ -9,48 +9,40 @@ use Illuminate\Support\Facades\DB;
 
 class MakeMvcsConsole extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    // 脚本命令
     protected $signature = 'make:mvcs {model} {--force=} {--only=} {--connect=} {--middleware=}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'create templates of controller、validator、model、service';
+    // 脚本描述
+    protected $description = '创建你预定的文件模板';
 
-
-    private $service;
-
+    //模型
     private $model;
 
-    private $validator;
-
-    private $controller;
-
+    //表名
     private $table;
 
+    //文件组
     private $files;
 
+    //中间件
     private $middleware = [];
 
-    private $namespace = ''; 
-
+    //相对名字空间
     private $extraSpace = "";
     private $extraPath  = "";
 
+    //强制覆盖
     private $force = '';
 
+    //生成文件
     private $only = 'MVCS';
 
+    //数据库链接
     private $connect = null;
 
-    // validator 中忽略的字段,指不该被用户填充的字段
+    //不该被用户填充的字段
     private $ignoreColumns = [];
+
     /**
      * Create a new command instance.
      *
@@ -370,6 +362,7 @@ class MakeMvcsConsole extends Command
             'create_date'      => $create_date,
             'table_name'       => $tableName,
             'modular_name'     => $modularName,
+            'author_info'      => Config::get("mvcs.author")
         ];
         for($i=0; $i< strlen($this->only); $i ++) {
             $d = $this->only[$i];
