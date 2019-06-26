@@ -40,6 +40,8 @@ class ImportMvcsDbConsole extends Command
 
     // 默认列宽
     private $defaultVarCharLen = 50;
+    private $defaultDecimalL   = 8;
+    private $defaultDecimalP   = 2;
 
     // 表前后缀
     private $table_prefix  = '';
@@ -113,24 +115,45 @@ class ImportMvcsDbConsole extends Command
      *
      * @author ctf <tengfei.chen@atommatrix.com>
      * @param array $columns 列名
-     * @param array $example 示例
+     * @param array $rules 示例
      */
-    private function replaceMigrationColumn($columns,$example)
+    private function replaceMigrationColumn($columns,$rules)
     {
         $tableColumn = $this->extraColumns;
         foreach ($columns as $k=>$v)
         {
-            if(ends_with($v,'date')) {//以date结尾的数据类型是datetime
+            $rule = $rules[$k] ?: '';
+            list($cs,$is) = explode('@',$rule);
+            list($c,$l1,$l2) = explode('_',$cs);
+            $c = strtolower($c);
+            $index = '';
+            if ($is && \in_array($is,['index','unique'])) {
+                $index = '->'.$is.'()';
+            }
+            if (\in_array($c,['string','varchar'])) {//根据规则创建字段
+                $l = $l1 ?: $this->defaultVarCharLen;
+                $tableColumn[] = '$'."table->string('$v',$l){$index}->nullable();";
+            } elseif (\in_array($c,['decimal','double','float'])) {
+                $l1 = $l1 ?: $this->defaultDecimalL;
+                $l2 = $l2 ?: $this->defaultDecimalP;
+                $tableColumn[] = '$'."table->decimal('$v',$l1,$l2){$index}->nullable();";
+            } elseif (\in_array($c,['bigincrements','biginteger','binary','boolean','char','date',
+                'datetime','datetimetz','integer','json','jsonb','longtext','mediuminteger','mediumtext',
+                'smallinteger','text','time','timestamp','tinyinteger','uuid' ])) {
+                $tableColumn[] = '$'."table->$c('$v',$l1,$l2){$index}->nullable();";
+            } elseif ($c == 'int') {
+                $tableColumn[] = '$table->integer("'.$v.'")->nullable();';
+            } elseif (ends_with($v,'date')) {//尝试以其他方式确定字段类型。
                 $tableColumn[] = '$table->datetime("'.$v.'")->nullable();';
-            }elseif(isset($example[$k]) && is_numeric($example[$k])) {//数据格式
-                if(strpos($example[$k],'.')){ // 小数用字符串记录
+            } elseif (isset($example[$k]) && is_numeric($example[$k])) {//数字怎么搞
+                if (strpos($example[$k],'.')){ // 小数用字符串记录
                     $tableColumn[] = '$table->string("'.$v.'",'.$this->defaultVarCharLen.')->nullable();';
-                } elseif(strlen($example[$k]) < 10) { // 小于10位整数用int
+                } elseif (strlen($example[$k]) < 10) { // 小于10位整数用int
                     $tableColumn[] = '$table->integer("'.$v.'")->nullable();';
                 } else { //长整数用string
                     $tableColumn[] = '$table->string("'.$v.'",'.$this->defaultVarCharLen.')->nullable();';
                 }
-            } elseif(isset($example[$k]) && strlen($example[$k])>150){//超长字符串用text
+            } elseif(isset($example[$k]) && strlen($example[$k]) > 150){ // 超长字符串用text
                 $tableColumn[] = '$table->text("'.$v.'")->nullable();';
             } elseif(isset($example[$k]) && strlen($example[$k])>$this->defaultVarCharLen - 10){ //长字符串用255存储
                 $tableColumn[] = '$table->string("'.$v.'",255)->nullable();';

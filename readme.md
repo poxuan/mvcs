@@ -45,21 +45,21 @@
  >  Route::post('account/import','AccountController@import');//非必要 \
  >  Route::Resource('account','AccountController', ['only' => ['index', 'show', 'store', 'update', 'destroy']]); 
 
-### 增加的artisan make:report命令
+### 增加的artisan import:mvcs_db命令
 
-该命令用于将excel导入成数据库表,支持多sheet批量生成
+该命令用于将excel导入成数据库表,支持多sheet生成
 
-> php artisan make:report {file} {--type=} \
+> php artisan import:mvcs_db {file} {--type=} \
 > \
 > file 为需导入文件,请使用绝对路径 \
-> --type    表示强制导入类型,1:结构,2:数据,3:数据和结构 \
+> --type    表示强制导入类型,1:结构,2:数据,3:数据和结构（默认） \
 > excel 格式 \
 > 第一行 \
 > 表中文名  表英文名 \
 > 第二行 \
 > 列名(date结尾存储为datetime )... \
 > 第三行 \
-> 字段值(此行作为示例,尽可能完整,作为类型判断简单依据,不导入数据库) \
+> 字段格式(形为 type[_length1[_length2]][@index|unique]) 如: varchar_255@unique 、decimal_8_2@index \
 > 其余行 \
 > 字段值(待导入数据)
 
