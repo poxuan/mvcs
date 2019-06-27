@@ -254,15 +254,14 @@ class MakeMvcsConsole extends Command
     {
 
         try {
-            $database = config('database.connections.'.($this->connect?:DB::getDefaultConnection()).'.database');
-            if ($this->connect) {
-                DB::setDefaultConnection($this->connect);
-            }
+            $this->connect = $this->connect ?: DB::getDefaultConnection();
+            $database = config('database.connections.'.$this->connect.'.database');
+            DB::setDefaultConnection($this->connect);
             return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
                        IS_NULLABLE as \'Null\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
                 [
-                    ':table'=>$this->table,
+                    ':table' => $this->table,
                     ':schema' => $database,
                 ]);
         } catch (\Exception $e) {
