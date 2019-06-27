@@ -27,7 +27,7 @@
 > 使用前可编辑stubs模板以适用自身项目 \
 > 使用前应先建表,包括表中备注,脚本会使用部分表格字段生成一些数据,可以省去不少操作,暂时只适配了mysql
 
-通过该指令，将在app下自动生成 controller、validator、model、service 四个文件；
+通过该指令，将在app下自动生成 controller、validator、model、service 四个文件（或自己定义的任何文件）；
 
 如：执行 php artisan make:mvcs account //model 为驼峰式或骆驼式,如UserAccount 或 userAccount
 

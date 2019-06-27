@@ -68,8 +68,9 @@ class MakeMvcsConsole extends Command
         if (empty($model)){
             die("you must input your model!");
         }
-        if (count($modelArray = explode(DIRECTORY_SEPARATOR,$model)) > 1){
-            $model = array_pop($modelArray);
+        if (count($modelArray = explode('/',$model)) > 1){
+            $modelArray = array_map('ucfirst',$modelArray);
+            $model = ucfirst(array_pop($modelArray));
             $this->extraSpace = '\\'.implode('\\',$modelArray);
             $this->extraPath = DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$modelArray);
         }
@@ -239,7 +240,7 @@ class MakeMvcsConsole extends Command
 
     private function getDirectory($d)
     {
-        return Config::get("mvcs.stubs.$d.path").$this->extraPath;
+        return Config::get("mvcs.stubs.$d.path").DIRECTORY_SEPARATOR.$this->extraPath;
     }
 
     /**
@@ -324,7 +325,7 @@ class MakeMvcsConsole extends Command
 
     private function getNameSpace($d)
     {
-        return $this->model.Config::get("mvcs.stubs.$d.namespace").$this->extraSpace;
+        return Config::get("mvcs.stubs.$d.namespace").$this->extraSpace;
     }
 
     private function getBaseUse($d)
