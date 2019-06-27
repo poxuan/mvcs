@@ -74,12 +74,13 @@ class $service_name $service_extands
     {
         $this->postClear($post);
         $validator_name::store($post);
-        // 设置组织ID
-        $post['org_id'] = defined('CURRENT_ORG_ID')?CURRENT_ORG_ID:0;
+        // 设置全局属性
+        // $post['org_id'] = defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0;
+        // $post['created_by'] = session('user_id') ?: 0;
 
         $result = $model_name::create($post);
         if ($result) {
-            $this->response['data'] = $result->toArray();
+            // $this->response['data'] = $result->toArray();
             $this->response['message'] = '添加成功!';
         } else {
             $this->response['code']    = -1;

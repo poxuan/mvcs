@@ -89,7 +89,7 @@ class MakeMvcsConsole extends Command
         if ($middleware) {
             $middleware = explode(',',$middleware);
         }
-        $this->middleware = config('mvcs.routes.middleware') + $middleware;
+        $this->middleware = config('mvcs.routes.middlewares') + $middleware;
         $this->model      = $model;
         $this->table      = $this->humpToLine($model);
         // 自动生成MVCS文件
@@ -164,16 +164,17 @@ class MakeMvcsConsole extends Command
                 $routeStr .= "->group(function(){\n";
             }
             $method = ['get','post','put','delete','patch'];
+            $controller = $this->getClassName('C');
             foreach ($method as $met) {
                 $rs = config('mvcs.routes.'.$met);
                 foreach($rs as $m => $r) {
-                    $routeStr .= "    Route::$met('{$this->table}/$r','{$this->controller}@$m');\n";
+                    $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
                 }
             }
             if(config('mvcs.routes.apiResource')) {
-                $routeStr .= "    Route::apiResource('{$this->table}','{$this->controller}');\n";
+                $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
             } elseif (config('mvcs.routes.resource')) {
-                $routeStr .= "    Route::resource('{$this->table}','{$this->controller}');\n";
+                $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
             }
             if ($group) {
                 $routeStr .= "});\n\n";
@@ -318,7 +319,7 @@ class MakeMvcsConsole extends Command
 
     public function getClassName($d)
     {
-        return $this->model.Config::get("mvcs.stubs.$d.post_fix");
+        return $this->model.Config::get("mvcs.stubs.$d.postfix");
     }
 
     private function getNameSpace($d)
@@ -371,7 +372,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name.'_use']   = $this->getBaseUse($d);
             $templateVar[$name.'_extands']   = $this->getExtands($d);
-            $extra = Config::get("mvcs.stubs.$d.extra");
+            $extra = Config::get("mvcs.stubs.$d.extra",[]);
             foreach($extra as $key => $func) {
                 $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
             }
@@ -383,13 +384,13 @@ class MakeMvcsConsole extends Command
         $fillableColumn = implode(',',$columns);
 
         $templateVar2 = [ // 默认构造的数据
-            'fillable_column'  => $fillableColumn,
             'validator_rule'   => trim($validatorRule),
-            'excel_column_rule'=> trim($validatorExcel),
-            'excel_column_default'=> trim($validatorExcelDefault),
-            'model_relay'      => $modelRelaies,
+            'validator_column_rule'=> trim($validatorExcel),
+            'validator_column_default'=> trim($validatorExcelDefault),
+            'model_fillable'  => $fillableColumn,
+            'model_relay'     => $modelRelaies,
         ];
-        return array_merge($templateVar,$templateVar2);
+        return array_merge($templateVar2,$templateVar);
     }
 
     /**

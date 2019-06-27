@@ -15,7 +15,7 @@ class $model_name $model_extands
 
     // 可填充字段
     protected $fillable = [
-        $fillable_column
+        $model_fillable
     ];
     // 不展示字段
     protected $hidden = [

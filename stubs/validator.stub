@@ -132,7 +132,7 @@ class $validator_name $validator_extands
     public static function excelColumn()
     {
         $keys = [
-            $excel_column_rule
+            $validator_column_rule
         ];
 
         return $keys;
@@ -148,7 +148,7 @@ class $validator_name $validator_extands
     public static function excelDefault()
     {
         $keys = [
-            $excel_column_default
+            $validator_column_default
         ];
         return $keys;
     }
