@@ -37,13 +37,11 @@ return [
             //     {name}_anno    注释,不用创建的类的相关行
             // PS：请不要共用任何前缀，如定义 namespace 可能会替换为 ${name}_name 的结果 + space
             'extra'     => [
-
                 // model_fillable 示例, 会覆盖预定义的值
                 // 可以为方法或字符串（但字符串完全每必要吧）；
                 // 为方法时，传入两个数据
                 // $model   骆驼式，如使用 make:mvcs miniProgram 命令，此处将为 MiniProgram
                 // $columns 可能从数据库中读取到的字段，object 或 空，具体结构请自行输出查看
-
                 'fillable' => function($model, $columns) {
                     $res = "";
                     foreach ($columns as $column) {
@@ -86,20 +84,30 @@ return [
         // 列表视图模板
         'I' => [
             'name'      => 'index',
-            // 固定的保存文件名（只支持php ，后缀省略）
             'postfix' => '/index.blade',
-            // 保存路径
             'path'      => resource_path('views'),
-            'namespave' => '',
-            'extands'   => [],
+            'extra'     => [
+                'table' => function($model, $columns) {
+                    // todo 
+                    return "";
+                },
+                'from'  => function($model, $columns) {
+                    // todo
+                    return "";
+                },
+            ]
         ],
         // 编辑视图模板
         'F' => [
             'name'      => 'from',
             'postfix'   => '/form.blade',
             'path'      => resource_path('views'),
-            'namespave' => '',
-            'extands'   => [],
+            'extra'     => [
+                'from'  => function($model, $columns) {
+                    // todo 根据
+                    return "";
+                },
+            ]
         ],
         // 资源文件模板
         'R' => [
