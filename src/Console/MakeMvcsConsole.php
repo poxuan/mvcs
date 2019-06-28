@@ -198,7 +198,7 @@ class MakeMvcsConsole extends Command
 
         for($i=0; $i< strlen($this->only); $i ++) {
             $d = $this->only[$i];
-            $path = $this->getPath($key);
+            $path = $this->getPath($d);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
             if(! $this->files->isDirectory($directory)){

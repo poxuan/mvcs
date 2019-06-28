@@ -136,7 +136,7 @@ class ImportMvcsDbConsole extends Command
             list($column_name,$column_comment) = array_map('trim',explode("@",$column));
             $column_name     = $this->humpToLine(trim($column_name));
             $column_comment  = addcslashes($column_comment ?: '');
-            $rule            = $rules[$kkey] ?: '';
+            $rule            = $rules[$key] ?: '';
             list($colume_rule,$colume_index)    = explode('@',$rule);
             list($c_type,$c_l1,$c_l2) = explode('_',$colume_rule);
             $c_type          = strtolower($c_type);

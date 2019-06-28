@@ -34,14 +34,10 @@ return [
             //     {name}_ns      名字空间,
             //     {name}_use     基类use,
             //     {name}_extands 基类继承,
-            //     {name}_anno    注释,不用创建的类的相关行
-            // PS：请不要共用任何前缀，如定义 namespace 可能会替换为 ${name}_name 的结果 + space
+            //     {name}_anno    注释,不用创建的类的相关行加 // 
+            // PS：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
             'extra'     => [
                 // model_fillable 示例, 会覆盖预定义的值
-                // 可以为方法或字符串（但字符串完全每必要吧）；
-                // 为方法时，传入两个数据
-                // $model   骆驼式，如使用 make:mvcs miniProgram 命令，此处将为 MiniProgram
-                // $columns 可能从数据库中读取到的字段，object 或 空，具体结构请自行输出查看
                 'fillable' => function($model, $columns) {
                     $res = "";
                     foreach ($columns as $column) {
@@ -116,11 +112,10 @@ return [
             'path'      => app_path().DIRECTORY_SEPARATOR.'Resources',
             'namespave' => 'App\Resources',
             'extands'   => [
-                'namespace'=>'Illuminate\Http\Resources\Json',
-                'name'=>'Resource'
+                'namespace' => 'Illuminate\Http\Resources\Json',
+                'name'      => 'Resource'
             ],
             'extra'     => [
-                // 自动生成 toArray 相关行,在模板中使用 $resource_array 替换
                 'array' => function($model, $columns) {
                     $arraylines = [];
                     foreach ($columns as $column) {
@@ -135,7 +130,7 @@ return [
                             
                         }
                     }
-                    return implode("\n            ",$funclines);
+                    return implode("\n            ",$arraylines);
                 }
             ],
         ],
@@ -146,11 +141,10 @@ return [
             'path'      => app_path().DIRECTORY_SEPARATOR.'Filters',
             'namespave' => 'App\Filters',
             'extands'   => [
-                'namespace' =>'App\Filters', // 基类名字空间
-                'name'      => 'Filter' // 基类类名
+                'namespace' => 'App\Filters',
+                'name'      => 'Filter'
             ],
             'extra'     => [
-                // 自动生成 function 相关行,在模板中使用 $filter_functions 替换
                 'functions' => function($model, $columns) {
                     $funclines = [];
                     foreach ($columns as $column) {
@@ -164,26 +158,27 @@ return [
                                 $funclines[] = 'function '.$column->Field.'($value) {';
                                 $funclines[] = '    $this->builder->where("'.$column->Field.'","=",$value);';
                                 $funclines[] = '}';
-                                $funclines[] = ''; // 加一个空行。
+                                $funclines[] = '';
                             } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
                                 $funclines[] = 'function '.$column->Field.'($value) {';
                                 $funclines[] = '    $dates = explode(" - ",$value);';
                                 $funclines[] = '    $this->builder->whereBetween("'.$column->Field.'",$dates);';
                                 $funclines[] = '}';
-                                $funclines[] = ''; // 加一个空行。
+                                $funclines[] = '';
                             }
                         }
                     }
-                    // 每行之间通过换行和空格对齐。
                     return implode("\n    ",$funclines);
                 }
             ],
         ]
     ],
+
     // 表中不该用户填充的字段
     "ignore_columns" => ['id','created_at','updated_at','deleted_at','created_by','updated_by','deleted_by'],
     
     /* 自动添加路由配置 */
+
     // 是否自动添加路由
     "add_route" => true,
     // 路由类型
