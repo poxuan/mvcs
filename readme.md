@@ -1,7 +1,9 @@
 
-# Introduction
+# 介绍
 
 本项目基于laravel 框架开发,用于放便的生成基础代码
+
+[English Introduction](./README_EN.md)
 
 ## 使用步骤
 
@@ -12,6 +14,10 @@
 
 > php artisan vendor:publish \
 > 选择相应序号发布
+
+第三步：修改config 及 stubs
+
+> 发布成功后，分别出现在config 和 resource 中，内有中文注解。
 
 ## make:mvcs命令
 
@@ -60,9 +66,17 @@
 > 第三行 字段格式...\
 > 形如 type[_length1[_length2]][@index|unique]) \
 > 例: int、char@index 、varchar_255@unique、decimal_8_2 \
-> 匹配失败时，作为示例值匹配字段类型（如 100 将匹配为 int）。可能会导致后续数据导入失败。 \
+> 格式匹配失败时，作为示例值匹配字段类型（如 100 将匹配为 int）。这可能会导致后续数据导入失败。 \
 > 其余行 \
 > 待导入数据
+
+示例文件
+
+user | 用户表 | -
+-|-|-
+nickname@昵称|sex@性别1男2女|brith@生日
+string_20@unique|tinyinteger|date
+jack ma|1|1980-12-21
 
 ## License
 

@@ -1,0 +1,10 @@
+<?php
+
+$filter_ns;
+
+$filter_use
+
+class $resource_name $resource_extends
+{
+    $filter_functions
+}

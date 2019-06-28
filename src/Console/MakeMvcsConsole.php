@@ -198,7 +198,8 @@ class MakeMvcsConsole extends Command
 
         for($i=0; $i< strlen($this->only); $i ++) {
             $d = $this->only[$i];
-            $directory = $this->getDirectory($d);
+            $path = $this->getPath($key);
+            $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
             if(! $this->files->isDirectory($directory)){
                 $this->files->makeDirectory($directory, 0755, true);
@@ -240,7 +241,11 @@ class MakeMvcsConsole extends Command
 
     private function getDirectory($d)
     {
-        return Config::get("mvcs.stubs.$d.path").DIRECTORY_SEPARATOR.$this->extraPath;
+        $path = Config::get("mvcs.stubs.$d.path");
+        if (is_callable($path)) {
+            return $path($this->model,$this->extraPath);
+        }
+        return Config::get("mvcs.stubs.$d.path").$this->extraPath;
     }
 
     /**
@@ -365,13 +370,13 @@ class MakeMvcsConsole extends Command
             'modular_name'     => $modularName,
             'author_info'      => Config::get("mvcs.author")
         ];
-        for($i=0; $i< strlen($this->only); $i ++) {
-            $d = $this->only[$i];
+        foreach(Config::get('mvcs.stubs') as $d => $stub) {
             $name = Config::get("mvcs.stubs.$d.name");
             $templateVar[$name.'_name'] = $this->getClassName($d);
             $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name.'_use']   = $this->getBaseUse($d);
-            $templateVar[$name.'_extands']   = $this->getExtands($d);
+            $templateVar[$name.'_extands'] = $this->getExtands($d);
+            $templateVar[$name.'_anno']   = strpos('_'.$this->only,$d) ? "" : "// "; //是否注释掉
             $extra = Config::get("mvcs.stubs.$d.extra",[]);
             foreach($extra as $key => $func) {
                 $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
