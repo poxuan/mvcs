@@ -80,7 +80,7 @@ class MakeMvcsConsole extends Command
         }
         $only = $this->option('only');
         if ($only && $only != 'all') {
-            $this->only = $only;
+            $this->only = strtoupper($only);
         }
         $connect = $this->option('connect');
         if ($connect) {
@@ -312,11 +312,8 @@ class MakeMvcsConsole extends Command
         $configs = Config::get('mvcs.stubs');
         $stubs = [];
         foreach($configs as $key => $stub) {
-            $stubs[$key] = $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR.$stub['name'].".stub");
-        }
-        foreach ($stubs as $k=>$v) {
-            if (strpos($this->only,$k) === false){
-                unset($stubs[$k]);
+            if (strpos('_'.$this->only,$k)) {
+                $stubs[$key] = $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR.$stub['name'].".stub");
             }
         }
         return $stubs;
@@ -376,7 +373,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name.'_use']   = $this->getBaseUse($d);
             $templateVar[$name.'_extands'] = $this->getExtands($d);
-            $templateVar[$name.'_anno']   = strpos('_'.$this->only,$d) ? "" : "// "; //是否注释掉
+            $templateVar[$name.'_anno']   = stripos('_'.$this->only,$d) ? "" : "// "; //是否注释掉
             $extra = Config::get("mvcs.stubs.$d.extra",[]);
             foreach($extra as $key => $func) {
                 $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
