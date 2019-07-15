@@ -20,14 +20,14 @@ class ImportMvcsDbConsole extends Command
      *
      * @var string
      */
-    protected $signature = 'import:mvcs_db {file} {--type=}';
+    protected $signature = 'mvcs:excel {file} {--type=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'create import db ';
+    protected $description = 'create db from excel';
 
     // 当前表名
     protected $table;
@@ -53,11 +53,15 @@ class ImportMvcsDbConsole extends Command
      */
     public function handle()
     {
+        if (config('app.env') == 'production') {
+            die("禁止在线上环境运行!");
+        }
         $file     = $this->argument('file');
         if (!is_file($file)){
             die("导入文件不存在!");
         }
         $type = $this->option('type');
+        
         if ($type && in_array($type,[self::TYPE_STRUCTURE_ONLY,self::TYPE_DATA_ONLY,self::TYPE_STRUCTURE_DATA])) {
             $this->type = $type;
         }
@@ -66,9 +70,11 @@ class ImportMvcsDbConsole extends Command
         $this->table_prefix      = config('mvcs.report.table_prefix','');
         $this->table_postfix     = config('mvcs.report.table_postfix','');
         if(($this->type & 1) == 1) {
+            echo "Creating Table start";
             $this->makeStruct($file);
         }
         if(($this->type & 2) == 2) {
+            echo "Inserting Data start";
             $this->makeData($file);
         }
     }
@@ -116,6 +122,7 @@ class ImportMvcsDbConsole extends Command
             // 修改 migration 文件 
             $this->replaceMigrationColumn($columns, $rules);
         }
+        echo "Creating Table finish\n";
         // 生成数据库
         Artisan::call('migrate');
     }
@@ -133,67 +140,83 @@ class ImportMvcsDbConsole extends Command
         $has_primary = false;
         foreach ($columns as $key =>$column)
         {
-            list($column_name,$column_comment) = array_map('trim',explode("@",$column));
-            $column_name     = $this->humpToLine(trim($column_name));
-            $column_comment  = addcslashes($column_comment ?: '');
+            list($c_name,$c_comment) = array_map('trim',explode("#",$column));
+            $nullable = "->nullable()";
+            if ($c_name[0] == '*') { // 必填
+                $nullable = "";
+                $c_name = str_replace('*','',$c_name);
+            }
+            $c_name     = $this->humpToLine(trim($c_name));
+            
+            $c_comment  = addslashes($c_comment ?: '');
+            
             $rule            = $rules[$key] ?: '';
-            list($colume_rule,$colume_index)    = explode('@',$rule);
-            list($c_type,$c_l1,$c_l2) = explode('_',$colume_rule);
+            list($c_rule,$c_index)    = explode('#',$rule."#");
+            list($c_type,$c_l1,$c_l2) = explode('_',$c_rule.'__');
             $c_type          = strtolower($c_type);
             $index = '';
-            if ($column_name = id);
-            if ($is && \in_array($is,['index','unique'])) {
-                $index = '->'.$is.'()';
-            }
-            $column_end = $index."->nullable()->comment(\"{$column_comment}\");";
             //int 转为 integer
-            if (endsWith($c_type,'int')) {
-                str_replace('int','integer',$c_type);
+            if (\substr($c_type,-3) == 'int') {
+                $c_type = str_replace('int','integer',$c_type);
             }
+            if ($c_name == 'id' && substr($c_type,-7) == 'integer') {
+                $has_primary = true;
+                $c_type = 'increments';
+            } elseif ($c_index && \in_array($c_index,['primary'])) {
+                $has_primary = true;
+                $index = '->'.$c_index.'()';
+            } elseif ($c_index && \in_array($c_index,['index','unique'])) {
+                $index = '->'.$c_index.'()';
+            }
+            $column_end = $index.$nullable."->comment(\"{$c_comment}\");";
             if (\in_array($c_type,['string','varchar'])) {//根据规则创建字段
                 $l = $c_l1 ?: $this->defaultVarCharLen;
-                $tableColumn[] = '$'."table->string('$column_name',$l){$column_end}";
-            } elseif (\in_array($c,['decimal','double','float'])) {
+                $tableColumn[] = '$'."table->string('$c_name',$l){$column_end}";
+            } elseif (\in_array($c_type,['decimal','double','float'])) {
                 $l1 = $c_l1 ?: $this->defaultDecimalL;
-                $l2 = $c_l1 ?: $this->defaultDecimalP;
-                $tableColumn[] = '$'."table->decimal('$column_name',$l1,$l2){$column_end}";
-            } elseif (\in_array($c,['bigincrements','biginteger','binary','boolean','char','date',
-                'datetime','datetimetz','integer','json','jsonb','longtext','mediuminteger','mediumtext',
+                $l2 = $c_l2 ?: $this->defaultDecimalP;
+                $tableColumn[] = '$'."table->decimal('$c_name',$l1,$l2){$column_end}";
+            } elseif (\in_array($c_type,['bigincrements','biginteger','binary','boolean','char','date',
+                'datetime','datetimetz','increments','integer','json','jsonb','longtext','mediuminteger','mediumtext',
                 'smallinteger','text','time','timestamp','tinyinteger','uuid' ])) {
-                $tableColumn[] = '$'."table->$c('$column_name'){$column_end}";
-            } elseif (ends_with($column_name,'date') || ends_with($column_name,'datetime')) {
+                $tableColumn[] = '$'."table->$c_type('$c_name'){$column_end}";
+            } elseif (ends_with($c_name,'date') || ends_with($c_name,'datetime')) {
                 // name 以data 或 datetime 结尾，保存为datetime类型
-                $tableColumn[] = '$table->datetime("'.$column_name.'")'.$column_end;
-            } elseif (isset($example[$k]) && is_numeric($example[$k])) {
+                $tableColumn[] = '$table->datetime("'.$c_name.'")'.$column_end;
+            } elseif (isset($example[$key]) && is_numeric($example[$key])) {
                 // 数字处理方式
-                if (strpos($example[$k],'.')){ 
+                if (strpos($example[$key],'.')){ 
                     // 小数用字符串记录
-                    $tableColumn[] = '$table->string("'.$column_name.'",'.$this->defaultVarCharLen.')'.$column_end;
-                } elseif (strlen($example[$k]) < 10) { 
+                    $tableColumn[] = '$table->string("'.$c_name.'",'.$this->defaultVarCharLen.')'.$column_end;
+                } elseif (strlen($example[$key]) < 10) { 
                     // 小于10位整数用int
-                    $tableColumn[] = '$table->integer("'.$column_name.'")'.$column_end;
+                    $tableColumn[] = '$table->integer("'.$c_name.'")'.$column_end;
                 } else { 
                     // 长整数用string
-                    $tableColumn[] = '$table->string("'.$column_name.'",'.$this->defaultVarCharLen.')'.$column_end;
+                    $tableColumn[] = '$table->string("'.$c_name.'",'.$this->defaultVarCharLen.')'.$column_end;
                 }
-            } elseif(isset($example[$k]) && strlen($example[$k]) > 150){ 
+            } elseif(isset($example[$key]) && strlen($example[$key]) > 150){ 
                 // 超长字符串用text
-                $tableColumn[] = '$table->text("'.$column_name.'")'.$column_end;
-            } elseif(isset($example[$k]) && strlen($example[$k]) > $this->defaultVarCharLen / 2){ 
+                $tableColumn[] = '$table->text("'.$c_name.'")'.$column_end;
+            } elseif(isset($example[$key]) && strlen($example[$key]) > $this->defaultVarCharLen / 2){ 
                 // 较长字符串用255存储
-                $tableColumn[] = '$table->string("'.$column_name.'",255)'.$column_end;
+                $tableColumn[] = '$table->string("'.$c_name.'",255)'.$column_end;
             } else { 
                 // 普通用默认长度varchar存储
-                $tableColumn[] = '$table->string("'.$column_name.'",'.$this->defaultVarCharLen.')'.$column_end;
+                $tableColumn[] = '$table->string("'.$c_name.'",'.$this->defaultVarCharLen.')'.$column_end;
             }
         }
+        
         // 默认字段放在结尾
         $tableColumn = array_merge($tableColumn, $this->extraColumns);
         $r_path  = database_path('migrations');
         $files   = scandir($r_path);
         // 默认情况下，最后一个文件是刚建的migration
-        $file    = $real_path.DIRECTORY_SEPARATOR.array_pop($files);
+        $file    = $r_path.DIRECTORY_SEPARATOR.array_pop($files);
         $content = file_get_contents($file);
+        if ($has_primary) { //删除ID索引
+            $content = str_replace('$table->increments(\'id\');','',$content);
+        }
         // 替换默认时间戳字段为所有字段
         $content = str_replace('$table->timestamps();',implode("\n            ",$tableColumn),$content);
         @file_put_contents($file,$content);
@@ -264,6 +287,6 @@ class ImportMvcsDbConsole extends Command
         $str = preg_replace_callback('/([A-Z]{1})/',function($matches){
             return '_'.strtolower($matches[0]);
         },$str);
-        return substr($str,1);
+        return $str[0] == '_' ? substr($str,1) : $str;
     }
 }

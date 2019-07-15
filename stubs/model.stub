@@ -9,7 +9,7 @@ $model_use
 class $model_name $model_extands
 {
     // 软删除
-    use SoftDeletes;
+    // use SoftDeletes;
     // 表名
     protected $table = '$table_name';
 

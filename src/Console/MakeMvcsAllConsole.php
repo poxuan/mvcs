@@ -33,6 +33,9 @@ class MakeMvcsAllConsole extends Command
      */
     public function handle()
     {
+        if (config('app.env') == 'production') {
+            die("禁止在线上环境运行!");
+        }
         $tables = $this->getTables();
         foreach ($tables as $table) {
             $tableName = array_values((array)$table)[0];

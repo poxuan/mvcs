@@ -63,6 +63,9 @@ class MakeMvcsConsole extends Command
      */
     public function handle()
     {
+        if (config('app.env') == 'production') {
+            die("禁止在线上环境运行!");
+        }
         $model     = ucfirst($this->argument('model'));
 
         if (empty($model)){
@@ -105,7 +108,7 @@ class MakeMvcsConsole extends Command
         $str = preg_replace_callback('/([A-Z]{1})/',function($matches){
             return '_'.strtolower($matches[0]);
         },$str);
-        return substr($str,1);
+        return $str[0] == '_' ? substr($str,1) : $str;
     }
 
     /*

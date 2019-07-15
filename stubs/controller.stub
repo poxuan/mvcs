@@ -24,7 +24,6 @@ class $controller_name $controller_extands
         $result = $service->index($request->all());
         // 
         return response()->json($result);
-
     }
 
     /**

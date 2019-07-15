@@ -11,7 +11,7 @@ return [
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>', 
     // 模板配置数组
     'stubs' => [
-        // model 模板，推荐的模板包括，template T
+        // model 模板
         'M' => [
             // stabs文件名,及参数主名
             'name'      => 'model',
@@ -77,10 +77,10 @@ return [
             'namespace' => 'App\Services',
             'extands'   => [],
         ],
-        // 列表视图模板
+        // 主视图模板
         'I' => [
             'name'      => 'index',
-            'postfix' => '/index.blade',
+            'postfix' => '/index.blade',// 最终生成文件 {path}/{Model}/index.blade.php
             'path'      => resource_path('views'),
             'extra'     => [
                 'table' => function($model, $columns) {
@@ -93,7 +93,7 @@ return [
                 },
             ]
         ],
-        // 编辑视图模板
+        // 详情/编辑视图模板
         'F' => [
             'name'      => 'from',
             'postfix'   => '/form.blade',
@@ -125,6 +125,7 @@ return [
                             $len = strlen($column->Field);
                             while($len < 15) {
                                 $spaces .= " ";
+                                $len ++;
                             }
                             $arraylines[] = "'{$column->Field}'{$spaces}   => ".'$this->'.$column->Field.','; // 加一个空行。
                             
@@ -161,7 +162,7 @@ return [
                                 $funclines[] = '';
                             } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
                                 $funclines[] = 'function '.$column->Field.'($value) {';
-                                $funclines[] = '    $dates = explode(" - ",$value);';
+                                $funclines[] = '    $dates = explode(" - ",$value);';// 认为日期是区间
                                 $funclines[] = '    $this->builder->whereBetween("'.$column->Field.'",$dates);';
                                 $funclines[] = '}';
                                 $funclines[] = '';

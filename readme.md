@@ -52,31 +52,31 @@
 > Route::post('account/import','AccountController@import'); \
 > Route::Resource('account','AccountController']);
 
-## import:mvcs_db命令
+## mvcs:excel 命令
 
-该命令用于将excel导入成数据库表,支持多sheet
+该命令用于将excel导入成数据库表,支持多sheet, 此命令只能在非线上环境执行
 
-> php artisan import:mvcs_db {file} {--type=} \
+> php artisan mvcs:excel {file} {--type=} \
 > \
 > file 为需导入文件,请使用绝对路径 \
 > --type 导入类型,1:结构,2:数据,3:数据和结构（默认） \
 > excel 格式 \
-> 第一行 表中文名、表英文名 \
-> 第二行 各列名（英文）... \
-> 第三行 字段格式...\
-> 形如 type[_length1[_length2]][@index|unique]) \
-> 例: int、char@index 、varchar_255@unique、decimal_8_2 \
-> 格式匹配失败时，作为示例值匹配字段类型（如 100 将匹配为 int）。这可能会导致后续数据导入失败。 \
-> 其余行 \
-> 待导入数据
+> 第一行 表英文名、表中文解释 \
+> 第二行 各列名 [*]英文[#注释] 开头*表示必填项 ... \
+> 第三行 字段格式  type[_len1[_len2]][#index|unique|primary]) \
+> 例: int、char#index 、varchar_255#unique、decimal_8_2 \
+> 格式匹配失败时，当作字符尝试匹配字段类型 如 100 将匹配为 int \
+> 第四行以后 待导入数据
 
-示例文件
+示例格式
 
 user | 用户表 | -
--|-|-
-nickname@昵称|sex@性别1男2女|brith@生日
-string_20@unique|tinyinteger|date
+:-:|:-:|:-:
+*nickname#昵称|sex#性别1男2女|brith#生日
+string_20#unique|tinyint|date
 jack ma|1|1980-12-21
+
+[示例文件](./example.xlsx)
 
 ## License
 

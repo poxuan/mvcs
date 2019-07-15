@@ -11,9 +11,11 @@
    * choose the number of Callmecsx\Mvcs
 3. Edit config/mvcs.php to fit your program.
 
+> All commands following can not work on production machine.
+
 ## The Command make:mvcs
 
-It work to create a file with clear template.
+This command create a series of files from clear template.
 
 > Use it just like this: \
 > php artisan make:mvcs {model} {--force=} {--only=} {--connect=}
@@ -21,24 +23,24 @@ It work to create a file with clear template.
 ```TEXT
 model:
     It should be a camelCase word e.g. userAccount or UserAccount.
-    And it will relate to your table user_account.
+    And it will relate to your lineCase table user_account.
 --force:
     This option means that you want to cover the old files.
-    It default to be null, you can ues --force=all to cover all or --force=MC just cover M and C
+    It default to be null, you can ues --force=all to cover all files or --force=MC just cover M and C files.
 --only:
     This option means which file(s) you want to create.
-    It can be define in config files, can ues --only=MC just create M and C file.
+    It has be define in config files, ues --only=MC just create M and C files.
 --connect:
-    As you can have many databases, this param mean which database this model use.
+    As you can have many databases, this param mean the table in which database.
     Just use it as  --connect=mysql2
 ```
 
-> Before you use this command, you should edit the stubs and config to fit your project. \
-> Btw if you're using Mysql, you should create your tables in your datebase, It will reduce your workloads.
-
-As you having exce this command: php artisan make:mvcs account.
+1. Before you use this command, you should edit the stubs and config to fit your project. \
+2. Btw if you're using Mysql, you should create your tables in your datebase, It will reduce your workloads.
 
 ```TEXT
+As you having exce this command: php artisan make:mvcs account.
+
 such files will be created:
 
 > app/Http/Controller/AccountController
@@ -55,12 +57,22 @@ and it will also create routes:
 > Route::Resource('account','AccountController']);
 ```
 
-## The Command import:mvcs_db
+## The Command make:mvcs_all
+
+This command create many series of files from clear template from your tables.
+
+> Use it just like this: \
+> php artisan make:mvcs_all {--connect=}
+
+foreach table in databases \
+do: **php artisan make:mvcs model {--connect=}**;
+
+## The Command mvcs:excel
 
 This command is aimed to create you tables from a excel.
 
 > Just using it as this: \
-> php artisan import:mvcs_db {file} {--type=}
+> php artisan mvcs:excel {file} {--type=}
 
 ```TEXT
 file:
@@ -77,21 +89,21 @@ file:
 
 As you used this command, there will be some migrate files created and you can find your result in your database.
 
-Your excel file should like this.
+Your excel should like this.
 
 user | user_table | -
--|-|-
-nickname|sex|brith
-string@unique|tinyinteger|date
+:-:|:-:|:-:
+*nickname|sex|brith
+string#unique|tinyint|date
 jack|1|1880-12-21
 
 In cell A1 It's table name. \
 In cell A2 It's table comment. \
 In Row 2 It's your table columns \
-In Row 3 It's the column type (type[_len1][_len2][@index]) \
+In Row 3 It's the column type ([*]type[_len1][_len2][#index|unique|primary] *is mean it was necessary) \
 After Row 3 It't your data to import into table.
 
-
+[example file](./example.xlsx)
 
 ## License
 
