@@ -1,0 +1,264 @@
+<?php
+
+namespace $service_ns;
+
+$service_use
+use $model_ns\$model_name;
+$validator_annouse $validator_ns\$validator_name;
+use Callmecsx\Mvcs\Service\ExcelService;
+
+class $service_name $service_extands
+{
+    // 返回数据
+    private $response = [
+        'code'=> 200,
+        'message' => '操作成功!'
+    ];
+    // 可用的查询规则,在基类中构造查询
+    protected $searchRule = [
+        '$table_name_name'   => 'like',
+        '$table_name_status' => 'eq',
+    ];
+
+    /**
+     *  获取显示列表
+     *
+     * @author $author_info
+     * @date   $create_date
+     * @param  array $filter
+     * @param  int   $page
+     * @param  int   $limit
+     * @return array
+     */
+    public function index(array $filter = [])
+    {
+        $page = array_get($filter,'page',1);
+        $pageSize = array_get($filter,'pageSize',config('app.pageSize',15));
+        $validator_name::select($filter);
+        $model = $model_name::with('creator');
+        // 定义默认查询操作及搜索条件
+        // $model = $model->default();
+        // $model = $this->makeSearch($model,$filter);
+
+        $count = $model->count();
+        $offset = ($page - 1)* $pageSize;
+        if ($count > $offset) {
+            $list = $model->offset($offset)->limit($pageSize)
+                ->orderBy('created_at','desc')->get();
+            $result = array();
+            foreach ($list as $item) {
+                $l = $item->toArray();
+                //todo 数据及格式转换如下
+                //$l['creator'] = $item->creator?$item->creator->user_name:'';
+
+                $result[] = $l;
+            }
+            $this->response['data'] = $result;
+            $this->response['total'] = $count;
+        } else {
+            $this->response['code']    = -1;
+            $this->response['message'] = '没有更多数据!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  创建新数据
+     *
+     * @author $author_info
+     * @date   $create_date
+     * @param $post
+     * @return array
+     */
+    public function store(array $post)
+    {
+        $this->postClear($post);
+        $validator_name::store($post);
+        // 设置全局属性
+        // $post['org_id'] = defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0;
+        // $post['created_by'] = session('user_id') ?: 0;
+
+        $result = $model_name::create($post);
+        if ($result) {
+            // $this->response['data'] = $result->toArray();
+            $this->response['message'] = '添加成功!';
+        } else {
+            $this->response['code']    = -1;
+            $this->response['message'] = '添加失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  更新一条记录
+     *
+     * @author $author_info
+     * @date   $create_date
+     * @param array $post
+     * @param int   $id
+     * @return array
+     */
+    public function update(array $post,int $id)
+    {
+        $this->postClear($post);
+        $validator_name::update($post,$id);
+        $result = $model_name::where('id','=',$id)->update($post);
+        if ($result) {
+            $this->response['data'] = [];
+            $this->response['message'] = '更新成功!';
+        } else {
+            $this->response['code']    = -1;
+            $this->response['message'] = '更新失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  获取一条记录详情
+     *
+     * @author $author_info
+     * @date   $create_date
+     * @param  int  $id
+     * @return array
+     */
+    public function show(int $id)
+    {
+        $result = $model_name::find($id);
+        if ($result) {
+            $data = $result->toArray();
+            //todo 其他数据获取及格式转换
+
+            $this->response['data'] = $data;
+            $this->response['message'] = '获取成功!';
+        } else {
+            $this->response['code']    = -1;
+            $this->response['message'] = '获取失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  删除一条或多条数据
+     *
+     * @author
+     * @date   $create_date
+     * @param  int|array  $id
+     * @return array
+     */
+    public function destroy($id)
+    {
+        $validator_name::destroy($id);
+        $result = $model_name::destroy($id);
+        $this->response['message'] = '删除成功!';
+        if (!$result) {
+            $this->response['code']    = -1;
+            $this->response['message'] = '删除失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  启用(或审批)一条或多条数据
+     *
+     * @author
+     * @date   $create_date
+     * @param  array  $ids
+     * @return array
+     */
+    public function up(array $ids, $status = 1)
+    {
+        $validator_name::upDown($ids);
+        $data['status'] = $status;
+        // todo 添加其他更新信息
+
+        $result = $model_name::whereIn('id', $ids)->update($data);
+        $this->response['message'] = '更新成功!';
+        if (!$result) {
+            $this->response['code']    = -1;
+            $this->response['message'] = '编辑失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     *  停用一条或多条数据
+     *
+     * @author
+     * @date   $create_date
+     * @param  array  $ids
+     * @return array
+     */
+    public function down(array $ids, int $status = 0)
+    {
+        $validator_name::upDown($ids);
+        $data['status'] = $status;
+        // todo 添加其他更新信息
+
+        $result = $model_name::whereIn('id', $ids)->update($data);
+        $this->response['message'] = '更新成功!';
+        if (!$result) {
+            $this->response['code']    = -1;
+            $this->response['message'] = '编辑失败!';
+        }
+        return $this->response;
+    }
+
+    /**
+     * 导入数据
+     *
+     * @author $author_info
+     * @date   2018-08-07 15:55:54
+     * @param string $file_path 文件名
+     * @param string $type 文件类型
+     * @param bool   $cover 重复数据是否覆盖
+     * @return array
+     */
+    public function import(string $filePath,string $type,bool $cover = false)
+    {
+        // 默认每次读取1000行数据,可通过构造参数修改.
+        $excelService = new ExcelService($type);
+        $result = false;
+        do {
+            $validator_anno$data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
+            if ($data) {
+                // 额外规则,如:sku字段需要unique
+                // $excelService->ruleUnique($data, 'sku');
+                // 数据转换,如:将价格转为int以存储.覆盖情况下需要对更新行进行同样处理
+                // $this->decimalToIntFor2DArray($data,'list_price');
+                // $this->decimalToIntFor2DArray($excelService->update_lines,'list_price');
+                // 批量导入数据库,成功一次就认为导入成功!
+                // 添加时过滤字段
+                $unsetColumn = [];
+                $validator_anno$result = $excelService->insertToSql($data,$validator_name::excelDefault(),'$table_name',$unsetColumn) || $result;
+                if ($cover) {
+                    $excelService->updateByModel($model_name::default(),$unsetColumn); // 加default 防止跨组织更新
+                    $result = true;
+                } else {
+                    $excelService->failUpdateLines();
+                }
+                // 是否还要导入其他数据
+            }
+        } while ($excelService->hasMore());
+        // 需要的话,返回所有失败的行
+        $this->response['errors'] = $excelService->error_lines;
+        // 需要的话,销毁导入文件
+        @unlink($filePath);
+        if (!$result) {
+            $this->response['code'] = -1;
+            $this->response['message'] = 'Can\'t got a valid data in the file!';
+        }
+        return $this->response;
+    }
+
+    /**
+     * 导出模板
+     *
+     * @author $author_info
+     * @date   2018-08-07 15:56:10
+     */
+    public function template()
+    {
+        $excelService = new ExcelService();
+        $validator_anno$excelService->template('XX模板',$validator_name::excelColumn());
+    }
+}

@@ -9,6 +9,11 @@ use Validator;
 
 class $validator_name $validator_extands
 {
+
+    protected $messages = [
+        $validator_message
+    ];
+
     /**
      * 添加验证规则
      *
@@ -21,7 +26,7 @@ class $validator_name $validator_extands
     {
         Validator::make($data,[
             $validator_rule
-        ],$model_name::$message)->validate();
+        ],$this->messages)->validate();
     }
     /**
      * 更新验证规则
@@ -36,9 +41,9 @@ class $validator_name $validator_extands
     {
         Validator::make($data,[
             $validator_rule
-        ],$model_name::$message)->validate();
+        ],$this->messages)->validate();
         $model = $model_name::findOrFail($id);
-        // 可以使用父类的额外验证
+        // 使用父类的额外验证
         // self::validOrg($model);
     }
 
@@ -53,7 +58,7 @@ class $validator_name $validator_extands
     public static function destroy($id)
     {
         $model = $model_name::findOrFail($id);
-        // 可以使用父类的额外验证
+        // 使用父类的额外验证
         // self::validOrg($model);
     }
 
@@ -73,7 +78,7 @@ class $validator_name $validator_extands
             throw new ModelNotFoundException('404 not found！');
         }
         foreach ($models as $item) {
-            // todo 额外验证
+            // 额外验证
             // self::validOrg($item);
         }
     }

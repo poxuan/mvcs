@@ -1,0 +1,32 @@
+<?php
+
+namespace $model_ns;
+
+//use Illuminate\Database\Eloquent\Model;
+//use Illuminate\Database\Eloquent\SoftDeletes;
+$model_use
+
+class $model_name $model_extands
+{
+    // 软删除
+    // use SoftDeletes;
+    // 表名
+    protected $table = '$table_name';
+
+    // 可填充字段
+    protected $fillable = [
+        $model_fillable
+    ];
+    // 不展示字段
+    protected $hidden = [
+        'org_id','deleted_at','deleted_by'
+    ];
+
+    //栏位验证信息
+    public static $message = [
+        //todo 验证信息
+    ];
+
+    //建立依赖关系
+    $model_relay
+}

@@ -265,13 +265,39 @@ class MakeMvcsConsole extends Command
             $this->connect = $this->connect ?: DB::getDefaultConnection();
             $database = config('database.connections.'.$this->connect.'.database');
             DB::setDefaultConnection($this->connect);
-            return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
-                       IS_NULLABLE as \'Null\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
+            switch ($database['driver']) {// 
+                case 'mysql':
+                    return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
+                       IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                [
-                    ':table' => $this->table,
-                    ':schema' => $database,
-                ]);
+                    [':table' => $this->table,':schema' => $database,]);
+                case 'pgsql':
+                    $this->info('数据库类型['.$database['driver'].']暂不支持，字段操作将会被跳过。');
+                    return [];
+                case 'sqlsrv':
+                    return DB::select("SELECT
+                    a.name as Field
+                    b.name as 'Type',
+                    COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
+                    isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
+                    (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
+                    isnull(e.text,'') as Default,
+                    isnull(g.[value],'') as Comment
+                    FROM   syscolumns   a
+                    left   join   systypes   b   on   a.xusertype=b.xusertype
+                    inner   join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
+                    left   join   syscomments   e   on   a.cdefault=e.id
+                    left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
+                    left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0 
+                    where   d.name= :table
+                    order   by   a.id,a.colorder ",
+                    [':table' => $this->table,':schema' => $database,]);
+                default:
+                    $this->info('数据库类型['.$database['driver'].']暂不支持，字段操作将会被跳过。');
+                    return [];
+                
+            }
+            
         } catch (\Exception $e) {
             $this->info('数据库配置['.$this->connect.']不可用，有些操作将会被跳过。建议先建表，重新执行一次。');
             return [];
@@ -316,7 +342,12 @@ class MakeMvcsConsole extends Command
         $stubs = [];
         foreach($configs as $key => $stub) {
             if (strpos('_'.$this->only,$k)) {
-                $stubs[$key] = $this->files->get(resource_path('stubs').DIRECTORY_SEPARATOR.$stub['name'].".stub");
+                $filePath = resource_path('stubs').DIRECTORY_SEPARATOR.$configs['template'].DIRECTORY_SEPARATOR.$stub['name'].'.stub';
+                if (file_exists($filePath)) {
+                    $stubs[$key] = $this->files->get();
+                } else {
+                    $this->error("[$k]模板未找到。");
+                }
             }
         }
         return $stubs;
@@ -423,7 +454,7 @@ class MakeMvcsConsole extends Command
                     $e['column'] = $v['column'];
                     $e['comment'] = $v['comment'] = $column->Comment?:$column->Field;
                     $e['example'] = '';
-                    if ($column->Null == 'NO' && $column->Default === null) {
+                    if ($column->Nullable == 'NO' && $column->Default === null) {
                         $v['rule'][] = 'required';
                         $e['comment'].= '(必填)';
                     } else {

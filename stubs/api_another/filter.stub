@@ -1,0 +1,10 @@
+<?php
+
+namespace $filter_ns;
+
+$filter_use
+
+class $filter_name $filter_extends
+{
+    $filter_functions
+}

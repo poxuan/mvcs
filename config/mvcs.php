@@ -9,6 +9,8 @@ return [
     'default_stubs' => 'MVCS',
     // 用户描述
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>', 
+    // 模板
+    'template' => 'api_default',
     // 模板配置数组
     'stubs' => [
         // model 模板
@@ -80,12 +82,27 @@ return [
         // 主视图模板
         'I' => [
             'name'      => 'index',
-            'postfix' => '/index.blade',// 最终生成文件 {path}/{Model}/index.blade.php
+            'postfix'   => '',// 最终生成文件 {path}/{Model}.{filetype}
             'path'      => resource_path('views'),
+            'filetype'  => 'vue',
             'extra'     => [
                 'table' => function($model, $columns) {
-                    // todo 
-                    return "";
+                    
+                    $arraylines = [];
+                    foreach ($columns as $column) {
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            if(preg_match('/char/i',$column->Type,$match)) {
+                                // todo 
+                            } elseif(preg_match('/_id/i',$column->Field,$match)) {
+                                // todo 格式处理
+                            } elseif(preg_match('/int/i',$column->Type,$match) || preg_match('/decimal/i',$column->Type,$match) ) {
+                                // todo 格式处理
+                            } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
+                                // 
+                            }
+                        }
+                    }
+                    return implode("\n            ",$arraylines);
                 },
                 'from'  => function($model, $columns) {
                     // todo
@@ -110,10 +127,40 @@ return [
             'name'      => 'resource',
             'postfix'   => 'Resource',
             'path'      => app_path().DIRECTORY_SEPARATOR.'Resources',
-            'namespave' => 'App\Resources',
+            'namespace' => 'App\Resources',
             'extands'   => [
                 'namespace' => 'Illuminate\Http\Resources\Json',
                 'name'      => 'Resource'
+            ],
+            'extra'     => [
+                'array' => function($model, $columns) {
+                    $arraylines = [];
+                    foreach ($columns as $column) {
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            // 添加对齐
+                            $spaces = "";
+                            $len = strlen($column->Field);
+                            while($len < 15) {
+                                $spaces .= " ";
+                                $len ++;
+                            }
+                            $arraylines[] = "'{$column->Field}'{$spaces}   => ".'$this->'.$column->Field.','; // 加一个空行。
+                            
+                        }
+                    }
+                    return implode("\n            ",$arraylines);
+                }
+            ],
+        ],
+        // 
+        'Q' => [
+            'name'      => 'request',
+            'postfix'   => 'request',
+            'path'      => app_path().DIRECTORY_SEPARATOR.'Request',
+            'namespace' => 'App\Requests',
+            'extands'   => [
+                'namespace' => 'Illuminate\Foundation\Http',
+                'name'      => 'FormRequest'
             ],
             'extra'     => [
                 'array' => function($model, $columns) {
@@ -140,7 +187,7 @@ return [
             'name'      => 'filter',
             'postfix'   => 'Filter',
             'path'      => app_path().DIRECTORY_SEPARATOR.'Filters',
-            'namespave' => 'App\Filters',
+            'namespace' => 'App\Filters',
             'extands'   => [
                 'namespace' => 'App\Filters',
                 'name'      => 'Filter'
@@ -183,7 +230,7 @@ return [
     // 是否自动添加路由
     "add_route" => true,
     // 路由类型
-    "route_type" => 'api', 
+    "route_type" => 'api',
     // 路由数组
     "routes" => [ 
         // post 路由 调用名 -> 方法名
