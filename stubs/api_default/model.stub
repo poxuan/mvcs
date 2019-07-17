@@ -22,11 +22,6 @@ class $model_name $model_extands
         'org_id','deleted_at','deleted_by'
     ];
 
-    //栏位验证信息
-    public static $message = [
-        //todo 验证信息
-    ];
-
     //建立依赖关系
     $model_relay
 }

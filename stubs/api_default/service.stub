@@ -4,7 +4,7 @@ namespace $service_ns;
 
 $service_use
 use $model_ns\$model_name;
-$validator_annouse $validator_ns\$validator_name;
+use $validator_ns\$validator_name;
 use Callmecsx\Mvcs\Service\ExcelService;
 
 class $service_name $service_extands

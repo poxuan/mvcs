@@ -61,7 +61,7 @@ class MakeMvcsAllConsole extends Command
             }
             $params['model'] = $this->lineToHump($tableName);
             Artisan::call('mvcs:make', $params);
-            $this->info("表 [$tableName] 相关文件已生成！");
+            $this->info("[$tableName] 相关文件已生成！");
         }
         $this->info("处理完成!");
     }

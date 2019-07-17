@@ -4,16 +4,12 @@ namespace $controller_ns;
 
 $controller_use
 use $service_ns\$service_name;
-$resource_anno
-$resource_annouse $resource_ns\$resource_name;
-$resource_annouse $resource_ns\Helper;
 
 use Illuminate\Http\Request;
 
 class $controller_name $controller_extands
 {
     // protected $modular='$table_name';
-    $resource_annouse Helper;
     /**
      * Display a listing of the resource.
      *

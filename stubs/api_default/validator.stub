@@ -10,7 +10,7 @@ use Validator;
 class $validator_name $validator_extands
 {
 
-    protected $messages = [
+    protected static $messages = [
         $validator_message
     ];
 
@@ -26,7 +26,7 @@ class $validator_name $validator_extands
     {
         Validator::make($data,[
             $validator_rule
-        ],$this->messages)->validate();
+        ],self::$messages)->validate();
     }
     /**
      * 更新验证规则
@@ -41,7 +41,7 @@ class $validator_name $validator_extands
     {
         Validator::make($data,[
             $validator_rule
-        ],$this->messages)->validate();
+        ],self::$messages)->validate();
         $model = $model_name::findOrFail($id);
         // 使用父类的额外验证
         // self::validOrg($model);
@@ -111,7 +111,7 @@ class $validator_name $validator_extands
     {
         Validator::make($data,[
             $validator_rule
-        ],$model_name::$message)->validate();
+        ],self::$message)->validate();
     }
 
     /**

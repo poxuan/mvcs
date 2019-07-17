@@ -425,7 +425,7 @@ class MakeMvcsConsole extends Command
         }
         $columns = [];
         // 根据数据库字段生成一些模板数据。
-        $this->getValidatorData($tableColumns,$columns,$validatorRule,$validatorExcel,$validatorExcelDefault,$modelRelaies);
+        $this->getValidatorData($tableColumns,$columns,$validatorRule,$validatorExcel,$validatorExcelDefault,$modelRelaies,$validatorMessages);
 
         $fillableColumn = implode(',',$columns);
 
@@ -433,6 +433,7 @@ class MakeMvcsConsole extends Command
             'validator_rule'   => trim($validatorRule),
             'validator_column_rule'=> trim($validatorExcel),
             'validator_column_default'=> trim($validatorExcelDefault),
+            'validator_message' => trim($validatorMessages),
             'model_fillable'  => $fillableColumn,
             'model_relay'     => $modelRelaies,
         ];
@@ -450,7 +451,7 @@ class MakeMvcsConsole extends Command
      * @param $validatorExcel
      * @param $validatorExcelDefault
      */
-    private function getValidatorData($tableColumns,& $columns,& $validatorRule,& $validatorExcel, & $validatorExcelDefault,&$modelRelaies)
+    private function getValidatorData($tableColumns,& $columns,& $validatorRule,& $validatorExcel, & $validatorExcelDefault,&$modelRelaies,&$validatorMessages)
     {
         $validators = [];
         $excelColumn = [];
@@ -466,6 +467,7 @@ class MakeMvcsConsole extends Command
                     $e['example'] = '';
                     if ($column->Nullable == 'NO' && $column->Default === null) {
                         $v['rule'][] = 'required';
+                        $v['messages'][$column->Field.'.required'] = $v['comment'].' 必填';
                         $e['comment'].= '(必填)';
                     } else {
                         $v['rule'][] = 'sometimes';
@@ -479,10 +481,12 @@ class MakeMvcsConsole extends Command
                     if(preg_match("/varchar\((\d+)\)/",$column->Type,$match)) {
                         $v['rule'][] = 'string';
                         $v['rule'][] = 'max:'.$match[1];
+                        $v['messages'][$column->Field.'.max'] = $v['comment'].' 长度不得超过:' . $match[1];
                         $e['example'] = $column->Default?:'';
                     } elseif(preg_match('/\w*int\((\d+)\)/',$column->Type,$match)) {
                         $v['rule'][] = 'int';
                         $v['rule'][] = 'min:0';
+                        $v['messages'][$column->Field.'.max'] = $v['comment'].' 不得小于:0';
                         $e['example'] = 10;
                     } elseif(preg_match('/decimal\((\d+),(\d+)\)/',$column->Type,$match)) {
                         //$v['rule'][] = 'int';
@@ -496,6 +500,7 @@ class MakeMvcsConsole extends Command
                         $otherTable  = str_replace('_id','',$column->Field);
                         $otherModel  = $this->lineToHump($otherTable);
                         $v['rule'][] = 'exist:'.$otherTable.',id';
+                        $v['messages'][$column->Field.'.exist'] = $otherTable.' 不存在';
                         $relaies[]   = "public function $otherModel() {\n".
                             '        return $this->belongsTo("'.$this->getNameSpace('M').'\\'.ucfirst($otherModel).'");'."\n".
                             "    }\n";
@@ -518,6 +523,17 @@ class MakeMvcsConsole extends Command
             }
             return $rule.'    //'.$arr['comment'] ;
         },$validators));
+
+        $validatorMessages = implode("",array_map(function($arr){
+            $messages = '';
+            if ($arr['messages'] ?? []) {
+                foreach($arr['messages'] as $key => $message) {
+                    $messages .= str_pad("        '$key'",28)." => '$message',\n";
+                }
+            }
+            return $messages;
+        },$validators));
+
 
         $validatorExcel = implode("\n",array_map(function($arr){
             $column = '            '.$arr['column'].' ';//前面加12个空格
