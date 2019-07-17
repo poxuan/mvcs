@@ -262,7 +262,7 @@ return [
     "add_route" => true,
     // 路由类型
     "route_type" => 'api',
-    // 路由数组
+    // 添加路由数组
     "routes" => [ 
         // post 路由 调用名 -> 方法名
         'post' => [ 
@@ -289,7 +289,7 @@ return [
         'middlewares' => [],
         // 公共前缀
         'prefix'      => '',
-        // 公共名字空间，如使用 make:mvcs text/miniProgram 还会添加额外的名字空间 text
+        // 公共名字空间，如使用 make:mvcs test/miniProgram 还会添加额外的一级名字空间 test
         'namespace'   => '',     
     ],
 
@@ -299,6 +299,10 @@ return [
         "extra_columns" => [
             //'$table->integer("org_id")->nullable()->comment("组织ID");',
             //'$table->string("report_id",100)->nullable()->comment("报表ID");',
+            '$table->integer("created_by")->nullable();',
+            '$table->integer("updated_by")->nullable();',
+            '$table->integer("deleted_by")->nullable();',
+            '$table->timestamp("deleted_at")->nullable();',
             '$table->timestamps();',
         ],
         // 表名前缀
