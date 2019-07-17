@@ -7,33 +7,17 @@ $request_use
 class $request_name $request_extends
 {
     // 公共部分
-    protected $rules=[
-        $validator_rule
+    public $rules=[
     ];
 
     //这里我只写了部分字段，可以定义全部字段
     protected $messages=[
         $validator_message
-     ];
+    ];
 
-
-    public function authorize()  //这个方法可以用来控制访问权限，例如禁止未付费用户访问
-    {
-        return true; //默认是false，使用时改成true,
-    }
-
-    public function rules()
-    {
-        $rules=$this->rules;
-        // \Request::getPathInfo()方法获取命名路由，用来区分不同页面
-        if(\endsWith(Request::getPathInfo())=='/admin/reg_sub'){ //路由为/admin/reg_sub的特有验证部分
-            $rules['email']='required|email';
-            $rules['code']='required|between:4,4';
-        }
-        return $rules;
-    }
-
-    public function messages(){  //返回自定义消息，不使用的话为默认提示
-        return $this->messages;
+    public function store(){  //返回自定义消息，不使用的话为默认提示
+        $this->rules = [
+            $validator_rule
+        ];
     }
 }

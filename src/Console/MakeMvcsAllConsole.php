@@ -15,14 +15,14 @@ class MakeMvcsAllConsole extends Command
      *
      * @var string
      */
-    protected $signature = 'make:mvcs_all {--connect=}';
+    protected $signature = 'mvcs:make_all {--connect=}  {--style=} {--y|yes}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'create templates of controller、validator、model、service';
+    protected $description = '根据数据库中的表生成所有的文件';
 
     private $connect = null;
 
@@ -37,9 +37,27 @@ class MakeMvcsAllConsole extends Command
             die("禁止在线上环境运行!");
         }
         $tables = $this->getTables();
+        $params = [];
+        if ($connect = $this->option('connect')) {
+            $params['--connect'] = $connect;
+        }
+        if ($style = $this->option('style')) {
+            $params['--style'] = $style;
+        }
+        $check = true;
+        if ($this->hasOption('yes')) {
+            $check = false;
+        }
         foreach ($tables as $table) {
             $tableName = array_values((array)$table)[0];
-            Artisan::call('make:mvcs', ['model' => $this->lineToHump($tableName),'--queue' => 'default']);
+            if ($check) {
+                $res = $this->ask("是否生成表 [$tableName] 相关文件[Y/n]",'y');
+                if (strtolower(trim($res))[0] == 'n') {
+                    continue;
+                }
+            }
+            $params['model'] = $this->lineToHump($tableName);
+            Artisan::call('mvcs:make', $params);
         }
         $this->info("处理完成!");
     }

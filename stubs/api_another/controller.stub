@@ -48,10 +48,10 @@ class $controller_name $controller_extands
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($service_name $service,$id)
+    public function show($id)
     {
-        $result = $service->show($id);
-        return response()->json($result);
+        $result = $mode::findOrFail($id);
+        return new $resource_name($result);
     }
 
     /**
@@ -63,10 +63,10 @@ class $controller_name $controller_extands
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $service_name $service, $id)
+    public function update($request_name $request, $id)
     {
         $result = $service->update($request->post(), $id);
-        return response()->json($result);
+        return response()->json([]);
     }
 
     /**
@@ -77,18 +77,18 @@ class $controller_name $controller_extands
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($service_name $service, $id)
+    public function destroy($request_name $request, $id)
     {
-        $result = $service->destroy($id);
+        $result = $mode::destroy($id);
         return response()->json($result);
     }
 
     /**
      * 启用（审批）一组记录
      */
-    public function up(Request $request, $service_name $service)
+    public function up($request_name $request)
     {
-        $result = $service->up($request->input('ids'));
+        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 1]);
         return response()->json($result);
     }
 
@@ -100,37 +100,5 @@ class $controller_name $controller_extands
         $result = $service->down($request->input('ids'));
         return response()->json($result);
     }
-
-    /**
-     * 导入数据
-     */
-    public function import(Request $request, $service_name $service)
-    {
-        $file = $request->file('$table_names');
-        if (empty($file)) {
-            return response()->json(['code'=>-1,'message'=>'请上传文件!']);
-        }
-        $mimeType = $file->getClientMimeType();
-        if ($mimeType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-            $type = 'Xlsx';
-        } elseif ($mimeType == 'application/vnd.ms-excel') {
-            $type = 'Xls';
-        } else {
-            return response()->json(['code'=>-1,'message'=>'请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType]);
-        }
-        // 是否覆盖
-        $cover = $request->post('cover',false)?true:false;
-        // 本地存储
-        $path = $file->store('$table_names');
-        $result = $service->import(storage_path('app').DIRECTORY_SEPARATOR.$path,$type,$cover);
-        return response()->json($result);
-    }
-
-    /**
-     * 导出模板
-     */
-    public function template($service_name $service)
-    {
-        $service->template();
-    }
+    
 }

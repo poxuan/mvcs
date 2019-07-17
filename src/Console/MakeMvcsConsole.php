@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\DB;
 class MakeMvcsConsole extends Command
 {
     // 脚本命令
-    protected $signature = 'make:mvcs {model} {--force=} {--only=} {--connect=} {--middleware=}';
+    protected $signature = 'mvcs:make {model} {--force=} {--only=} {--connect=} {--middleware=} {--style=}';
 
     // 脚本描述
-    protected $description = '创建你预定的文件模板';
+    protected $description = '根据预定的文件模板创建文件';
 
     //模型
     private $model;
@@ -24,17 +24,18 @@ class MakeMvcsConsole extends Command
     //文件组
     private $files;
 
+    private $style="api_default";
     //中间件
     private $middleware = [];
 
-    //相对名字空间
+    //额外名字空间和路径
     private $extraSpace = "";
     private $extraPath  = "";
 
-    //强制覆盖
+    //强制覆盖文件组
     private $force = '';
 
-    //生成文件
+    //默认生成文件组
     private $only = 'MVCS';
 
     //数据库链接
@@ -52,8 +53,9 @@ class MakeMvcsConsole extends Command
     {
         parent::__construct();
         $this->files    = new Filesystem();
-        $this->ignoreColumns = config("mvcs.ignore_columns") ?: [];
-        $this->only = config("mvcs.default_stubs") ?: 'MVCS';
+        $this->ignoreColumns = Config::get("mvcs.ignore_columns") ?: [];
+        $this->style = Config::get("mvcs.style") ?: 'api_default';
+        $this->only = Config::get("mvcs.default_stubs")[$this->style] ?? 'MVCS';
     }
 
     /**
@@ -63,7 +65,7 @@ class MakeMvcsConsole extends Command
      */
     public function handle()
     {
-        if (config('app.env') == 'production') {
+        if (Config::get('app.env') == 'production') {
             die("禁止在线上环境运行!");
         }
         $model     = ucfirst($this->argument('model'));
@@ -93,7 +95,11 @@ class MakeMvcsConsole extends Command
         if ($middleware) {
             $middleware = explode(',',$middleware);
         }
-        $this->middleware = config('mvcs.routes.middlewares') + $middleware;
+        $style = $this->option('style');
+        if ($style) {
+            $this->style = $style;
+        }
+        $this->middleware = Config::get('mvcs.routes.middlewares') + $middleware;
         $this->model      = $model;
         $this->table      = $this->humpToLine($model);
         // 自动生成MVCS文件
@@ -147,20 +153,20 @@ class MakeMvcsConsole extends Command
      */
     function addRoutes() 
     {
-        if (config('mvcs.add_route')) {
+        if (Config::get('mvcs.add_route')) {
             $routeStr = "";
             $group = false;
-            $type = config('mvcs.route_type')?:'api';
-            $routes = config('mvcs.routes');
+            $type = Config::get('mvcs.route_type')?:'api';
+            $routes = Config::get('mvcs.routes');
             if ($this->middleware) {
                 $routeStr .= "Route::middleware(".\json_encode($this->middleware).")";
                 $group = true;
             }
-            if ($prefix = config('mvcs.routes.prefix')) {
+            if ($prefix = Config::get('mvcs.routes.prefix')) {
                 $routeStr .= ($routeStr?"->prefix('$prefix')":"Route::prefix('$prefix')");
                 $group = true;
             }
-            if ($namespace = config('mvcs.routes.namespace')) {
+            if ($namespace = Config::get('mvcs.routes.namespace')) {
                 $routeStr .= ($routeStr?"->namespace('$namespace')":"Route::namespace('$namespace')");
                 $group = true;
             }
@@ -170,14 +176,14 @@ class MakeMvcsConsole extends Command
             $method = ['get','post','put','delete','patch'];
             $controller = $this->getClassName('C');
             foreach ($method as $met) {
-                $rs = config('mvcs.routes.'.$met);
+                $rs = Config::get('mvcs.routes.'.$met);
                 foreach($rs as $m => $r) {
                     $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
                 }
             }
-            if(config('mvcs.routes.apiResource')) {
+            if(Config::get('mvcs.routes.apiResource')) {
                 $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
-            } elseif (config('mvcs.routes.resource')) {
+            } elseif (Config::get('mvcs.routes.resource')) {
                 $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
             }
             if ($group) {
@@ -229,7 +235,7 @@ class MakeMvcsConsole extends Command
             //根据不同路径,渲染对应的模板文件
             $path = $this->getPath($key);
             if (file_exists($path) && strpos($this->force,$key) === false && $this->force != 'all') {
-                $this->info($key.' is already exist. Add --force=all || --force='.$key.' to convert it');
+                $this->info($key.' 已存在. 添加 --force=all || --force='.$key.' 来覆盖旧文件');
                 continue ;
             }
             $class = $this->files->put($this->getPath($key), $template);
@@ -244,11 +250,11 @@ class MakeMvcsConsole extends Command
 
     private function getDirectory($d)
     {
-        $path = Config::get("mvcs.stubs.$d.path");
+        $path = $this->stub_config($d,'path');
         if (is_callable($path)) {
             return $path($this->model,$this->extraPath);
         }
-        return Config::get("mvcs.stubs.$d.path").$this->extraPath;
+        return $this->stub_config($d,'path').$this->extraPath;
     }
 
     /**
@@ -263,7 +269,7 @@ class MakeMvcsConsole extends Command
 
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
-            $database = config('database.connections.'.$this->connect.'.database');
+            $database = Config::get('database.connections.'.$this->connect.'.database');
             DB::setDefaultConnection($this->connect);
             switch ($database['driver']) {// 
                 case 'mysql':
@@ -271,9 +277,6 @@ class MakeMvcsConsole extends Command
                        IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
                     [':table' => $this->table,':schema' => $database,]);
-                case 'pgsql':
-                    $this->info('数据库类型['.$database['driver'].']暂不支持，字段操作将会被跳过。');
-                    return [];
                 case 'sqlsrv':
                     return DB::select("SELECT
                     a.name as Field
@@ -338,16 +341,20 @@ class MakeMvcsConsole extends Command
      */
     private function getStub()
     {
-        $configs = Config::get('mvcs.stubs');
+        $configs = Config::get('mvcs');
         $stubs = [];
-        foreach($configs as $key => $stub) {
-            if (strpos('_'.$this->only,$k)) {
-                $filePath = resource_path('stubs').DIRECTORY_SEPARATOR.$configs['template'].DIRECTORY_SEPARATOR.$stub['name'].'.stub';
+        for($i = 0;$i < strlen($this->only) ;$i++) {
+            $key = $this->only[$i];
+            $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
+            if ($filename) {
+                $filePath = resource_path('stubs').DIRECTORY_SEPARATOR.$this->style.DIRECTORY_SEPARATOR.$filename.'.stub';
                 if (file_exists($filePath)) {
-                    $stubs[$key] = $this->files->get();
+                    $stubs[$key] = $this->files->get($filePath);
                 } else {
-                    $this->error("[$k]模板未找到。");
+                    $this->error("[$key]模板未找到文件。");
                 }
+            } else {
+                $this->error("[$key]模板未定义。");
             }
         }
         return $stubs;
@@ -355,18 +362,18 @@ class MakeMvcsConsole extends Command
 
     public function getClassName($d)
     {
-        return $this->model.Config::get("mvcs.stubs.$d.postfix");
+        return $this->model.$this->stub_config($d,"postfix");
     }
 
     private function getNameSpace($d)
     {
-        return Config::get("mvcs.stubs.$d.namespace").$this->extraSpace;
+        return $this->stub_config($d,"namespace").$this->extraSpace;
     }
 
     private function getBaseUse($d)
     {
-        $ens = config("mvcs.stubs.$d.extands.namespace",'');
-        $en = config("mvcs.stubs.$d.extands.name",'');
+        $ens = $this->stub_config($d,"extands.namespace");
+        $en = $this->stub_config($d,"extands.name");
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
@@ -375,7 +382,7 @@ class MakeMvcsConsole extends Command
 
     private function getExtands($d)
     {
-        $en = config("mvcs.stubs.$d.extands.name",'');
+        $en = $this->stub_config($d,"extands.name");
         if (empty($en)) {
             return null;
         }
@@ -402,13 +409,13 @@ class MakeMvcsConsole extends Command
             'author_info'      => Config::get("mvcs.author")
         ];
         foreach(Config::get('mvcs.stubs') as $d => $stub) {
-            $name = Config::get("mvcs.stubs.$d.name");
+            $name = $this->stub_config($d,"name");
             $templateVar[$name.'_name'] = $this->getClassName($d);
             $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name.'_use']   = $this->getBaseUse($d);
             $templateVar[$name.'_extands'] = $this->getExtands($d);
             $templateVar[$name.'_anno']   = stripos('_'.$this->only,$d) ? "" : "// "; //是否注释掉
-            $extra = Config::get("mvcs.stubs.$d.extra",[]);
+            $extra = $this->stub_config($d,"extra",[]);
             foreach($extra as $key => $func) {
                 $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
             }
@@ -430,7 +437,7 @@ class MakeMvcsConsole extends Command
     }
 
     /**
-     * 获取数据库字段,在validator中的展示
+     * 生成 Validator 配置
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:14:08
@@ -489,7 +496,6 @@ class MakeMvcsConsole extends Command
                         $relaies[]   = "public function $otherModel() {\n".
                             '        return $this->belongsTo("'.$this->getNameSpace('M').'\\'.ucfirst($otherModel).'");'."\n".
                             "    }\n";
-
                     }
                     $validators[] = $v;
                     $excelColumn[] = $e;
@@ -534,7 +540,7 @@ class MakeMvcsConsole extends Command
     }
 
     /**
-     * 生成目标文件
+     * 替换参数，生成目标文件
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:13:56
@@ -548,5 +554,20 @@ class MakeMvcsConsole extends Command
             $stub = str_replace('$'.$search, $replace, $stub);
         }
         return $stub;
+    }
+
+    /**
+     * 获取模板配置
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param string $d 模板简称
+     * @param string $key 配置项
+     * @param  string $default 默认值
+     * @return mixed
+     */
+    public function stub_config($d, $key, $default = '') 
+    {
+        return Config::get("mvcs.{$this->style}.$d.$key", Config::get("mvcs.common.$d.$key", $default));
     }
 }

@@ -45,19 +45,19 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('command.mvcs', function () {
+        $this->app->singleton('command.mvcs_make', function () {
             return new MakeMvcsConsole();
         });
 
-        $this->app->singleton('command.import', function () {
+        $this->app->singleton('command.mvcs_excel', function () {
             return new ImportMvcsDbConsole();
         });
 
-        $this->app->singleton('command.mvcs_all', function () {
+        $this->app->singleton('command.mvcs_make_all', function () {
             return new MakeMvcsAllConsole();
         });
 
-        $this->commands(['command.mvcs','command.import','command.mvcs_all']);
+        $this->commands(['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all']);
     }
 
     /**
@@ -67,6 +67,6 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['command.mvcs','command.import','command.mvcs_all'];
+        return ['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all'];
     }
 }

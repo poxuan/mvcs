@@ -5,14 +5,18 @@ return [
     /* 使用前请务必阅读 readme 文件 */
 
     /* 模板相关配置 */
+    // 模板风格
+    'style' => 'api_default',
     // 默认生成模板
-    'default_stubs' => 'MVCS',
-    // 用户描述
+    'default_stubs' => [
+        'api_default' => 'MVCS',
+        'api_another' => 'MRQFC',
+        'web_default' => 'MVCSIF',
+    ],
+    // 用户描述,用于注释中
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>', 
-    // 模板
-    'template' => 'api_default',
-    // 模板配置数组
-    'stubs' => [
+    // common 模板配置
+    'common' => [
         // model 模板
         'M' => [
             // stabs文件名,及参数主名
@@ -52,14 +56,6 @@ return [
                 }
             ],
         ],
-        // 过滤器模板（不喜欢的话可以不用，自己重新编辑模板和配置）
-        'V' => [
-            'name'      => 'validator',
-            'postfix'   => 'Validator',
-            'path'      => app_path().DIRECTORY_SEPARATOR.'Validators',
-            'namespace' => 'App\Validators',
-            'extands'   => []
-        ],
         // 控制器模板
         'C' => [ 
             'name'      => 'controller',
@@ -71,6 +67,18 @@ return [
                 'name'=>'Controller'
             ],
         ],
+    ],
+
+    // api_default 模板配置数组
+    'api_default' => [
+        // 过滤器模板
+        'V' => [
+            'name'      => 'validator',
+            'postfix'   => 'Validator',
+            'path'      => app_path().DIRECTORY_SEPARATOR.'Validators',
+            'namespace' => 'App\Validators',
+            'extands'   => []
+        ],
         // 服务层模板
         'S' => [
             'name'      => 'service',
@@ -78,50 +86,11 @@ return [
             'path'      => app_path().DIRECTORY_SEPARATOR.'Services',
             'namespace' => 'App\Services',
             'extands'   => [],
-        ],
-        // 主视图模板
-        'I' => [
-            'name'      => 'index',
-            'postfix'   => '',// 最终生成文件 {path}/{Model}.{filetype}
-            'path'      => resource_path('views'),
-            'filetype'  => 'vue',
-            'extra'     => [
-                'table' => function($model, $columns) {
-                    
-                    $arraylines = [];
-                    foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            if(preg_match('/char/i',$column->Type,$match)) {
-                                // todo 
-                            } elseif(preg_match('/_id/i',$column->Field,$match)) {
-                                // todo 格式处理
-                            } elseif(preg_match('/int/i',$column->Type,$match) || preg_match('/decimal/i',$column->Type,$match) ) {
-                                // todo 格式处理
-                            } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
-                                // 
-                            }
-                        }
-                    }
-                    return implode("\n            ",$arraylines);
-                },
-                'from'  => function($model, $columns) {
-                    // todo
-                    return "";
-                },
-            ]
-        ],
-        // 详情/编辑视图模板
-        'F' => [
-            'name'      => 'from',
-            'postfix'   => '/form.blade',
-            'path'      => resource_path('views'),
-            'extra'     => [
-                'from'  => function($model, $columns) {
-                    // todo 根据
-                    return "";
-                },
-            ]
-        ],
+        ]
+    ],
+
+    // api_another 模板配置数组
+    'api_another' => [
         // 资源文件模板
         'R' => [
             'name'      => 'resource',
@@ -152,7 +121,7 @@ return [
                 }
             ],
         ],
-        // 
+        // 请求资源文件
         'Q' => [
             'name'      => 'request',
             'postfix'   => 'request',
@@ -222,6 +191,68 @@ return [
         ]
     ],
 
+    // web_default 模板配置数组
+    'web_default' => [
+        // 过滤器模板
+        'V' => [
+            'name'      => 'validator',
+            'postfix'   => 'Validator',
+            'path'      => app_path().DIRECTORY_SEPARATOR.'Validators',
+            'namespace' => 'App\Validators',
+            'extands'   => []
+        ],
+        // 服务层模板
+        'S' => [
+            'name'      => 'service',
+            'postfix'   => 'Service',
+            'path'      => app_path().DIRECTORY_SEPARATOR.'Services',
+            'namespace' => 'App\Services',
+            'extands'   => [],
+        ],
+        // 主视图模板
+        'I' => [
+            'name'      => 'index',
+            'postfix'   => '/index.balde',// 最终生成文件 {path}/{Model}/index.balde.php
+            'path'      => resource_path('views'),
+            'extra'     => [
+                'table' => function($model, $columns) {
+                    $arraylines = [];
+                    foreach ($columns as $column) {
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            if(preg_match('/char/i',$column->Type,$match)) {
+                                // todo 字符展示
+                            } elseif(preg_match('/_id/i',$column->Field,$match)) {
+                                // todo 外键展示
+                            } elseif(preg_match('/int/i',$column->Type,$match) || preg_match('/decimal/i',$column->Type,$match) ) {
+                                // todo 数字展示
+                            } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
+                                // todo 时间展示
+                            }
+                            // todo 其他展示
+                        }
+                    }
+                    // 组成代码，添加tab
+                    return implode("\n            ",$arraylines);
+                },
+                'from'  => function($model, $columns) {
+                    // todo 
+                    return "";
+                },
+            ]
+        ],
+        // 详情/编辑视图模板
+        'F' => [
+            'name'      => 'from',
+            'postfix'   => '/form.balde',// 最终生成文件 {path}/{Model}/form.balde.php
+            'path'      => resource_path('views'),
+            'extra'     => [
+                'from'  => function($model, $columns) {
+                    // todo 
+                    return "";
+                },
+            ]
+        ],
+    ],
     // 表中不该用户填充的字段
     "ignore_columns" => ['id','created_at','updated_at','deleted_at','created_by','updated_by','deleted_by'],
     
