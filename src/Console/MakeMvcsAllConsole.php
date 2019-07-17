@@ -44,9 +44,12 @@ class MakeMvcsAllConsole extends Command
         if ($style = $this->option('style')) {
             $params['--style'] = $style;
         }
-        $check = true;
-        if ($this->hasOption('yes')) {
-            $check = false;
+        $check = false;
+        if (!$this->option('yes')) {
+            $res = $this->ask("创建文件前是否询问？[Y/n]",'y');
+            if (strtolower(trim($res))[0] == 'n') {
+                $check = true;
+            }
         }
         foreach ($tables as $table) {
             $tableName = array_values((array)$table)[0];
@@ -58,6 +61,7 @@ class MakeMvcsAllConsole extends Command
             }
             $params['model'] = $this->lineToHump($tableName);
             Artisan::call('mvcs:make', $params);
+            $this->info("表 [$tableName] 相关文件已生成！");
         }
         $this->info("处理完成!");
     }

@@ -31,6 +31,11 @@ class MvcsServiceProvider extends ServiceProvider
         if ($this->app instanceof LaravelApplication && $this->app->runningInConsole()) {
             $this->publishes([$source => config_path('mvcs.php')]);
             $this->publishes([$stubs  => resource_path('stubs')]);
+            foreach(scandir($stubs) as $dir) {
+                if ($dir[0] != '.' && \is_dir($stubs.'/'.$dir)) {
+                    $this->publishes([$stubs.'/'.$dir  => resource_path('stubs/'.$dir)]);
+                }
+            }
         } elseif ($this->app instanceof LumenApplication) {
             $this->app->configure('mvcs');
         }

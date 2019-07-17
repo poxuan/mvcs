@@ -269,14 +269,15 @@ class MakeMvcsConsole extends Command
 
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
-            $database = Config::get('database.connections.'.$this->connect.'.database');
+
+            $connect = Config::get('database.connections.'.$this->connect);
             DB::setDefaultConnection($this->connect);
-            switch ($database['driver']) {// 
+            switch ($connect['driver']) {// 
                 case 'mysql':
                     return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
                        IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                    [':table' => $this->table,':schema' => $database,]);
+                    [':table' => $this->table,':schema' => $connect['database'],]);
                 case 'sqlsrv':
                     return DB::select("SELECT
                     a.name as Field
@@ -294,15 +295,16 @@ class MakeMvcsConsole extends Command
                     left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0 
                     where   d.name= :table
                     order   by   a.id,a.colorder ",
-                    [':table' => $this->table,':schema' => $database,]);
+                    [':table' => $this->table,':schema' => $connect['database'],]);
                 default:
-                    $this->info('数据库类型['.$database['driver'].']暂不支持，字段操作将会被跳过。');
+                    $this->info('数据库类型['.$connect['driver'].']暂不支持，字段操作将会被跳过。');
                     return [];
                 
             }
             
         } catch (\Exception $e) {
             $this->info('数据库配置['.$this->connect.']不可用，有些操作将会被跳过。建议先建表，重新执行一次。');
+            $this->info($e->getMessage());
             return [];
         }
 
@@ -351,7 +353,7 @@ class MakeMvcsConsole extends Command
                 if (file_exists($filePath)) {
                     $stubs[$key] = $this->files->get($filePath);
                 } else {
-                    $this->error("[$key]模板未找到文件。");
+                    $this->error("[$key]模板未找到文件:".$filePath);
                 }
             } else {
                 $this->error("[$key]模板未定义。");
@@ -408,7 +410,8 @@ class MakeMvcsConsole extends Command
             'modular_name'     => $modularName,
             'author_info'      => Config::get("mvcs.author")
         ];
-        foreach(Config::get('mvcs.stubs') as $d => $stub) {
+        $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.'.$this->style));
+        foreach($stubs as $d) {
             $name = $this->stub_config($d,"name");
             $templateVar[$name.'_name'] = $this->getClassName($d);
             $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
