@@ -22,6 +22,6 @@ class $model_name $model_extands
         'org_id','deleted_at','deleted_by'
     ];
 
-    //建立依赖关系
-    $model_relay
+    // 建立关联关系
+    $model_relate
 }

@@ -425,18 +425,8 @@ class MakeMvcsConsole extends Command
         }
         $columns = [];
         // 根据数据库字段生成一些模板数据。
-        $this->getValidatorData($tableColumns,$columns,$validatorRule,$validatorExcel,$validatorExcelDefault,$modelRelaies,$validatorMessages);
+        $templateVar2 = $this->getDefaultData($tableColumns);
 
-        $fillableColumn = implode(',',$columns);
-
-        $templateVar2 = [ // 默认构造的数据
-            'validator_rule'   => trim($validatorRule),
-            'validator_column_rule'=> trim($validatorExcel),
-            'validator_column_default'=> trim($validatorExcelDefault),
-            'validator_message' => trim($validatorMessages),
-            'model_fillable'  => $fillableColumn,
-            'model_relay'     => $modelRelaies,
-        ];
         return array_merge($templateVar2,$templateVar);
     }
 
@@ -451,8 +441,18 @@ class MakeMvcsConsole extends Command
      * @param $validatorExcel
      * @param $validatorExcelDefault
      */
-    private function getValidatorData($tableColumns,& $columns,& $validatorRule,& $validatorExcel, & $validatorExcelDefault,&$modelRelaies,&$validatorMessages)
+    private function getDefaultData($tableColumns)
     {
+        if (empty($tableColumns)) {
+            return [
+                'validator_rule'   => '',
+                'validator_column_rule'=> '',
+                'validator_column_default'=> '',
+                'validator_message' => '',
+                'model_fillable'  => '',
+                'model_relate'     => '',
+            ];
+        }
         $validators = [];
         $excelColumn = [];
         $excelDefault = [];
@@ -510,18 +510,9 @@ class MakeMvcsConsole extends Command
                 }
             }
         }
-        $validatorRule = implode("\n",array_map(function($arr){
-            $column = '            '.$arr['column'].' ';//前面加12个空格
-            $len = strlen($column);
-            for($i =$len;$i<35;$i++) {
-                $column .= ' ';
-            }
-            $rule = $column.' => \''.implode('|',$arr['rule']).'\',';
-
-            for($i =strlen($rule);$i<80;$i++) {
-                $rule .= ' ';
-            }
-            return $rule.'    //'.$arr['comment'] ;
+        $validatorRule = implode("\n            ",array_map(function($arr){
+            $rule  = str_pad("{$arr['column']}",25) . " => '".implode('|',$arr['rule'])."',";
+            return str_pad($rule,80).'    //'.$arr['comment'] ;// 补充注释
         },$validators));
 
         $validatorMessages = implode("",array_map(function($arr){
@@ -534,28 +525,25 @@ class MakeMvcsConsole extends Command
             return $messages;
         },$validators));
 
-
-        $validatorExcel = implode("\n",array_map(function($arr){
-            $column = '            '.$arr['column'].' ';//前面加12个空格
-            $len = strlen($column);
-            for($i =$len;$i<35;$i++) {
-                $column .= ' ';
-            }
-            $rule = $column.' => [\''.$arr['comment'].'\',\''.$arr['example'].'\'],';
+        $validatorExcel = implode("\n            ",array_map(function($arr){
+            $rule = str_pad($arr['column'],25)." => ['{$arr['comment']}', '{$arr['example']}'],";
             return $rule;
         },$excelColumn));
 
-        $validatorExcelDefault = implode("\n",array_map(function($arr){
-            $column = '            '.$arr['column'].' ';//前面加12个空格
-            $len = strlen($column);
-            for($i =$len;$i<35;$i++) {
-                $column .= ' ';
-            }
-            $rule = $column.' => \''.$arr['default'].'\',';
+        $validatorExcelDefault = implode("\n            ",array_map(function($arr){
+            $rule = str_pad($arr['column'],25).' => \''.$arr['default'].'\',';
             return $rule;
         },$excelDefault));
 
-        $modelRelaies = implode("\n\n    ",$relaies);
+        $result = [
+            'validator_rule'   => trim($validatorRule),
+            'validator_column_rule'=> trim($validatorExcel),
+            'validator_column_default'=> trim($validatorExcelDefault),
+            'validator_message' => trim($validatorMessages),
+            'model_fillable'  => implode(',',$columns),
+            'model_relate'     => implode("\n\n    ",$relaies),
+        ];
+        return $result;
     }
 
     /**
