@@ -235,7 +235,7 @@ class MakeMvcsConsole extends Command
             //根据不同路径,渲染对应的模板文件
             $path = $this->getPath($key);
             if (file_exists($path) && strpos($this->force,$key) === false && $this->force != 'all') {
-                $this->info($key.' 已存在. 添加 --force=all || --force='.$key.' 来覆盖旧文件');
+                $this->info($this->getClassName($key).' 已存在. 可添加 --force=all || --force='.$key.' 来覆盖旧文件');
                 continue ;
             }
             $class = $this->files->put($this->getPath($key), $template);

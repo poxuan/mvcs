@@ -13,12 +13,12 @@
 
 > All commands following can not work on production machine.
 
-## The Command make:mvcs
+## The Command mvcs:make
 
 This command create a series of files from clear template.
 
 > Use it just like this: \
-> php artisan make:mvcs {model} {--force=} {--only=} {--connect=}
+> php artisan mvcs:make {model} {--force=} {--only=} {--connect=} {--style=}
 
 ```TEXT
 model:
@@ -33,6 +33,9 @@ model:
 --connect:
     As you can have many databases, this param mean the table in which database.
     Just use it as  --connect=mysql2
+--style:
+    Sometimes you may want to create files in different template.
+    Create a dri in resource/stubs, and craete a different template.
 ```
 
 1. Before you use this command, you should edit the stubs and config to fit your project. \
@@ -57,15 +60,15 @@ and it will also create routes:
 > Route::Resource('account','AccountController']);
 ```
 
-## The Command make:mvcs_all
+## The Command mvcs:make_all
 
 This command create many series of files from clear template from your tables.
 
 > Use it just like this: \
-> php artisan make:mvcs_all {--connect=}
+> php artisan mvcs:make_all {--connect=} {--style=} {--y|yes}
 
-foreach table in databases \
-do: **php artisan make:mvcs model {--connect=}**;
+foreach table in database \
+do: **php artisan mvcs:make model {--connect=}**;
 
 ## The Command mvcs:excel
 

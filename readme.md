@@ -19,11 +19,11 @@
 
 > 发布成功后，分别出现在config 和 resource 中，内有中文注解。
 
-## make:mvcs命令
+## mvcs:make 命令
 
 该命令用来生成模板文件，默认提供了四个模板MVCS
 
-> php artisan make:mvcs {model} {--force=} {--only=} {--connect=} \
+> php artisan mvcs:make {model} {--force=} {--only=} {--connect=} \
 > \
 > model 为驼峰式或骆驼式,如UserAccount 或 userAccount 对应表为 user_account,也可以加路径如 test/UserAccount \
 > --force   表示强制覆盖文件,默认为空,可选值为:all 或 (M)(V)(C)(S) 如 --force=SVM 则将强制覆盖除C的三个文件 \
