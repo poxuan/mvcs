@@ -5,6 +5,7 @@ namespace Callmecsx\Mvcs\Console;
 use Callmecsx\Mvcs\Service\ExcelService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 

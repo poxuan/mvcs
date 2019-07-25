@@ -80,7 +80,7 @@ class MakeMvcsConsole extends Command
         if (Config::get('app.env') == 'production') {
             return $this->myinfo('deny', '', 'error');
         }
-        $model = ucfirst($this->argument('model'));
+        $model = ucfirst($this->lineToHump($this->argument('model')));
         if (empty($model)) {
             return $this->myinfo('param_lack', 'model', 'error');
         }
@@ -565,7 +565,7 @@ class MakeMvcsConsole extends Command
             'validator_column_default' => trim($validatorExcelDefault),
             'validator_message' => trim($validatorMessages),
             'model_fillable' => implode(',', $columns),
-            'model_relate' => implode($this->tabs(3, "\n\n"), $relaies),
+            'model_relate' => implode($this->tabs(1, "\n\n"), $relaies),
             'main_version' => Config::get('mvcs.version'),
             'sub_version' => Config::get('mvcs.version') . '.' . date('Y-m-d'),
         ];

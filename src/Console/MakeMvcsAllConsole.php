@@ -51,6 +51,8 @@ class MakeMvcsAllConsole extends Command
         $params = [];
         if ($connect = $this->option('connect')) {
             $params['--connect'] = $connect;
+        } else {
+            $connect = DB::getDefaultConnection();
         }
         if ($style = $this->option('style')) {
             $params['--style'] = $style;
@@ -70,7 +72,8 @@ class MakeMvcsAllConsole extends Command
                     continue;
                 }
             }
-            $params['model'] = $this->lineToHump($tableName);
+            $prefix = Config::get('database.connections.' . $connect . '.prefix', '');
+            $params['model'] = $this->lineToHump(str_replace($prefix, '', $tableName));
             Artisan::call('mvcs:make', $params);
             $this->info("[$tableName] 相关文件已生成！");
         }

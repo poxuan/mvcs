@@ -7,7 +7,7 @@ return [
     // 模板风格
     'style' => 'api_default',
     // 语言包
-    'language' => 'zn-ch',
+    'language' => 'zh-cn',
     // 版本信息
     'version' => '1.0',
     // 默认生成模板
