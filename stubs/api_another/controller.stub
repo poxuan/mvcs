@@ -9,14 +9,24 @@ use $model_ns\$model_name;
 use $request_ns\$request_name;
 use $resource_ns\$resource_name;
 
+/**
+ * $controller_name
+ *
+ * @author  $author_info
+ * @version 1.0
+ * @since   $main_version
+ */
 class $controller_name $controller_extands
 {
-    // 自定义全局数据
+    // Custom params
     // protected $modular='$table_name';
     
     /**
      * Display a listing of the resource.
      *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
      * @return \Illuminate\Http\Response
      */
     public function index($request_name $request)
@@ -30,21 +40,22 @@ class $controller_name $controller_extands
      * Store a newly created resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
-     * @param  \Illuminate\Http\Request  $request
+     * @since  $sub_version
+     * @param  $request_name  $request
      * @return \Illuminate\Http\Response
      */
     public function store($request_name $request)
     {
         $result = $mode::save($request->post());
-        return response()->json($result);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
      * Display the specified resource.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -58,47 +69,62 @@ class $controller_name $controller_extands
      * Update the specified resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
-     * @param  \Illuminate\Http\Request  $request
+     * @since  $sub_version
+     * @param  $request_name  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function update($request_name $request, $id)
     {
         $result = $service->update($request->post(), $id);
-        return response()->json([]);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
      * Remove the specified resource from storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
+     * @param  $request_name  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($request_name $request, $id)
     {
         $result = $mode::destroy($id);
-        return response()->json($result);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
-     * 启用（审批）一组记录
+     * Change the data status up.
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
      */
     public function up($request_name $request)
     {
         $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 1]);
-        return response()->json($result);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
-     * 停用或拒绝 一组记录
+     * Change the data status down.
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
      */
-    public function down(Request $request, $service_name $service)
+    public function down(Request $request)
     {
-        $result = $service->down($request->input('ids'));
-        return response()->json($result);
+        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 0]);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
     
 }

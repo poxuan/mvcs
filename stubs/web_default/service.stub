@@ -24,7 +24,7 @@ class $service_name $service_extands
      *  获取显示列表
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $filter
      * @param  int   $page
      * @param  int   $limit
@@ -66,7 +66,7 @@ class $service_name $service_extands
      *  创建新数据
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param $post
      * @return array
      */
@@ -93,7 +93,7 @@ class $service_name $service_extands
      *  更新一条记录
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param array $post
      * @param int   $id
      * @return array
@@ -117,7 +117,7 @@ class $service_name $service_extands
      *  获取一条记录详情
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int  $id
      * @return array
      */
@@ -141,7 +141,7 @@ class $service_name $service_extands
      *  删除一条或多条数据
      *
      * @author
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int|array  $id
      * @return array
      */
@@ -161,7 +161,7 @@ class $service_name $service_extands
      *  启用(或审批)一条或多条数据
      *
      * @author
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array  $ids
      * @return array
      */
@@ -184,7 +184,7 @@ class $service_name $service_extands
      *  停用一条或多条数据
      *
      * @author
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array  $ids
      * @return array
      */
@@ -207,7 +207,7 @@ class $service_name $service_extands
      * 导入数据
      *
      * @author $author_info
-     * @date   2018-08-07 15:55:54
+     * @since  2018-08-07 15:55:54
      * @param string $file_path 文件名
      * @param string $type 文件类型
      * @param bool   $cover 重复数据是否覆盖
@@ -254,7 +254,7 @@ class $service_name $service_extands
      * 导出模板
      *
      * @author $author_info
-     * @date   2018-08-07 15:56:10
+     * @since  2018-08-07 15:56:10
      */
     public function template()
     {

@@ -18,7 +18,7 @@ class $validator_name $validator_extands
      * 添加验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 验证字段
      * @return void
      */
@@ -32,7 +32,7 @@ class $validator_name $validator_extands
      * 更新验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 验证数据
      * @param  int   $id 要更新的行
      * @return void
@@ -51,7 +51,7 @@ class $validator_name $validator_extands
      * 删除验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int $id 要删除的行
      * @return void
      */
@@ -67,7 +67,7 @@ class $validator_name $validator_extands
      * 启用/停用验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $ids 要筛选字段
      * @return void
      */
@@ -87,7 +87,7 @@ class $validator_name $validator_extands
      * 筛选验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $filter 要筛选字段
      * @return void
      */
@@ -103,7 +103,7 @@ class $validator_name $validator_extands
      * 批量导入验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 要验证的数据
      * @return void
      */
@@ -131,7 +131,7 @@ class $validator_name $validator_extands
      * 数组下标6 非必填,关联表创建时的填充字段,
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @return array
      */
     public static function excelColumn()
@@ -147,7 +147,7 @@ class $validator_name $validator_extands
      * 导入时可选字段默认值
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @return array
      */
     public static function excelDefault()

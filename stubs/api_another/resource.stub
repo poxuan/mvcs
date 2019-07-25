@@ -4,6 +4,13 @@ namespace $resource_ns;
 
 $resource_use
 
+/**
+ * $resource_name
+ *
+ * @author  $author_info
+ * @version 1.0
+ * @since   $main_version
+ */
 class $resource_name $resource_extends
 {
     /**

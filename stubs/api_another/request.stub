@@ -4,6 +4,13 @@ namespace $request_ns;
 
 $request_use
 
+/**
+ * $request_name
+ *
+ * @author  $author_info
+ * @version 1.0
+ * @since   $main_version
+ */
 class $request_name $request_extends
 {
     // 公共部分

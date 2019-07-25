@@ -4,9 +4,15 @@ namespace $controller_ns;
 
 $controller_use
 use $service_ns\$service_name;
-
 use Illuminate\Http\Request;
 
+/**
+ * $controller_name
+ *
+ * @author  $author_info
+ * @version $main_version
+ * @since   $sub_version
+ */
 class $controller_name $controller_extands
 {
     // protected $modular='$table_name';
@@ -26,7 +32,7 @@ class $controller_name $controller_extands
      * Store a newly created resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
@@ -40,7 +46,7 @@ class $controller_name $controller_extands
      * Display the specified resource.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -54,7 +60,7 @@ class $controller_name $controller_extands
      * Update the specified resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -69,7 +75,8 @@ class $controller_name $controller_extands
      * Remove the specified resource from storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
+     * @param  $service_name  $service
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -80,25 +87,42 @@ class $controller_name $controller_extands
     }
 
     /**
-     * 启用（审批）一组记录
+     * Change the data status up.
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
      */
-    public function up(Request $request, $service_name $service)
+    public function up($request_name $request)
     {
-        $result = $service->up($request->input('ids'));
-        return response()->json($result);
+        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 1]);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
-     * 停用或拒绝 一组记录
+     * Change the data status down.
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
      */
-    public function down(Request $request, $service_name $service)
+    public function down(Request $request)
     {
-        $result = $service->down($request->input('ids'));
-        return response()->json($result);
+        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 0]);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
-     * 导入数据
+     * Change the data status down.
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
      */
     public function import(Request $request, $service_name $service)
     {

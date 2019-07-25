@@ -18,7 +18,7 @@ class $validator_name $validator_extands
      * 添加验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 验证字段
      * @return void
      */
@@ -32,7 +32,7 @@ class $validator_name $validator_extands
      * 更新验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 验证数据
      * @param  int   $id 要更新的行
      * @return void
@@ -51,7 +51,7 @@ class $validator_name $validator_extands
      * 删除验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int $id 要删除的行
      * @return void
      */
@@ -67,7 +67,7 @@ class $validator_name $validator_extands
      * 启用/停用验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $ids 要筛选字段
      * @return void
      */
@@ -87,7 +87,7 @@ class $validator_name $validator_extands
      * 筛选验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $filter 要筛选字段
      * @return void
      */
@@ -103,7 +103,7 @@ class $validator_name $validator_extands
      * 批量导入验证规则
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  array $data 要验证的数据
      * @return void
      */
@@ -117,21 +117,20 @@ class $validator_name $validator_extands
     /**
      * 产品导入导出字段及其规则
      *
+     * 二维数组
      * 键名  小写,对应数据库字段,含有层次或数组关系时,键名末尾添加[-]+[序号]
-     *
-     * 数组下标0 表示字段名
-     * 数组下标1 为示例显示值
-     * 数组下标2 限制规则,当为数组时,为该列在模板中可选项值;为关联表时,结合后续数据处理
-     *
-     * 后续数据暂只在关联表下可用
-     *
-     * 数组下标3 关联表必填,数据在关联表不存在时是否支持新建, true or false
-     * 数组下标4 关联表必填,以键名在关联表中查找或添加后,以此值作为外键,代替当前键.
-     * 数组下标5 非必填,内部依赖字段,在其依赖不存在且无法查找到该数据时,不能进行添加操作,用于父子关系
-     * 数组下标6 非必填,关联表创建时的填充字段,
-     *
+     * 
+     * 数据项，下表简写。
+     * c   comment 字段解释，用于表头
+     * e   example 示例值
+     * l   limit   限制 数组或关联表名 array|relate_model(可以为当前model, 表示层级关系),
+     * ra  relate_auto_create  关联表是否自动新建 true|false (default)
+     * rc  relate_column       关联表对应字段，字符串，默认为 name 
+     * re  relate_extra        关联表额外查询字段，数组
+     * rf  relate_fill         关联表填充字段，数组
+     * 
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @return array
      */
     public static function excelColumn()
@@ -147,7 +146,7 @@ class $validator_name $validator_extands
      * 导入时可选字段默认值
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @return array
      */
     public static function excelDefault()

@@ -7,6 +7,12 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * 按模板生成文件脚本
+ *
+ * @author chentengfei <tengfei.chen@atommatrix.com>
+ * @since  1970-01-01 08:00:00
+ */
 class MakeMvcsConsole extends Command
 {
     // 脚本命令
@@ -15,22 +21,27 @@ class MakeMvcsConsole extends Command
     // 脚本描述
     protected $description = '根据预定的文件模板创建文件';
 
-    //模型
+    // 模型
     private $model;
 
-    //表名
+    // tab符
+    private $spaces = '    ';
+
+    // 表名
     private $table;
 
-    //文件组
+    private $language = 'zh-cn.php';
+
+    // 文件组
     private $files;
 
-    private $style="api_default";
-    //中间件
+    private $style = "api_default";
+    // 中间件
     private $middleware = [];
 
-    //额外名字空间和路径
+    // 额外名字空间和路径
     private $extraSpace = "";
-    private $extraPath  = "";
+    private $extraPath = "";
 
     //强制覆盖文件组
     private $force = '';
@@ -47,15 +58,16 @@ class MakeMvcsConsole extends Command
     /**
      * Create a new command instance.
      *
-     * @param Filesystem $filesystem
      */
     public function __construct()
     {
         parent::__construct();
-        $this->files    = new Filesystem();
+        $this->files = new Filesystem();
         $this->ignoreColumns = Config::get("mvcs.ignore_columns") ?: [];
         $this->style = Config::get("mvcs.style") ?: 'api_default';
         $this->only = Config::get("mvcs.default_stubs")[$this->style] ?? 'MVCS';
+        $this->middleware = Config::get('mvcs.routes.middlewares');
+        $this->language = Config::get('mvcs.language') ?: 'zh-cn';
     }
 
     /**
@@ -66,43 +78,38 @@ class MakeMvcsConsole extends Command
     public function handle()
     {
         if (Config::get('app.env') == 'production') {
-            die("禁止在线上环境运行!");
+            return $this->myinfo('deny', '', 'error');
         }
-        $model     = ucfirst($this->argument('model'));
-
-        if (empty($model)){
-            die("you must input your model!");
+        $model = ucfirst($this->argument('model'));
+        if (empty($model)) {
+            return $this->myinfo('param_lack', 'model', 'error');
         }
-        if (count($modelArray = explode('/',$model)) > 1){
-            $modelArray = array_map('ucfirst',$modelArray);
+        if (count($modelArray = explode('/', $model)) > 1) {
+            $modelArray = array_map('ucfirst', $modelArray);
             $model = ucfirst(array_pop($modelArray));
-            $this->extraSpace = '\\'.implode('\\',$modelArray);
-            $this->extraPath = DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR,$modelArray);
+            $this->extraSpace = '\\' . implode('\\', $modelArray);
+            $this->extraPath = DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $modelArray);
         }
-        $force = $this->option('force');
-        if ($force) {
+        if ($force = $this->option('force')) {
             $this->force = $force;
         }
-        $only = $this->option('only');
-        if ($only && $only != 'all') {
+        if (($only = $this->option('only')) && $only != 'all') {
             $this->only = strtoupper($only);
         }
-        $connect = $this->option('connect');
-        if ($connect) {
+        if ($connect = $this->option('connect')) {
             $this->connect = $connect;
+        } else {
+            $this->connect = DB::getDefaultConnection();
         }
-        $middleware = $this->option('middleware')?:[];
-        if ($middleware) {
-            $middleware = explode(',',$middleware);
+        if ($middleware = $this->option('middleware', [])) {
+            $this->middleware += explode(',', $middleware);
         }
-        $style = $this->option('style');
-        if ($style) {
+        if ($style = $this->option('style')) {
             $this->style = $style;
         }
-        $this->middleware = Config::get('mvcs.routes.middlewares') + $middleware;
-        $this->model      = $model;
-        $this->table      = $this->humpToLine($model);
-        // 自动生成MVCS文件
+        $this->model = $model;
+        $this->table = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
+        // 生成MVCS文件
         $this->writeMVCS();
 
     }
@@ -110,11 +117,12 @@ class MakeMvcsConsole extends Command
     /*
      * 驼峰转下划线
      */
-    private function humpToLine($str){
-        $str = preg_replace_callback('/([A-Z]{1})/',function($matches){
-            return '_'.strtolower($matches[0]);
-        },$str);
-        return $str[0] == '_' ? substr($str,1) : $str;
+    private function humpToLine($str)
+    {
+        $str = preg_replace_callback('/([A-Z]{1})/', function ($matches) {
+            return '_' . strtolower($matches[0]);
+        }, $str);
+        return $str[0] == '_' ? substr($str, 1) : $str;
     }
 
     /*
@@ -122,11 +130,11 @@ class MakeMvcsConsole extends Command
      */
     private function lineToHump($str)
     {
-        $str = preg_replace_callback('/([-_]+([a-z]{1}))/i',function($matches){
+        $str = preg_replace_callback('/([-_]+([a-z]{1}))/i', function ($matches) {
             return strtoupper($matches[2]);
-        },$str);
+        }, $str);
         return $str;
-    }                         
+    }
 
     /**
      * 生成mvcs文件
@@ -138,10 +146,12 @@ class MakeMvcsConsole extends Command
     private function writeMVCS()
     {
         $this->createDirectory();
-        if($this->createClass()){
+        if ($this->createClass()) {
             //若生成成功,则输出信息
-            $this->info('Success to make '.$this->only.' files !');
+            $this->myinfo('success', $this->only);
             $this->addRoutes();
+        } else {
+            $this->myinfo('fail');
         }
     }
 
@@ -151,37 +161,37 @@ class MakeMvcsConsole extends Command
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:17:55
      */
-    function addRoutes() 
+    public function addRoutes()
     {
         if (Config::get('mvcs.add_route')) {
             $routeStr = "";
             $group = false;
-            $type = Config::get('mvcs.route_type')?:'api';
+            $type = Config::get('mvcs.route_type') ?: 'api';
             $routes = Config::get('mvcs.routes');
             if ($this->middleware) {
-                $routeStr .= "Route::middleware(".\json_encode($this->middleware).")";
+                $routeStr .= "Route::middleware(" . \json_encode($this->middleware) . ")";
                 $group = true;
             }
             if ($prefix = Config::get('mvcs.routes.prefix')) {
-                $routeStr .= ($routeStr?"->prefix('$prefix')":"Route::prefix('$prefix')");
+                $routeStr .= ($routeStr ? "->prefix('$prefix')" : "Route::prefix('$prefix')");
                 $group = true;
             }
             if ($namespace = Config::get('mvcs.routes.namespace')) {
-                $routeStr .= ($routeStr?"->namespace('$namespace')":"Route::namespace('$namespace')");
+                $routeStr .= ($routeStr ? "->namespace('$namespace')" : "Route::namespace('$namespace')");
                 $group = true;
             }
             if ($group) {
                 $routeStr .= "->group(function(){\n";
             }
-            $method = ['get','post','put','delete','patch'];
+            $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
             foreach ($method as $met) {
-                $rs = Config::get('mvcs.routes.'.$met);
-                foreach($rs as $m => $r) {
+                $rs = Config::get('mvcs.routes.' . $met);
+                foreach ($rs as $m => $r) {
                     $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
                 }
             }
-            if(Config::get('mvcs.routes.apiResource')) {
+            if (Config::get('mvcs.routes.apiResource')) {
                 $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
             } elseif (Config::get('mvcs.routes.resource')) {
                 $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
@@ -189,8 +199,8 @@ class MakeMvcsConsole extends Command
             if ($group) {
                 $routeStr .= "});\n\n";
             }
-            $handle = fopen(base_path("routes/$type.php"),'a+');
-            fwrite($handle,$routeStr);
+            $handle = fopen(base_path("routes/$type.php"), 'a+');
+            fwrite($handle, $routeStr);
             fclose($handle);
         }
     }
@@ -205,18 +215,17 @@ class MakeMvcsConsole extends Command
     private function createDirectory()
     {
 
-        for($i=0; $i< strlen($this->only); $i ++) {
+        for ($i = 0; $i < strlen($this->only); $i++) {
             $d = $this->only[$i];
             $path = $this->getPath($d);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
-            if(! $this->files->isDirectory($directory)){
+            if (!$this->files->isDirectory($directory)) {
                 $this->files->makeDirectory($directory, 0755, true);
             }
         }
         return true;
     }
-
 
     /**
      * 创建目标文件
@@ -229,14 +238,14 @@ class MakeMvcsConsole extends Command
     private function createClass()
     {
         //渲染模板文件,替换模板文件中变量值
-        $templates = $this->templateStub();
-        $class     = null;
+        $templates = $this->templateRender();
+        $class = null;
         foreach ($templates as $key => $template) {
-            //根据不同路径,渲染对应的模板文件
+            // 文件放置位置
             $path = $this->getPath($key);
-            if (file_exists($path) && strpos($this->force,$key) === false && $this->force != 'all') {
-                $this->info($this->getClassName($key).' 已存在. 可添加 --force=all || --force='.$key.' 来覆盖旧文件');
-                continue ;
+            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
+                $this->myinfo('file_exist', $this->getClassName($key));
+                continue;
             }
             $class = $this->files->put($this->getPath($key), $template);
         }
@@ -245,16 +254,16 @@ class MakeMvcsConsole extends Command
 
     private function getPath($d)
     {
-        return $this->getDirectory($d).DIRECTORY_SEPARATOR.$this->getClassName($d).'.php';
+        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . '.php';
     }
 
     private function getDirectory($d)
     {
-        $path = $this->stub_config($d,'path');
+        $path = $this->stub_config($d, 'path');
         if (is_callable($path)) {
-            return $path($this->model,$this->extraPath);
+            return $path($this->model, $this->extraPath);
         }
-        return $this->stub_config($d,'path').$this->extraPath;
+        return $this->stub_config($d, 'path') . $this->extraPath;
     }
 
     /**
@@ -270,14 +279,14 @@ class MakeMvcsConsole extends Command
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
 
-            $connect = Config::get('database.connections.'.$this->connect);
+            $connect = Config::get('database.connections.' . $this->connect);
             DB::setDefaultConnection($this->connect);
-            switch ($connect['driver']) {// 
+            switch ($connect['driver']) { //
                 case 'mysql':
                     return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
                        IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                    [':table' => $this->table,':schema' => $connect['database'],]);
+                        [':table' => $this->table, ':schema' => $connect['database']]);
                 case 'sqlsrv':
                     return DB::select("SELECT
                     a.name as Field
@@ -292,42 +301,41 @@ class MakeMvcsConsole extends Command
                     inner   join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
                     left   join   syscomments   e   on   a.cdefault=e.id
                     left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
-                    left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0 
+                    left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
                     where   d.name= :table
                     order   by   a.id,a.colorder ",
-                    [':table' => $this->table,':schema' => $connect['database'],]);
+                        [':table' => $this->table, ':schema' => $connect['database']]);
                 default:
-                    $this->info('数据库类型['.$connect['driver'].']暂不支持，字段操作将会被跳过。');
+                    $this->myinfo('db_not_support', $connect['driver']);
                     return [];
-                
             }
-            
+
         } catch (\Exception $e) {
-            $this->info('数据库配置['.$this->connect.']不可用，有些操作将会被跳过。建议先建表，重新执行一次。');
-            $this->info($e->getMessage());
+            $this->myinfo('db_disabled', $this->connect);
+            $this->myinfo('message', $e->getMessage(), 'error');
             return [];
         }
 
     }
 
     /**
-     * 获取渲染后的模板
+     * 模板渲染
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:15:37
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function templateStub()
+    private function templateRender()
     {
         // 获取两个模板文件
-        $stubs        = $this->getStub();
+        $stubs = $this->getStub();
         // 获取需要替换的模板文件中变量
         $templateData = $this->getTemplateData();
-        $renderStubs  = [];
+        $renderStubs = [];
         foreach ($stubs as $key => $stub) {
             // 进行模板渲染
-            $renderStubs[$key] = $this->getRenderStub($templateData, $stub);
+            $renderStubs[$key] = $this->replaceStub($templateData, $stub);
         }
 
         return $renderStubs;
@@ -345,18 +353,18 @@ class MakeMvcsConsole extends Command
     {
         $configs = Config::get('mvcs');
         $stubs = [];
-        for($i = 0;$i < strlen($this->only) ;$i++) {
+        for ($i = 0; $i < strlen($this->only); $i++) {
             $key = $this->only[$i];
             $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
             if ($filename) {
-                $filePath = resource_path('stubs').DIRECTORY_SEPARATOR.$this->style.DIRECTORY_SEPARATOR.$filename.'.stub';
+                $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
                 if (file_exists($filePath)) {
                     $stubs[$key] = $this->files->get($filePath);
                 } else {
-                    $this->error("[$key]模板未找到文件:".$filePath);
+                    $this->myinfo('stub_not_found', $key, 'error');
                 }
             } else {
-                $this->error("[$key]模板未定义。");
+                $this->myinfo('stub_not_found', $key, 'error');
             }
         }
         return $stubs;
@@ -364,31 +372,31 @@ class MakeMvcsConsole extends Command
 
     public function getClassName($d)
     {
-        return $this->model.$this->stub_config($d,"postfix");
+        return $this->model . $this->stub_config($d, "postfix");
     }
 
     private function getNameSpace($d)
     {
-        return $this->stub_config($d,"namespace").$this->extraSpace;
+        return $this->stub_config($d, "namespace") . $this->extraSpace;
     }
 
     private function getBaseUse($d)
     {
-        $ens = $this->stub_config($d,"extands.namespace");
-        $en = $this->stub_config($d,"extands.name");
+        $ens = $this->stub_config($d, "extands.namespace");
+        $en = $this->stub_config($d, "extands.name");
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
-        return "use ".$ens.'\\'.$en.';';
+        return "use " . $ens . '\\' . $en . ';';
     }
 
     private function getExtands($d)
     {
-        $en = $this->stub_config($d,"extands.name");
+        $en = $this->stub_config($d, "extands.name");
         if (empty($en)) {
             return null;
         }
-        return " extends ".$en;
+        return " extends " . $en;
     }
 
     /**
@@ -400,34 +408,34 @@ class MakeMvcsConsole extends Command
      */
     private function getTemplateData()
     {
-        $create_date  = date("Y-m-d H:i:s");
-        $tableName    = $this->table;
-        $modularName  = strtoupper($tableName);
+        $create_date = date("Y-m-d H:i:s");
+        $tableName = $this->table;
+        $modularName = strtoupper($tableName);
         $tableColumns = $this->getTableColumns();
-        $templateVar  = [
-            'create_date'      => $create_date,
-            'table_name'       => $tableName,
-            'modular_name'     => $modularName,
-            'author_info'      => Config::get("mvcs.author")
+        $templateVar = [
+            'create_date' => $create_date,
+            'table_name' => $tableName,
+            'modular_name' => $modularName,
+            'author_info' => Config::get("mvcs.author"),
         ];
-        $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.'.$this->style));
-        foreach($stubs as $d) {
-            $name = $this->stub_config($d,"name");
-            $templateVar[$name.'_name'] = $this->getClassName($d);
-            $templateVar[$name.'_ns']   = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
-            $templateVar[$name.'_use']   = $this->getBaseUse($d);
-            $templateVar[$name.'_extands'] = $this->getExtands($d);
-            $templateVar[$name.'_anno']   = stripos('_'.$this->only,$d) ? "" : "// "; //是否注释掉
-            $extra = $this->stub_config($d,"extra",[]);
-            foreach($extra as $key => $func) {
-                $templateVar[$name.'_'.$key] = \is_callable($func) ? $func($this->model,$tableColumns) : $func;
+        $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
+        foreach ($stubs as $d) {
+            $name = $this->stub_config($d, "name");
+            $templateVar[$name . '_name'] = $this->getClassName($d);
+            $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
+            $templateVar[$name . '_use'] = $this->getBaseUse($d);
+            $templateVar[$name . '_extands'] = $this->getExtands($d);
+            $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? "" : "// "; //是否注释掉
+            $extra = $this->stub_config($d, "extra", []);
+            foreach ($extra as $key => $func) {
+                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $tableColumns) : $func;
             }
         }
         $columns = [];
         // 根据数据库字段生成一些模板数据。
         $templateVar2 = $this->getDefaultData($tableColumns);
 
-        return array_merge($templateVar2,$templateVar);
+        return array_merge($templateVar2, $templateVar);
     }
 
     /**
@@ -445,103 +453,121 @@ class MakeMvcsConsole extends Command
     {
         if (empty($tableColumns)) {
             return [
-                'validator_rule'   => '',
-                'validator_column_rule'=> '',
-                'validator_column_default'=> '',
+                'validator_rule' => '',
+                'validator_column_rule' => '',
+                'validator_column_default' => '',
                 'validator_message' => '',
-                'model_fillable'  => '',
-                'model_relate'     => '',
+                'model_fillable' => '',
+                'model_relate' => '',
             ];
         }
         $validators = [];
         $excelColumn = [];
         $excelDefault = [];
         $relaies = [];
-        if($tableColumns) {
+        if ($tableColumns) {
             foreach ($tableColumns as $column) {
-                if (!in_array($column->Field,$this->ignoreColumns)) {
+                if (!in_array($column->Field, $this->ignoreColumns)) {
                     $v = [];
-                    $columns[] = $v['column'] = "'".$column->Field."'";
-                    $e['column'] = $v['column'];
-                    $e['comment'] = $v['comment'] = $column->Comment?:$column->Field;
-                    $e['example'] = '';
+                    $v['column'] = $column->Field;
+                    $columns[] = "'" . $column->Field . "'";
+                    $v['comment'] = str_replace(['"', "'", "\n", "\t", "\r", "\\"], '', $column->Comment ?: $column->Field);
+                    $v['example'] = '';
                     if ($column->Nullable == 'NO' && $column->Default === null) {
                         $v['rule'][] = 'required';
-                        $v['messages'][$column->Field.'.required'] = $v['comment'].' 必填';
-                        $e['comment'].= '(必填)';
+                        $v['messages'][$column->Field . '.required'] = $v['comment'] . ' 必填';
+                        $v['nullable'] = false;
                     } else {
                         $v['rule'][] = 'sometimes';
-                        $e['comment'].= '(选填)';
-                        $ed['column'] = $e['column'];
-                        $ed['default'] = $column->Default?:(starts_with($column->Type,'varchar')?'':
-                            (starts_with($column->Type,'date')?date('Y-m-d'):0));
+                        $v['nullable'] = true;
+                        $ed['column'] = $v['column'];
+                        $ed['default'] = $column->Default ?: (preg_match('/int/', $column->Type) ? 0 :
+                            (starts_with($column->Type, 'date') ? "Db::raw('now()')" : "''"));
                         $excelDefault[] = $ed;
                     }
-                    //var_dump($column->Type);die;
-                    if(preg_match("/varchar\((\d+)\)/",$column->Type,$match)) {
+                    if (preg_match("/char\((\d+)\)/", $column->Type, $match)) {
                         $v['rule'][] = 'string';
-                        $v['rule'][] = 'max:'.$match[1];
-                        $v['messages'][$column->Field.'.max'] = $v['comment'].' 长度不得超过:' . $match[1];
-                        $e['example'] = $column->Default?:'';
-                    } elseif(preg_match('/\w*int\((\d+)\)/',$column->Type,$match)) {
+                        $v['rule'][] = 'max:' . $match[1];// 可能需要添加扩展 mbmax
+                        $v['messages'][$column->Field . '.max'] = $v['comment'] . ' 长度不得超过:' . $match[1];
+                        $v['example'] = $column->Default ?: '';
+                    } elseif (preg_match('/int/', $column->Type, $match)) {
                         $v['rule'][] = 'int';
                         $v['rule'][] = 'min:0';
-                        $v['messages'][$column->Field.'.max'] = $v['comment'].' 不得小于:0';
-                        $e['example'] = 10;
-                    } elseif(preg_match('/decimal\((\d+),(\d+)\)/',$column->Type,$match)) {
+                        $v['messages'][$column->Field . '.min'] = $v['comment'] . ' 不得小于:0';
+                        $v['example'] = 1;
+                    } elseif (preg_match('/decimal\((\d+),(\d+)\)/', $column->Type, $match)) {
                         //$v['rule'][] = 'int';
-                        $v['rule'][] = 'decimal:'.$match[1].','.$match[2];
-                        $e['example'] = '12.5';
-                    } elseif(preg_match('/date(time)*/',$column->Type,$match)) {
+                        $v['rule'][] = 'decimal:' . $match[1] . ',' . $match[2];
+                        $v['example'] = '1.00';
+                    } elseif (preg_match('/date/', $column->Type, $match)) {
                         $v['rule'][] = 'date';
-                        $e['example'] = date('Y-m-d');
+                        $v['example'] = date('Y-m-d');
+                    } elseif (preg_match('/enum/', $column->Type, $match)) {
+                        $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
+                        $v['enum'] = json_encode(explode(',', $enum), JSON_UNESCAPED_UNICODE);
+                        $v['rule'][] = 'in:' . $v['enum'];
+                        $v['example'] = date('Y-m-d');
                     }
-                    if (ends_with($column->Field,'_id')) {
-                        $otherTable  = str_replace('_id','',$column->Field);
-                        $otherModel  = $this->lineToHump($otherTable);
-                        $v['rule'][] = 'exist:'.$otherTable.',id';
-                        $v['messages'][$column->Field.'.exist'] = $otherTable.' 不存在';
-                        $relaies[]   = "public function $otherModel() {\n".
-                            '        return $this->belongsTo("'.$this->getNameSpace('M').'\\'.ucfirst($otherModel).'");'."\n".
-                            "    }\n";
+                    if (ends_with($column->Field, '_id')) {
+                        $otherTable = str_replace('_id', '', $column->Field);
+                        $otherModel = $this->lineToHump($otherTable);
+                        $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
+                        $v['rule'][] = 'exist:' . $otherTable . ',id';
+                        $v['messages'][$column->Field . '.exist'] = $otherTable . ' 不存在';
+                        $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
+                        $relaies[] = "public function $otherModel() {" 
+                            . $this->tabs(2, "\n") 
+                            . 'return $this->belongsTo("' . $fullOtherModel . '");' 
+                            . $this->tabs(1, "\n", "}\n");
                     }
                     $validators[] = $v;
-                    $excelColumn[] = $e;
                 }
             }
         }
-        $validatorRule = implode("\n            ",array_map(function($arr){
-            $rule  = str_pad("{$arr['column']}",25) . " => '".implode('|',$arr['rule'])."',";
-            return str_pad($rule,80).'    //'.$arr['comment'] ;// 补充注释
-        },$validators));
+        $validatorRule = implode($this->tabs(3, "\n"), array_map(function ($arr) {
+            $rule = str_pad("'{$arr['column']}'", 25) . " => '" . implode('|', $arr['rule']) . "',";
+            return str_pad($rule, 80) . '    //' . $arr['comment']; // 补充注释
+        }, $validators));
 
-        $validatorMessages = implode("",array_map(function($arr){
+        $validatorMessages = implode("", array_map(function ($arr) {
             $messages = '';
             if ($arr['messages'] ?? []) {
-                foreach($arr['messages'] as $key => $message) {
-                    $messages .= str_pad("        '$key'",28)." => '$message',\n";
+                foreach ($arr['messages'] as $key => $message) {
+                    $messages .= str_pad($this->tabs(2) . "'$key'", 28) . " => '$message',\n";
                 }
             }
             return $messages;
-        },$validators));
+        }, $validators));
 
-        $validatorExcel = implode("\n            ",array_map(function($arr){
-            $rule = str_pad($arr['column'],25)." => ['{$arr['comment']}', '{$arr['example']}'],";
-            return $rule;
-        },$excelColumn));
+        $validatorExcel = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
+            $nullable = $arr['nullable'] ? '选填' : '必填';
+            $columns = [
+                "'c' => '{$arr['comment']}#{$nullable}'",
+                "'e' => '{$arr['example']}'",
+            ];
+            if (isset($arr['enum'])) {
+                $columns[] = $this->tabs(4, "\n") . "'l' => {$arr['enum']}";
+            } elseif (isset($arr['relate'])) {
+                $columns[] = $this->tabs(4, "\n") . "'l' => '{$arr['relate']}'";
+                $columns[] = "'la' => false";
+                $columns[] = "'lc' => 'name'";
+            }
+            return str_pad("'{$arr['column']}'", 25) . " => [" . implode(', ', $columns) . "]";
+        }, $validators));
 
-        $validatorExcelDefault = implode("\n            ",array_map(function($arr){
-            $rule = str_pad($arr['column'],25).' => \''.$arr['default'].'\',';
-            return $rule;
-        },$excelDefault));
+        $validatorExcelDefault = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
+            return str_pad("'{$arr['column']}'", 25) . ' => ' . $arr['default'];
+        }, $excelDefault));
 
         $result = [
-            'validator_rule'   => trim($validatorRule),
-            'validator_column_rule'=> trim($validatorExcel),
-            'validator_column_default'=> trim($validatorExcelDefault),
+            'validator_rule' => trim($validatorRule),
+            'validator_column_rule' => trim($validatorExcel),
+            'validator_column_default' => trim($validatorExcelDefault),
             'validator_message' => trim($validatorMessages),
-            'model_fillable'  => implode(',',$columns),
-            'model_relate'     => implode("\n\n    ",$relaies),
+            'model_fillable' => implode(',', $columns),
+            'model_relate' => implode($this->tabs(3, "\n\n"), $relaies),
+            'main_version' => Config::get('mvcs.version'),
+            'sub_version' => Config::get('mvcs.version') . '.' . date('Y-m-d'),
         ];
         return $result;
     }
@@ -555,10 +581,10 @@ class MakeMvcsConsole extends Command
      * @param $stub
      * @return mixed
      */
-    private function getRenderStub($templateData, $stub)
+    private function replaceStub($templateData, $stub)
     {
         foreach ($templateData as $search => $replace) {
-            $stub = str_replace('$'.$search, $replace, $stub);
+            $stub = str_replace('$' . $search, $replace, $stub);
         }
         return $stub;
     }
@@ -573,8 +599,37 @@ class MakeMvcsConsole extends Command
      * @param  string $default 默认值
      * @return mixed
      */
-    public function stub_config($d, $key, $default = '') 
+    public function stub_config($d, $key, $default = '')
     {
         return Config::get("mvcs.{$this->style}.$d.$key", Config::get("mvcs.common.$d.$key", $default));
+    }
+
+    /**
+     * 国际化的提示信息
+     *
+     * @param [type] $info
+     * @param array $param
+     * @param string $type
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function myinfo($sign, $param = "", $type = 'info')
+    {
+        $lang = require_once __DIR__ . '/../language/' . $this->language . '.php';
+        $message = $lang[$sign] ?? $param;
+        if ($param) {
+            $message = sprintf($message, $param);
+        }
+        $this->$type($message);
+    }
+
+    public function tabs($count = 1, $pre = '', $post = '')
+    {
+        while ($count > 0) {
+            $pre .= $this->spaces;
+            $count--;
+        }
+        return $pre . $post;
     }
 }

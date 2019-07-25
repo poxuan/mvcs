@@ -32,6 +32,7 @@ class ExcelService
 
     private $trans = []; // 转换字段
 
+    private $cacheData = []; //缓存数据
 
     /**
      * ExcelService constructor.
@@ -75,7 +76,7 @@ class ExcelService
 
         // 剩余行数
         $rows = $highestRow - $rowStart - $this->offset;
-        if ($rows < $this->limit) {
+        if ($rows < $this->limit) { // 不够分两页，即设置没有更多。
             $this->hasMore = false;
         }
         // 开始读取行
@@ -139,20 +140,14 @@ class ExcelService
      */
     private function transData(& $data, $columns)
     {
-        $trans = [];
         foreach ($data as $key => $item) {
             foreach ($item as $column => $value) {
-                if (isset($columns[$column][2])) {
-                    $regulation = $columns[$column][2];
+                if (isset($columns[$column]['l'])) {
+                    $regulation = $columns[$column]['l'];
                     if (is_array($regulation)) {
                         $item[$column] = array_search($value, $regulation);
                     } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
-                        if (!in_array($column, $trans)) {
-
-                            $this->trans[$column] = $this->getTransValues($data, $column, $regulation);
-                            $trans[] = $column;
-                        }
-                        $this->replaceColumn($item, $column, $columns[$column]);
+                        $this->replaceRelateColumn($item, $column, $columns[$column]);
                     } else {
                         throw new \Exception('unknown rule:' . $regulation);
                     }
@@ -163,41 +158,7 @@ class ExcelService
     }
 
     /**
-     *
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-11 17:55:58
-     * @param $data
-     * @param $column
-     * @param $regulation
-     * @return array
-     */
-    private function getTransValues($data, $column, $regulation)
-    {
-
-        $values = [];
-        foreach ($data as $item) {
-            if ($v = $item[$column] ?? '') {
-                if (!in_array($v, $values)) {
-                    $values[] = $v;
-                }
-            }
-        }
-        $model = new $regulation();
-        $column = explode('-', $column)[0];
-        $result = $model->default()->whereIn($column, $values)->select('id', $column)->get();
-
-        $res = [];
-        foreach ($result as $item) {
-            if (!isset($res[$item->$column])) {
-                $res[$item->$column] = $item->id;
-            }
-        }
-        return $res;
-    }
-
-    /**
-     * 替换部分字段
+     * 替换关联字段
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-06 19:40:05
@@ -205,66 +166,41 @@ class ExcelService
      * @param $column
      * @param $columnRule
      */
-    private function replaceColumn(&$data, $column, $columnRule)
+    private function replaceRelateColumn(&$data, $column, $columnRule)
     {
         // 是否支持新建
-        $creatable = $columnRule[3];
-        // 替换字段
-        $replaceColumn = $columnRule[4];
-        // 依赖字段
-        $relyColumn = $columnRule[5] ?? '';
+        $creatable = $columnRule['ra'] ?? false;
+        // 关联字段
+        $realateColumn = $columnRule['rc'] ?? 'name';
+        // 关联额外查询值
+        $extraColumn = $columnRule['re'] ?? [];
+        // 关联额外插入值
+        $fillColumn = $columnRule['rf'] ?? [];
         // 关联model
-        $model = new $columnRule[2]();
+        $model = new $columnRule['l']();
         // 查找字段
         $searchColumn = explode('-', $column)[0];
         // 当前字段值
         $currentValue = $data[$column] ?? '';
-        // 新建时的填充字段
-        $fillColumn = [];
-        if (isset($columnRule[6]) && is_array($columnRule[6])) {
-            foreach ($columnRule[6] as $k => $v) {
-                // % 包围的字段,使用数组内的值替换.
-                if (preg_match('/%[_a-z0-9]+%/', $v, $matches)) {
-                    foreach ($matches as $match) {
-                        $co = str_replace('%', '', $match);
-                        $v = str_replace($match, $data[$co] ?? '', $v);
-                    }
-                }
-                // # 包围的字段,使用数组内转化后的值替换.
-                if (preg_match('/#[_\-a-z0-9]+#/', $v, $matches)) {
-                    foreach ($matches as $match) {
-                        $co = str_replace('#', '', $match);
-                        $v = str_replace($match, $this->trans[$relyColumn][$data[$co] ?? '0'] ?? '', $v);
-                    }
-                }
-                if ($v) {
-                    $fillColumn[$k] = $v;
-                }
-            }
-        }
-
-        if ($relyColumn) { //如果存在依赖,即父子关系
-            $relyColumnValue = $data[$relyColumn] ?? '';
-            if (empty($relyColumnValue) || !isset($this->trans[$relyColumn][$relyColumnValue])) {
-                return;
-            }
-        }
-        //查看是否存在
-        if (isset($this->trans[$column][$currentValue])) {
-            $data[$replaceColumn] = $this->trans[$column][$currentValue];
+        // 缓存数据名
+        $cacheName = $columnRule['l'].':'.$realateColumn.'='.$currentValue;
+        if (isset($this->cacheData[$cacheName])) {
+            $data[$column] = $this->cacheData[$cacheName];
+        } elseif ($item = $model->where($realateColumn, $currentValue)->find()) {
+            $this->cacheData[$cacheName] = $data[$column] = $item[$model->getKeyName()];
         } elseif ($creatable) { //如果可创建的话,就创建一个
             $info = [
-                'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
-                $searchColumn => $currentValue,
+                // 'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
+                $realateColumn => $currentValue,
             ];
             $info = array_merge($info, $fillColumn);
             $item = $model->create($info);
             if ($item) {
-                $this->trans[$column][$currentValue] = $item->id;
-                $data[$replaceColumn] = $item->id;
+                $this->cacheData[$cacheName] = $data[$column] = $item[$model->getKeyName()];
             }
-        } else { //不可用就将其置空
-            $data[$replaceColumn] = '';
+        } else { 
+            // 不可用就将其置空
+            $this->cacheData[$cacheName] = $data[$column] = '';
         }
     }
 
@@ -279,10 +215,11 @@ class ExcelService
      * @param string $validator_func //验证类方法
      * @param int $rowStart //数据开始行
      * @param int $columnStart //数据结束行
+     * @param int $sheet //数据页
      * @return array
      */
     public function importData($file_path, $columns, $validator_class = '',
-                               $validator_func = 'excel', $rowStart = 2, $columnStart = 1, $sheet = "")
+        $validator_func = 'excel', $rowStart = 2, $columnStart = 1, $sheet = 0)
     {
         if (is_file($file_path)) {
             try {
@@ -291,8 +228,9 @@ class ExcelService
 
                 if ($data) {
                     $this->transData($data, $columns);
-                    if ($validator_class && $validator_func)
+                    if ($validator_class && $validator_func) {
                         $this->validate($data, $validator_class, $validator_func);
+                    }
                 }
                 return $data;
             } catch (\Exception $e) {

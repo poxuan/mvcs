@@ -4,6 +4,13 @@ namespace $filter_ns;
 
 $filter_use
 
+/**
+ * $filter_name
+ *
+ * @author  $author_info
+ * @version 1.0
+ * @since   $main_version
+ */
 class $filter_name $filter_extends
 {
     $filter_functions

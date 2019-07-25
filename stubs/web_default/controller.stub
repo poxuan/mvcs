@@ -30,7 +30,7 @@ class $controller_name $controller_extands
      * Store a newly created resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
@@ -44,7 +44,7 @@ class $controller_name $controller_extands
      * Display the specified resource.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -58,7 +58,7 @@ class $controller_name $controller_extands
      * Update the specified resource in storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -73,7 +73,7 @@ class $controller_name $controller_extands
      * Remove the specified resource from storage.
      *
      * @author $author_info
-     * @date   $create_date
+     * @since  $sub_version
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
