@@ -106,7 +106,7 @@ class MakeMvcsAllConsole extends Command
             if ($this->connect) {
                 DB::setDefaultConnection($this->connect);
             }
-            return DB::select('show tables');
+            return DB::select('show table status where `Engine` is not null');
         } catch (\Exception $e) {
             $this->info('数据库配置不可用!');
             return [];
