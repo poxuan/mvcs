@@ -18,7 +18,7 @@ return [
     ],
     // 用户描述,用于注释中
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>',
-    // common 模板配置
+    // 模板公共配置
     'common' => [
         // model 模板
         'M' => [
@@ -69,7 +69,7 @@ return [
         ],
     ],
 
-    // api_default 模板配置数组
+    // api_default 模板组配置
     'api_default' => [
         // 过滤器模板
         'V' => [
@@ -89,7 +89,7 @@ return [
         ],
     ],
 
-    // api_another 模板配置数组
+    // api_another 模板组配置
     'api_another' => [
         // 资源文件模板
         'R' => [
@@ -191,7 +191,7 @@ return [
         ]
     ],
 
-    // web_default 模板配置数组
+    // web_default 模板组配置
     'web_default' => [
         // 过滤器模板
         'V' => [
@@ -276,8 +276,8 @@ return [
         'delete' => [],
         // put 路由
         'put' => [
-            'up' => 'up',
-            'down' => 'down',
+            '{id}/up' => 'up',
+            '{id}/down' => 'down',
         ],
         // patch 路由
         'patch' => [],

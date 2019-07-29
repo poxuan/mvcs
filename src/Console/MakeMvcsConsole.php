@@ -35,13 +35,13 @@ class MakeMvcsConsole extends Command
     // 文件组
     private $files;
 
-    private $style = "api_default";
+    private $style = 'api_default';
     // 中间件
     private $middleware = [];
 
     // 额外名字空间和路径
-    private $extraSpace = "";
-    private $extraPath = "";
+    private $extraSpace = '';
+    private $extraPath = '';
 
     //强制覆盖文件组
     private $force = '';
@@ -63,9 +63,9 @@ class MakeMvcsConsole extends Command
     {
         parent::__construct();
         $this->files = new Filesystem();
-        $this->ignoreColumns = Config::get("mvcs.ignore_columns") ?: [];
-        $this->style = Config::get("mvcs.style") ?: 'api_default';
-        $this->only = Config::get("mvcs.default_stubs")[$this->style] ?? 'MVCS';
+        $this->ignoreColumns = Config::get('mvcs.ignore_columns') ?: [];
+        $this->style = Config::get('mvcs.style') ?: 'api_default';
+        $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
         $this->middleware = Config::get('mvcs.routes.middlewares');
         $this->language = Config::get('mvcs.language') ?: 'zh-cn';
     }
@@ -164,12 +164,12 @@ class MakeMvcsConsole extends Command
     public function addRoutes()
     {
         if (Config::get('mvcs.add_route')) {
-            $routeStr = "";
+            $routeStr = '';
             $group = false;
             $type = Config::get('mvcs.route_type') ?: 'api';
             $routes = Config::get('mvcs.routes');
             if ($this->middleware) {
-                $routeStr .= "Route::middleware(" . \json_encode($this->middleware) . ")";
+                $routeStr .= 'Route::middleware(' . \json_encode($this->middleware) . ')';
                 $group = true;
             }
             if ($prefix = Config::get('mvcs.routes.prefix')) {
@@ -288,22 +288,17 @@ class MakeMvcsConsole extends Command
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
                         [':table' => $this->table, ':schema' => $connect['database']]);
                 case 'sqlsrv':
-                    return DB::select("SELECT
-                    a.name as Field
-                    b.name as 'Type',
-                    COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
-                    isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
-                    (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
-                    isnull(e.text,'') as Default,
-                    isnull(g.[value],'') as Comment
-                    FROM   syscolumns   a
-                    left   join   systypes   b   on   a.xusertype=b.xusertype
-                    inner   join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
-                    left   join   syscomments   e   on   a.cdefault=e.id
-                    left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
-                    left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
-                    where   d.name= :table
-                    order   by   a.id,a.colorder ",
+                    return DB::select("SELECT a.name as Field,b.name as 'Type',COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
+                        isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
+                        (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
+                        isnull(e.text,'') as Default,isnull(g.[value],'') as Comment
+                        FROM   syscolumns   a
+                        left   join   systypes   b   on   a.xusertype=b.xusertype
+                        inner  join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
+                        left   join   syscomments   e   on   a.cdefault=e.id
+                        left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
+                        left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
+                        where   d.name= :table order by a.id,a.colorder",
                         [':table' => $this->table, ':schema' => $connect['database']]);
                 default:
                     $this->myinfo('db_not_support', $connect['driver']);
@@ -372,31 +367,31 @@ class MakeMvcsConsole extends Command
 
     public function getClassName($d)
     {
-        return $this->model . $this->stub_config($d, "postfix");
+        return $this->model . $this->stub_config($d, 'postfix');
     }
 
     private function getNameSpace($d)
     {
-        return $this->stub_config($d, "namespace") . $this->extraSpace;
+        return $this->stub_config($d, 'namespace') . $this->extraSpace;
     }
 
     private function getBaseUse($d)
     {
-        $ens = $this->stub_config($d, "extands.namespace");
-        $en = $this->stub_config($d, "extands.name");
+        $ens = $this->stub_config($d, 'extands.namespace');
+        $en = $this->stub_config($d, 'extands.name');
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
-        return "use " . $ens . '\\' . $en . ';';
+        return 'use ' . $ens . '\\' . $en . ';';
     }
 
     private function getExtands($d)
     {
-        $en = $this->stub_config($d, "extands.name");
+        $en = $this->stub_config($d, 'extands.name');
         if (empty($en)) {
             return null;
         }
-        return " extends " . $en;
+        return ' extends ' . $en;
     }
 
     /**
@@ -408,7 +403,7 @@ class MakeMvcsConsole extends Command
      */
     private function getTemplateData()
     {
-        $create_date = date("Y-m-d H:i:s");
+        $create_date = date('Y-m-d H:i:s');
         $tableName = $this->table;
         $modularName = strtoupper($tableName);
         $tableColumns = $this->getTableColumns();
@@ -416,17 +411,17 @@ class MakeMvcsConsole extends Command
             'create_date' => $create_date,
             'table_name' => $tableName,
             'modular_name' => $modularName,
-            'author_info' => Config::get("mvcs.author"),
+            'author_info' => Config::get('mvcs.author'),
         ];
         $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
         foreach ($stubs as $d) {
-            $name = $this->stub_config($d, "name");
+            $name = $this->stub_config($d, 'name');
             $templateVar[$name . '_name'] = $this->getClassName($d);
             $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name . '_use'] = $this->getBaseUse($d);
             $templateVar[$name . '_extands'] = $this->getExtands($d);
-            $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? "" : "// "; //是否注释掉
-            $extra = $this->stub_config($d, "extra", []);
+            $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
+            $extra = $this->stub_config($d, 'extra', []);
             foreach ($extra as $key => $func) {
                 $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $tableColumns) : $func;
             }
@@ -529,7 +524,7 @@ class MakeMvcsConsole extends Command
             return str_pad($rule, 80) . '    //' . $arr['comment']; // 补充注释
         }, $validators));
 
-        $validatorMessages = implode("", array_map(function ($arr) {
+        $validatorMessages = implode('', array_map(function ($arr) {
             $messages = '';
             if ($arr['messages'] ?? []) {
                 foreach ($arr['messages'] as $key => $message) {
@@ -552,7 +547,7 @@ class MakeMvcsConsole extends Command
                 $columns[] = "'la' => false";
                 $columns[] = "'lc' => 'name'";
             }
-            return str_pad("'{$arr['column']}'", 25) . " => [" . implode(', ', $columns) . "]";
+            return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $columns) . ']';
         }, $validators));
 
         $validatorExcelDefault = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
@@ -614,7 +609,7 @@ class MakeMvcsConsole extends Command
      * @author chentengfei
      * @since
      */
-    public function myinfo($sign, $param = "", $type = 'info')
+    public function myinfo($sign, $param = '', $type = 'info')
     {
         $lang = require_once __DIR__ . '/../language/' . $this->language . '.php';
         $message = $lang[$sign] ?? $param;

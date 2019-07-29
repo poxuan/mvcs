@@ -92,11 +92,12 @@ class $controller_name $controller_extands
      * @author $author_info
      * @since  $sub_version
      * @param  $request_name  $request
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function up($request_name $request)
+    public function up($request_name $request, $id)
     {
-        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 1]);
+        $result = $mode::whereIn('id', $id)->up(['status' => 1]);
         $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
         return response()->json($ret);
     }
@@ -107,11 +108,12 @@ class $controller_name $controller_extands
      * @author $author_info
      * @since  $sub_version
      * @param  $request_name  $request
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function down(Request $request)
+    public function down(Request $request, $id)
     {
-        $result = $mode::whereIn('id',$request->input('ids'))->up(['status' => 0]);
+        $result = $mode::where('id', $id)->up(['status' => 0]);
         $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
         return response()->json($ret);
     }
@@ -126,7 +128,7 @@ class $controller_name $controller_extands
      */
     public function import(Request $request, $service_name $service)
     {
-        $file = $request->file('$table_names');
+        $file = $request->file('$table_name');
         if (empty($file)) {
             return response()->json(['code'=>-1,'message'=>'请上传文件!']);
         }
@@ -139,10 +141,10 @@ class $controller_name $controller_extands
             return response()->json(['code'=>-1,'message'=>'请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType]);
         }
         // 是否覆盖
-        $cover = $request->post('cover',false)?true:false;
+        $cover = $request->post('cover', 0) ? true : false;
         // 本地存储
-        $path = $file->store('$table_names');
-        $result = $service->import(storage_path('app').DIRECTORY_SEPARATOR.$path,$type,$cover);
+        $path = $file->store('$table_name-' . time());
+        $result = $service->import(storage_path('app') . DIRECTORY_SEPARATOR . $path, $type, $cover);
         return response()->json($result);
     }
 
