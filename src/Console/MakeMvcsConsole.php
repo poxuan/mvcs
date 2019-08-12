@@ -507,8 +507,8 @@ class MakeMvcsConsole extends Command
                         $otherTable = str_replace('_id', '', $column->Field);
                         $otherModel = $this->lineToHump($otherTable);
                         $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                        $v['rule'][] = 'exist:' . $otherTable . ',id';
-                        $v['messages'][$column->Field . '.exist'] = $otherTable . ' 不存在';
+                        $v['rule'][] = 'exists:' . $otherTable . ',id';
+                        $v['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
                         $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
                         $relaies[] = "public function $otherModel() {" 
                             . $this->tabs(2, "\n") 
