@@ -54,15 +54,11 @@ class MvcsServiceProvider extends ServiceProvider
             return new MakeMvcsConsole();
         });
 
-        $this->app->singleton('command.mvcs_excel', function () {
-            return new ImportMvcsDbConsole();
-        });
-
         $this->app->singleton('command.mvcs_make_all', function () {
             return new MakeMvcsAllConsole();
         });
 
-        $this->commands(['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all']);
+        $this->commands(['command.mvcs_make','command.mvcs_make_all']);
     }
 
     /**
@@ -72,6 +68,6 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all'];
+        return ['command.mvcs_make', 'command.mvcs_make_all'];
     }
 }

@@ -18,7 +18,7 @@ return [
     ],
     // 默认扩展；
     'default_traits' => [
-        'excel','updown'
+        'updown'
     ],
     // 用户描述,用于注释中
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>',

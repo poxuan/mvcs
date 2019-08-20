@@ -17,8 +17,7 @@
         "php": ">=7.0",
         "illuminate/support": ">=5.5",
         "illuminate/filesystem": ">=5.5",
-        "illuminate/console": ">=5.5",
-        "phpoffice/phpspreadsheet": "^1.4"
+        "illuminate/console": ">=5.5"
     },
     "require-dev": {
         "mockery/mockery": "~0.9",
