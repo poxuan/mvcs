@@ -579,7 +579,7 @@ class MakeMvcsConsole extends Command
             'model_fillable' => implode(',', $columns),
             'model_relate' => implode($this->tabs(1, "\n\n"), $relaies),
             'main_version' => Config::get('mvcs.version'),
-            'sub_version' => Config::get('mvcs.version') . '.' . date('Y-m-d'),
+            'sub_version' => Config::get('mvcs.version') . '.' . date('ymdH'),
         ];
         return $result;
     }

@@ -8,7 +8,7 @@ return [
     'style' => 'api_default',
     // 语言包
     'language' => 'zh-cn',
-    // 版本信息
+    // 代码版本
     'version' => '1.0',
     // 默认生成模板
     'default_stubs' => [
@@ -26,9 +26,9 @@ return [
     'common' => [
         // model 模板
         'M' => [
-            // stabs文件名,及参数主名
+            // stabs文件名,及替换参数前缀名
             'name' => 'model',
-            // 类名后缀
+            // 类名及文件名后缀
             'postfix' => '',
             // 文件基础地址
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Models',
@@ -42,10 +42,10 @@ return [
             // 模板中的替换字段
             // Model 中预定义 model_relay,model_fillable
             // Validator 中预定义 validator_rule、validator_column_rule、validator_column_default
-            // PS：请不要使用 name、ns、use、extands、anno 为键名，各模板均已预定义如下字段
+            // PS：请不要使用 name、ns、use、extands、anno、traits 为键名，各模板均已预定义如下字段
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extands 基类继承,
-            //     {name}_anno 注释,不用创建的类的相关行加 //
-            // PS：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
+            //     {name}_anno 行注释，{name}_traits 扩展
+            // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
             'extra' => [
                 // model_fillable 示例, 会覆盖预定义的值
                 'fillable' => function ($model, $columns) {
@@ -92,120 +92,8 @@ return [
             'extands' => [],
         ],
     ],
-
-    // api_another 模板组配置
-    'api_another' => [
-        // 资源文件模板
-        'R' => [
-            'name' => 'resource',
-            'postfix' => 'Resource',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Resources',
-            'namespace' => 'App\Resources',
-            'extands' => [
-                'namespace' => 'Illuminate\Http\Resources\Json',
-                'name' => 'Resource',
-            ],
-            'extra' => [
-                'array' => function ($model, $columns) {
-                    $arraylines = [];
-                    foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            // 添加对齐
-                            $arraylines[] = $this->align("'{$column->Field}'", 18) . " => " . '$this->' . $column->Field . ','; // 加一个空行。
-                        }
-                    }
-                    return implode($this->tabs(3, "\n"), $arraylines);
-                }
-            ],
-        ],
-        // 请求资源文件
-        'Q' => [
-            'name' => 'request',
-            'postfix' => 'request',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Request',
-            'namespace' => 'App\Requests',
-            'extands' => [
-                'namespace' => 'Illuminate\Foundation\Http',
-                'name' => 'FormRequest',
-            ],
-            'extra' => [
-                'array' => function ($model, $columns) {
-                    $arraylines = [];
-                    foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            // 添加对齐
-                            $spaces = "";
-                            $len = strlen($column->Field);
-                            while ($len < 15) {
-                                $spaces .= " ";
-                                $len++;
-                            }
-                            $arraylines[] = $this->align("'{$column->Field}'", 18) . " => " . '$this->' . $column->Field . ','; // 加一个空行。
-
-                        }
-                    }
-                    return implode($this->tabs(3, "\n"), $arraylines);
-                }
-            ],
-        ],
-        // filter 文件模板
-        'X' => [
-            'name' => 'filter',
-            'postfix' => 'Filter',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Filters',
-            'namespace' => 'App\Filters',
-            'extands' => [
-                'namespace' => 'App\Filters',
-                'name' => 'Filter',
-            ],
-            'extra' => [
-                'functions' => function ($model, $columns) {
-                    $funclines = [];
-                    foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            if (preg_match('/char/i', $column->Type, $match)) {
-                                $funclines[] = 'function ' . $column->Field . '($value) {';
-                                $funclines[] = '    $this->builder->where("' . $column->Field . '","like","%$value%");';
-                                $funclines[] = '}';
-                                $funclines[] = ''; // 加一个空行。
-                            } elseif (preg_match('/int/i', $column->Type, $match) || preg_match('/decimal/i', $column->Type, $match)) {
-                                $funclines[] = 'function ' . $column->Field . '($value) {';
-                                $funclines[] = '    $this->builder->where("' . $column->Field . '","=",$value);';
-                                $funclines[] = '}';
-                                $funclines[] = '';
-                            } elseif (preg_match('/date(time)*/', $column->Type, $match)) {
-                                $funclines[] = 'function ' . $column->Field . '($value) {';
-                                $funclines[] = '    $dates = explode(" - ",$value);'; // 认为日期是区间
-                                $funclines[] = '    $this->builder->whereBetween("' . $column->Field . '",$dates);';
-                                $funclines[] = '}';
-                                $funclines[] = '';
-                            }
-                        }
-                    }
-                    return implode($this->tabs(1, "\n"), $funclines);
-                }
-            ],
-        ]
-    ],
-
     // web_default 模板组配置
     'web_default' => [
-        // 过滤器模板
-        'V' => [
-            'name' => 'validator',
-            'postfix' => 'Validator',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Validators',
-            'namespace' => 'App\Validators',
-            'extands' => [],
-        ],
-        // 服务层模板
-        'S' => [
-            'name' => 'service',
-            'postfix' => 'Service',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Services',
-            'namespace' => 'App\Services',
-            'extands' => [],
-        ],
         // 主视图模板
         'I' => [
             'name' => 'index',
@@ -250,7 +138,7 @@ return [
             ],
         ],
     ],
-    
+
     // 表中不该用户填充的字段
     "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'],
 
