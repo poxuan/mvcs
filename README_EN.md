@@ -18,7 +18,7 @@
 This command create a series of files from clear template.
 
 > Use it just like this: \
-> php artisan mvcs:make {model} {--force=} {--only=} {--connect=} {--style=}
+> php artisan mvcs:make {model} {--force=} {--only=} {--connect=} {--style=}  {--traits=}
 
 ```TEXT
 model:
@@ -36,6 +36,8 @@ model:
 --style:
     Sometimes you may want to create files in different template.
     Create a dri in resource/stubs, and craete a different template.
+--traits:
+    Use it to add more functions for templates.
 ```
 
 1. Before you use this command, you should edit the stubs and config to fit your project. \
