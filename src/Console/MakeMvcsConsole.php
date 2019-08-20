@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 class MakeMvcsConsole extends Command
 {
     // 脚本命令
-    protected $signature = 'mvcs:make {model} {--force=} {--only=} {--connect=} {--middleware=} {--style=}';
+    protected $signature = 'mvcs:make {model} {--force=} {--only=} {--connect=} {--middleware=} {--style=} {--traits=}';
 
     // 脚本描述
     protected $description = '根据预定的文件模板创建文件';
@@ -55,6 +55,9 @@ class MakeMvcsConsole extends Command
     //不该被用户填充的字段
     private $ignoreColumns = [];
 
+    // 扩展
+    private $traits = [];
+
     /**
      * Create a new command instance.
      *
@@ -68,6 +71,7 @@ class MakeMvcsConsole extends Command
         $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
         $this->middleware = Config::get('mvcs.routes.middlewares');
         $this->language = Config::get('mvcs.language') ?: 'zh-cn';
+        $this->traits = Config::get('mvcs.default_traits') ?: [];
     }
 
     /**
@@ -106,6 +110,9 @@ class MakeMvcsConsole extends Command
         }
         if ($style = $this->option('style')) {
             $this->style = $style;
+        }
+        if ($traits = $this->option('traits')) {
+            $this->traits = array_merge($this->traits, \explode(',', $traits));
         }
         $this->model = $model;
         $this->table = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
@@ -354,7 +361,17 @@ class MakeMvcsConsole extends Command
             if ($filename) {
                 $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
                 if (file_exists($filePath)) {
-                    $stubs[$key] = $this->files->get($filePath);
+                    $tempContent = $this->files->get($filePath);
+                    $trait_content = "";
+                    if ($this->traits) {
+                        foreach ($this->traits as $trait) {
+                            $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
+                            if (file_exists($traitPath)) {
+                                $trait_content .= $this->files->get($traitPath) . "\n";
+                            }
+                        }
+                    }
+                    $stubs[$key] = \str_replace('$'.$filename.'_traits', $trait_content, $tempContent);
                 } else {
                     $this->myinfo('stub_not_found', $key, 'error');
                 }
@@ -626,5 +643,29 @@ class MakeMvcsConsole extends Command
             $count--;
         }
         return $pre . $post;
+    }
+
+    /**
+     * 添加空格对齐
+     *
+     * @param string $str 原词
+     * @param integer $length 总长度
+     * @param boolean $right 补在右边
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function align(string $str, int $length = 15, $right = true)
+    {
+        $spaces = "";
+        $len = strlen($str);
+        while ($len < $length) {
+            $spaces .= " ";
+            $len++;
+        }
+        if ($right) {
+            return $str . $spaces;
+        }
+        return $spaces . $str;
     }
 }

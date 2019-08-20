@@ -1,0 +1,45 @@
+    /**
+     *  启用(或审批)一条或多条数据
+     *
+     * @author
+     * @since  $sub_version
+     * @param  int  $id
+     * @return array
+     */
+    public function up(int $id, $status = 1)
+    {
+        $validator_name::upDown($id);
+        $data['status'] = $status;
+        // todo 添加其他更新信息
+
+        $result = $model_name::where('id', $id)->update($data);
+        if (!$result) {
+            $this->response['errcode'] = -1;
+            $this->response['errmsg']  = 'nothing got up!';
+            $this->response['ret']     = false;
+        }
+        return $this->response;
+    }
+
+    /**
+     *  停用一条或多条数据
+     *
+     * @author
+     * @since  $sub_version
+     * @param  int  $id
+     * @return array
+     */
+    public function down(int $id, int $status = 0)
+    {
+        $validator_name::upDown($id);
+        $data['status'] = $status;
+        // todo 添加其他更新信息
+
+        $result = $model_name::where('id', $id)->update($data);
+        if (!$result) {
+            $this->response['errcode'] = -1;
+            $this->response['errmsg']  = 'nothing got down!';
+            $this->response['ret']     = false;
+        }
+        return $this->response;
+    }

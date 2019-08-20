@@ -1,0 +1,19 @@
+    /**
+     * 启用/停用验证规则
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  array $ids 要筛选字段
+     * @return void
+     */
+    public static function upDown($ids)
+    {
+        $models = $model_name::whereIn('id', $ids)->get();
+        if(count($models) !== count($ids)) {
+            throw new ModelNotFoundException('404 not found！');
+        }
+        foreach ($models as $item) {
+            // 额外验证
+            // self::validOrg($item);
+        }
+    }

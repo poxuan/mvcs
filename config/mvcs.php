@@ -16,6 +16,10 @@ return [
         'api_another' => 'MRQFC',
         'web_default' => 'MVCSIF',
     ],
+    // 默认扩展；
+    'default_traits' => [
+        'excel','updown'
+    ],
     // 用户描述,用于注释中
     'author' => 'chentengfei <tengfei.chen@atommatrix.com>',
     // 模板公共配置
@@ -107,17 +111,10 @@ return [
                     foreach ($columns as $column) {
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
                             // 添加对齐
-                            $spaces = "";
-                            $len = strlen($column->Field);
-                            while ($len < 15) {
-                                $spaces .= " ";
-                                $len++;
-                            }
-                            $arraylines[] = "'{$column->Field}'{$spaces}   => " . '$this->' . $column->Field . ','; // 加一个空行。
-
+                            $arraylines[] = $this->align("'{$column->Field}'", 18) . " => " . '$this->' . $column->Field . ','; // 加一个空行。
                         }
                     }
-                    return implode("\n            ", $arraylines);
+                    return implode($this->tabs(3, "\n"), $arraylines);
                 }
             ],
         ],
@@ -143,11 +140,11 @@ return [
                                 $spaces .= " ";
                                 $len++;
                             }
-                            $arraylines[] = "'{$column->Field}'{$spaces}   => " . '$this->' . $column->Field . ','; // 加一个空行。
+                            $arraylines[] = $this->align("'{$column->Field}'", 18) . " => " . '$this->' . $column->Field . ','; // 加一个空行。
 
                         }
                     }
-                    return implode("\n            ", $arraylines);
+                    return implode($this->tabs(3, "\n"), $arraylines);
                 }
             ],
         ],
@@ -185,7 +182,7 @@ return [
                             }
                         }
                     }
-                    return implode("\n    ", $funclines);
+                    return implode($this->tabs(1, "\n"), $funclines);
                 }
             ],
         ]
@@ -232,7 +229,7 @@ return [
                         }
                     }
                     // 组成代码，添加tab
-                    return implode("\n            ", $arraylines);
+                    return implode($this->tabs(3, "\n"), $arraylines);
                 },
                 'from' => function ($model, $columns) {
                     // todo
@@ -253,6 +250,7 @@ return [
             ],
         ],
     ],
+    
     // 表中不该用户填充的字段
     "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'],
 
@@ -289,7 +287,7 @@ return [
         'middlewares' => [],
         // 公共前缀
         'prefix' => '',
-        // 公共名字空间，如使用 make:mvcs test/miniProgram 还会添加额外的一级名字空间 test
+        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 test
         'namespace' => '',
     ],
 

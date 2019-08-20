@@ -30,4 +30,7 @@ class $model_name $model_extands
 
     // 建立关联关系
     $model_relate
+
+    // 扩展
+    $model_traits
 }

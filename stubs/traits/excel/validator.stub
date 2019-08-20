@@ -1,0 +1,57 @@
+    /**
+     * 批量导入验证规则
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  array $data 要验证的数据
+     * @return void
+     */
+    public static function excel(array $data)
+    {
+        Validator::make($data,[
+            $validator_rule
+        ],self::$message)->validate();
+    }
+
+    /**
+     * 产品导入导出字段及其规则
+     *
+     * 二维数组
+     * 键名  小写,对应数据库字段,含有层次或数组关系时,键名末尾添加[-]+[序号]
+     * 
+     * 数据项，下表简写。
+     * c   comment 字段解释，用于表头
+     * e   example 示例值
+     * l   limit   限制 数组或关联表名 array|relate_model(可以为当前model, 表示层级关系),
+     * ra  relate_auto_create  关联表是否自动新建 true|false (default)
+     * rc  relate_column       关联表对应字段，字符串，默认为 name 
+     * re  relate_extra        关联表额外查询字段，数组
+     * rf  relate_fill         关联表填充字段，数组
+     * 
+     * @author $author_info
+     * @since  $sub_version
+     * @return array
+     */
+    public static function excelColumn()
+    {
+        $keys = [
+            $validator_column_rule
+        ];
+
+        return $keys;
+    }
+
+    /**
+     * 导入时可选字段默认值
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @return array
+     */
+    public static function excelDefault()
+    {
+        $keys = [
+            $validator_column_default
+        ];
+        return $keys;
+    }
