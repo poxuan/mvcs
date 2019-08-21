@@ -493,7 +493,7 @@ class MakeMvcsConsole extends Command
                         $v['rule'][] = 'sometimes';
                         $v['nullable'] = true;
                         $ed['column'] = $v['column'];
-                        $ed['default'] = $column->Default ?: (preg_match('/int/', $column->Type) ? 0 :
+                        $ed['default'] = $column->Default ? "'{$column->Default}'" : (preg_match('/int/', $column->Type) ? 0 :
                             (starts_with($column->Type, 'date') ? "Db::raw('now()')" : "''"));
                         $excelDefault[] = $ed;
                     }
