@@ -29,6 +29,7 @@ class MakeMvcsConsole extends Command
 
     // 表名
     private $table;
+    private $tableColumns;
 
     private $language = 'zh-cn.php';
 
@@ -424,6 +425,7 @@ class MakeMvcsConsole extends Command
         $tableName = $this->table;
         $modularName = strtoupper($tableName);
         $tableColumns = $this->getTableColumns();
+        $this->tableColumns = $tableColumns ? $tableColumns->toArray(): []; 
         $templateVar = [
             'create_date' => $create_date,
             'table_name' => $tableName,
@@ -440,13 +442,12 @@ class MakeMvcsConsole extends Command
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
             $extra = $this->stub_config($d, 'extra', []);
             foreach ($extra as $key => $func) {
-                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $tableColumns) : $func;
+                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns) : $func;
             }
         }
         $columns = [];
         // 根据数据库字段生成一些模板数据。
         $templateVar2 = $this->getDefaultData($tableColumns);
-
         return array_merge($templateVar2, $templateVar);
     }
 
@@ -595,8 +596,85 @@ class MakeMvcsConsole extends Command
      */
     private function replaceStub($templateData, $stub)
     {
+        
         foreach ($templateData as $search => $replace) {
+            // 先处理标签
+            $stub = $this->solveTags($stub);
+            // 替换参数
             $stub = str_replace('$' . $search, $replace, $stub);
+        }
+        return $stub;
+    }
+
+    private function solveTags($stub) 
+    {
+        $tags = Config::get("mvcs.tags", []);
+        foreach($tags as $tag => $value ) {
+            if(is_callable($value)) {
+                $value = $value($this->model, $this->tableColumns);
+            }
+            $stub = $this->tagReplace($stub, $tag, $value);
+        }
+    }
+
+    function tagStacks($stub, $tag) {
+        $tags_fix = Config::get("mvcs.tags_fix", "{ }");
+        list($tags_pre, $tags_post) = explode(' ', $tags_fix);
+        $patton = '/'.$tags_pre.'((!|\/)?'.$tag.'(:[\w]*)?)'.$tags_post.'/i';
+        $m = preg_match_all($patton, $stub, $matches);
+        $stacks = [];
+        if ($m) {
+            $last_pos = 0;
+            $last_stack = 0;
+            foreach ($matches[0] as $key => $match) {
+                $last_pos = strpos($stub, $match, $last_pos);
+                if (!isset($stacks[$last_stack]['start'])) {
+                    $stacks[$last_stack]['start'] = $last_pos;
+                }
+                $stacks[$last_stack]['items'][] = [
+                    'start'  => $last_pos,
+                    'length' => strlen($matches[0][$key]),
+                    'match'  => $matches[1][$key],
+                ];
+                if ($matches[1][$key][0] == '/') {
+                    $stacks[$last_stack]['end'] = $last_pos + strlen($matches[0][$key]);
+                    $last_stack++;
+                }
+            }
+        }
+        $stacks = array_reverse($stacks);
+        return $stacks;
+    }
+    
+    function tagReplace($stub, $tag, $value) {
+        $stacks = $this->tagStacks($stub, $tag);
+        foreach($stacks as $stack) {
+            $stack_start = $stack['start'];
+            $stack_end   = $stack['end'] ?? die("标签没有闭合");
+            $replace     = "";
+            foreach ($stack['items'] as $key => $item) {
+                $match = explode(':', $item['match']);
+                echo $value;
+                if (isset($match[1])) {
+                    if ($match[1] == $value) {
+                        $start = $item['start'] + $item['length'];
+                        $end   = $stack['items'][$key + 1]['start'];
+                        $replace = substr($stub, $start, $end - $start);
+                        break;
+                    }
+                } elseif ($item['match'][0] == '!' && ! $value) {
+                    $start = $item['start'] + $item['length'];
+                    $end   = $stack['items'][$key + 1]['start'];
+                    $replace = substr($stub, $start, $end - $start);
+                    break;
+                } elseif ($value) {
+                    $start = $item['start'] + $item['length'];
+                    $end   = $stack['items'][$key + 1]['start'];
+                    $replace = substr($stub, $start, $end - $start);
+                    break;
+                }
+            }
+            $stub = substr($stub, 0, $stack_start) . $replace . substr($stub, $stack_end + 1);
         }
         return $stub;
     }

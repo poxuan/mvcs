@@ -1,0 +1,19 @@
+{foo}
+ xxx
+{!foo}
+ aaa
+{/foo}
+{bar:a}
+{foobar}
+aaa
+{/foobar}
+{bar:b}
+bbb
+{bar}
+???
+{!bar}
+!!!
+{/bar}
+{!foo}
+ qqq
+{/foo}
