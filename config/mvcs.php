@@ -25,6 +25,20 @@ return [
         'updown' => '更新数据状态接口',
         'excel'  => '导入导出数据接口',
     ],
+    // 标签功能
+    'tags_fix' => '{ }',//单空格分割前后缀
+    'tags' => [
+        // 不支持嵌套
+        // {foo} xxx {/foo} 返回false xxx删除 返回true xxx保留
+        // {bar:a} xxx {bar:b} yyy {/bar} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
+        'foo' => function ($model, $columns) {
+            return false;
+        },
+        'bar' => function ($model, $columns) {
+            return 'b';
+        },
+    ],
+    
     // 用户描述,用于注释中
     'author' => env('AUTHOR', 'foo <foo@example.com>'),
     // 模板公共配置
@@ -77,20 +91,6 @@ return [
             ],
         ],
     ],
-    // 标签功能
-    'tags_fix' => '{ }',
-    'tags' => [
-        // 不支持嵌套
-        // {foo} xxx {/foo} 返回false xxx删除 返回true xxx保留
-        // {bar:a} xxx {bar:b} yyy [{bar} zzz] {/bar} 返回a xxx保留 返回b yyy保留 返回c zzz保留,返回空 全部删除
-        'foo' => function ($model, $columns) {
-            return false;
-        },
-        'bar' => function ($model, $columns) {
-            return 'b';
-        },
-    ],
-    
     // api_default 模板组配置
     'api_default' => [
         // 过滤器模板

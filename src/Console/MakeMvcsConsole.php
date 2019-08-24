@@ -29,6 +29,7 @@ class MakeMvcsConsole extends Command
 
     // 表名
     private $table;
+    private $tableF;
     private $tableColumns;
 
     private $language = 'zh-cn.php';
@@ -116,7 +117,8 @@ class MakeMvcsConsole extends Command
             $this->traits = array_merge($this->traits, \explode(',', $traits));
         }
         $this->model = $model;
-        $this->table = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
+        $this->tableF = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
+        $this->table = $this->humpToLine($model);
         // 生成MVCS文件
         $this->writeMVCS();
 
@@ -294,7 +296,7 @@ class MakeMvcsConsole extends Command
                     return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
                        IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
                        from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                        [':table' => $this->table, ':schema' => $connect['database']]);
+                        [':table' => $this->tableF, ':schema' => $connect['database']]);
                 case 'sqlsrv':
                     return DB::select("SELECT a.name as Field,b.name as 'Type',COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
                         isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
@@ -307,7 +309,7 @@ class MakeMvcsConsole extends Command
                         left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
                         left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
                         where   d.name= :table order by a.id,a.colorder",
-                        [':table' => $this->table, ':schema' => $connect['database']]);
+                        [':table' => $this->tableF, ':schema' => $connect['database']]);
                 default:
                     $this->myinfo('db_not_support', $connect['driver']);
                     return [];
