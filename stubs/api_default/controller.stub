@@ -87,5 +87,5 @@ class $controller_name $controller_extands
     }
 
     // 扩展
-    $controller_trains
+    $controller_traits
 }

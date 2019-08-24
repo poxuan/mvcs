@@ -20,8 +20,27 @@ return [
     'default_traits' => [
         'updown'
     ],
+    // 所有扩展，
+    'traits' => [// 目录 => 简介
+        'updown' => '更新数据状态接口',
+        'excel'  => '导入导出数据接口',
+    ],
+    // 标签功能
+    'tags_fix' => '{ }',//单空格分割前后缀
+    'tags' => [
+        // 不支持嵌套
+        // {foo} xxx {/foo} 返回false xxx删除 返回true xxx保留
+        // {bar:a} xxx {bar:b} yyy {/bar} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
+        'foo' => function ($model, $columns) {
+            return false;
+        },
+        'bar' => function ($model, $columns) {
+            return 'b';
+        },
+    ],
+    
     // 用户描述,用于注释中
-    'author' => 'chentengfei <tengfei.chen@atommatrix.com>',
+    'author' => env('AUTHOR', 'foo <foo@example.com>'),
     // 模板公共配置
     'common' => [
         // model 模板
@@ -72,7 +91,6 @@ return [
             ],
         ],
     ],
-
     // api_default 模板组配置
     'api_default' => [
         // 过滤器模板
@@ -103,21 +121,21 @@ return [
                 'table' => function ($model, $columns) {
                     $arraylines = [];
                     foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            if (preg_match('/char/i', $column->Type, $match)) {
+                        if (!in_array($column['Field'], config('mvcs.ignore_columns'))) {
+                            if (preg_match('/char/i', $column['Type'], $match)) {
                                 // todo 字符展示
-                            } elseif (preg_match('/_id/i', $column->Field, $match)) {
+                            } elseif (preg_match('/_id/i', $column['Field'], $match)) {
                                 // todo 外键展示
-                            } elseif (preg_match('/int/i', $column->Type, $match) || preg_match('/decimal/i', $column->Type, $match)) {
+                            } elseif (preg_match('/int/i', $column['Type'], $match) || preg_match('/decimal/i', $column['Type'], $match)) {
                                 // todo 数字展示
-                            } elseif (preg_match('/date(time)*/', $column->Type, $match)) {
+                            } elseif (preg_match('/date(time)*/', $column['Type'], $match)) {
                                 // todo 时间展示
                             }
                             // todo 其他展示
                         }
                     }
                     // 组成代码，添加tab
-                    return implode($this->tabs(3, "\n"), $arraylines);
+                    return implode("\n            ", $arraylines);
                 },
                 'from' => function ($model, $columns) {
                     // todo
