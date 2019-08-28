@@ -1,26 +1,15 @@
 <?php
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+namespace App\Base\Traits;
 
 /**
- * model 基类示例
+ * 自定义的scope
  *
  * @author chentengfei
- * @since  1.1.20190729
+ * @since
  */
-class BaseModel extends Model
+trait Scope 
 {
-    /**
-     * 自定义查询规则
-     *
-     * @param [type] $query
-     * @return void
-     * @author chentengfei
-     * @since  1.1.20190729
-     */
     public function scopeDefault($query)
     {
         return $query;
@@ -55,5 +44,4 @@ class BaseModel extends Model
     {
         return $query->where('is_online', 0);
     }
-
 }

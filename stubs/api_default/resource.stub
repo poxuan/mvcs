@@ -1,0 +1,27 @@
+<?php
+
+namespace $resource_ns;
+
+// use Illuminate\Http\Resources\Json\Resource;
+$resource_use
+
+
+class $resource_name $resource_extand
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function toArray($request)
+    {
+        return [
+            $resource_array
+        ];
+    }
+
+    $resource_traits
+
+    // $resource_append 扩展模式下的锚点，勿删
+}

@@ -433,6 +433,8 @@ class MakeMvcsConsole extends Command
             'table_name' => $tableName,
             'modular_name' => $modularName,
             'author_info' => Config::get('mvcs.author'),
+            'main_version' => Config::get('mvcs.version'),
+            'sub_version' => Config::get('mvcs.version') . '.' . date('ymdH'),
         ];
         $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
         foreach ($stubs as $d) {
@@ -442,7 +444,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name . '_use'] = $this->getBaseUse($d);
             $templateVar[$name . '_extands'] = $this->getExtands($d);
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
-            $extra = $this->stub_config($d, 'extra', []);
+            $extra = $this->stub_config($d, 'replace', []);
             foreach ($extra as $key => $func) {
                 $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns) : $func;
             }
@@ -469,11 +471,11 @@ class MakeMvcsConsole extends Command
         if (empty($tableColumns)) {
             return [
                 'validator_rule' => '',
-                'validator_column_rule' => '',
-                'validator_column_default' => '',
+                'validator_excel_rule' => '',
+                'validator_excel_default' => '',
                 'validator_message' => '',
                 'model_fillable' => '',
-                'model_relate' => '',
+                'model_relation' => '',
             ];
         }
         $validators = [];
@@ -576,13 +578,11 @@ class MakeMvcsConsole extends Command
 
         $result = [
             'validator_rule' => trim($validatorRule),
-            'validator_column_rule' => trim($validatorExcel),
-            'validator_column_default' => trim($validatorExcelDefault),
+            'validator_excel_rule' => trim($validatorExcel),
+            'validator_excel_default' => trim($validatorExcelDefault),
             'validator_message' => trim($validatorMessages),
             'model_fillable' => implode(',', $columns),
-            'model_relate' => implode($this->tabs(1, "\n\n"), $relaies),
-            'main_version' => Config::get('mvcs.version'),
-            'sub_version' => Config::get('mvcs.version') . '.' . date('ymdH'),
+            'model_relation' => implode($this->tabs(1, "\n\n"), $relaies),
         ];
         return $result;
     }

@@ -1,4 +1,4 @@
-    /**
+/**
      * 批量导入验证规则
      *
      * @author $author_info
@@ -34,11 +34,9 @@
      */
     public static function excelColumn()
     {
-        $keys = [
-            $validator_column_rule
+        return [
+            $validator_excel_rule
         ];
-
-        return $keys;
     }
 
     /**
@@ -50,8 +48,7 @@
      */
     public static function excelDefault()
     {
-        $keys = [
-            $validator_column_default
+        return  [
+            $validator_excel_default
         ];
-        return $keys;
     }

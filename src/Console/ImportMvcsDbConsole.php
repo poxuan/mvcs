@@ -292,7 +292,7 @@ class ImportMvcsDbConsole extends Command
             foreach ($columns as $k => $v) {
                 if (ends_with($v, 'date')) {
                     $dataColumns[] = $v;
-                    $defaultValues[$v] = '1000-01-01 00:00:00';
+                    $defaultValues[$v] = dete("Y-m-d");
                 } elseif (isset($example[$k]) && is_numeric($example[$k])) {
                     $numberColumns[] = $v;
                     $defaultValues[$v] = 0;

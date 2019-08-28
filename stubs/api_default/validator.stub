@@ -43,8 +43,15 @@ class $validator_name $validator_extands
             $validator_rule
         ],self::$messages)->validate();
         $model = $model_name::findOrFail($id);
-        // 使用父类的额外验证
-        // self::validOrg($model);
+        {user:author}
+        if ($model->author_id != user()->id) {
+            throw new \Exception('',40300);
+        }
+        {user}
+        if ($model->user_id != user()->id) {
+            throw new \Exception('',40300);
+        }
+        {/user}
     }
 
     /**
@@ -58,8 +65,15 @@ class $validator_name $validator_extands
     public static function destroy($id)
     {
         $model = $model_name::findOrFail($id);
-        // 使用父类的额外验证
-        // self::validOrg($model);
+        {user:author}
+        if ($model->author_id != user()->id) {
+            throw new \Exception('',40300);
+        }
+        {user}
+        if ($model->user_id != user()->id) {
+            throw new \Exception('',40300);
+        }
+        {/user}
     }
 
     /**
@@ -75,9 +89,9 @@ class $validator_name $validator_extands
             'page'       => 'sometimes|int|min:1',
             'pageSize'   => 'sometimes|int|in:5,10,15,20,50,100,200',
        ])->validate();
-
     }
 
-    // 扩展
-    $validator_traits    
+    $validator_traits
+
+    // $resource_append 扩展模式下的锚点，勿删
 }

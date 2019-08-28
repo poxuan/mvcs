@@ -22,15 +22,17 @@ class $model_name $model_extands
         'org_id', 'deleted_at', 'deleted_by'
     ];
 
-    public function scopeDefault($query)
+    public function scopeFilter($query, $params)
     {
         // return $query->where('org_id', '=', CURRENT_ORG_ID);
+        $this->filter($query, $params)
         return $query;
     }
 
     // 建立关联关系
-    $model_relate
+    $model_relation
 
-    // 扩展
     $model_traits
+
+    // $model_append 扩展模式下的锚点，勿删
 }

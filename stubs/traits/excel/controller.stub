@@ -1,4 +1,4 @@
-    /**
+/**
      * Change the data status down.
      *
      * @author $author_info
@@ -6,7 +6,7 @@
      * @param  $request_name  $request
      * @return \Illuminate\Http\Response
      */
-    public function import(Request $request, $service_name $service)
+    public function import(Request $request)
     {
         $file = $request->file('$table_name');
         if (empty($file)) {
@@ -22,16 +22,48 @@
         }
         // 是否覆盖
         $cover = $request->post('cover', 0) ? true : false;
-        // 本地存储
-        $path = $file->store('$table_name-' . time());
-        $result = $service->import(storage_path('app') . DIRECTORY_SEPARATOR . $path, $type, $cover);
-        return response()->json($result);
+        // 本地临时存储
+        $filePath = $file->store('$table_name-' . time());
+        $excelService = new \Callmecsx\Mvcs\ExcelService($mimeType);
+        do {
+            $data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
+            if ($data) {
+                // 额外规则,如:sku字段需要unique
+                // $excelService->ruleUnique($data, 'sku');
+                // 数据转换,如:将价格转为int以存储.覆盖情况下需要对更新行进行同样处理
+                // $this->decimalToIntFor2DArray($data, 'list_price');
+                // $this->decimalToIntFor2DArray($excelService->update_lines, 'list_price');
+                // 过滤字段
+                $unsetColumn = [];
+                // 批量导入数据库,成功一次就认为导入成功!
+                $result = $excelService->insertToSql($data,$validator_name::excelDefault(), '$table_name', $unsetColumn) || $result;
+                if ($cover) {
+                    $result = $excelService->updateByModel($model_name::default(), $unsetColumn) || $result; // 加default 防止跨角色更新
+                } else {
+                    // 将需要更新行设为失败状态
+                    $excelService->failUpdateLines();
+                }
+                // 是否还要导入其他数据
+            }
+        } while ($excelService->hasMore());
+        $json = ['code' => 0, 'message' => 'success'];
+        // 返回所有失败的行
+        $json['errorlines'] = $excelService->error_lines;
+        // 销毁临时文件
+        @unlink($filePath);
+        if (!$result) {
+            $json['errcode'] = -1;
+            $json['errmsg']  = 'no valid data in the file!';
+            $json['ret']     = false;
+        }
+        return response()->json($json);
     }
 
     /**
      * 导出模板
      */
-    public function template($service_name $service)
+    public function template()
     {
-        $service->template();
+        $excelService = new \Callmecsx\Mvcs\ExcelService();
+        $excelService->template('$table_name - temp', $validator_name::excelColumn());
     }

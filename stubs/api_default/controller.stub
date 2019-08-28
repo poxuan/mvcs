@@ -3,7 +3,11 @@
 namespace $controller_ns;
 
 $controller_use
-use $service_ns\$service_name;
+
+use $validator_ns\$validator_name;
+use $model_ns\$model_name;
+use $resource_ns\$resource_name;
+use Callmecsx\Mvcs\Traits\Filter;
 use Illuminate\Http\Request;
 
 /**
@@ -15,17 +19,29 @@ use Illuminate\Http\Request;
  */
 class $controller_name $controller_extands
 {
-    // protected $modular='$table_name';
+    use Filter;
+    // 默认查询规则
+    protected $filterDefault = [
+        'sort' => ['scope:mySort', 'recent']
+    ];
+    // 可用查询规则
+    protected $filterRule = [
+        'name'   => 'like',
+        'status' => '=',
+        'sort'   => 'scope:mySort'
+    ];
+
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request  $request
+     * @return $resource_name
      */
-    public function index(Request $request, $service_name $service)
+    public function index(Request $request)
     {
-        $result = $service->index($request->all());
-        // 
-        return response()->json($result);
+        $params = $request->input();
+        $validator_name::index($params);
+        $collection = $this->filter($model_name::query(), $params)->paginate($request->get('limit',10));
+        return $resource_name::collection($collection);
     }
 
     /**
@@ -34,12 +50,14 @@ class $controller_name $controller_extands
      * @author $author_info
      * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return $resource_name
      */
-    public function store(Request $request, $service_name $service)
+    public function store(Request $request)
     {
-        $result = $service->store($request->post());
-        return response()->json($result);
+        $post   = $request->input();
+        $validator_name::store($post);
+        $obj = $model_name::create($post);
+        return new $resource_name($obj);
     }
 
     /**
@@ -48,12 +66,12 @@ class $controller_name $controller_extands
      * @author $author_info
      * @since  $sub_version
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return $resource_name
      */
-    public function show($service_name $service,$id)
+    public function show($id)
     {
-        $result = $service->show($id);
-        return response()->json($result);
+        $obj = $model_name::findOrFail($id);
+        return new $resource_name($obj);
     }
 
     /**
@@ -63,12 +81,15 @@ class $controller_name $controller_extands
      * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return $resource_name
      */
-    public function update(Request $request, $service_name $service, $id)
+    public function update(Request $request,int $id)
     {
-        $result = $service->update($request->post(), $id);
-        return response()->json($result);
+        $post   = $request->input();
+        $validator_name::update($post, $id);
+        $result = $model_name::where('id', $id)->update($post);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
     /**
@@ -76,16 +97,19 @@ class $controller_name $controller_extands
      *
      * @author $author_info
      * @since  $sub_version
-     * @param  $service_name  $service
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($service_name $service, $id)
+    public function destroy(int $id)
     {
-        $result = $service->destroy($id);
-        return response()->json($result);
+        $validator_name::destroy($id);
+        $result = $model_name::destroy($id);
+        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
+        return response()->json($ret);
     }
 
-    // 扩展
+    
     $controller_traits
+
+    // $controller_append 扩展模式下的锚点，勿删
 }

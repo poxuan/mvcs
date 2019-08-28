@@ -1,19 +1,21 @@
-    /**
+/**
      * 启用/停用验证规则
      *
      * @author $author_info
      * @since  $sub_version
-     * @param  array $ids 要筛选字段
+     * @param  int $id 
      * @return void
      */
-    public static function upDown($ids)
+    public static function upDown($id)
     {
-        $models = $model_name::whereIn('id', $ids)->get();
-        if(count($models) !== count($ids)) {
-            throw new ModelNotFoundException('404 not found！');
+        $models = $model_name::findOrFail($id);
+        {user:author}
+        if ($model->author_id != user()->id) {
+            throw new \Exception('',40300);
         }
-        foreach ($models as $item) {
-            // 额外验证
-            // self::validOrg($item);
+        {user}
+        if ($model->user_id != user()->id) {
+            throw new \Exception('',40300);
         }
+        {/user}
     }

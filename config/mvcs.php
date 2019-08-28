@@ -59,13 +59,11 @@ return [
                 'name' => 'Model', // 基类类名
             ],
             // 模板中的替换字段
-            // Model 中预定义 model_relay,model_fillable
-            // Validator 中预定义 validator_rule、validator_column_rule、validator_column_default
-            // PS：请不要使用 name、ns、use、extands、anno、traits 为键名，各模板均已预定义如下字段
+            // PS：各模板均已预定义如下字段，部分模板还预定了其他一些字段
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extands 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
-            'extra' => [
+            'replace' => [
                 // model_fillable 示例, 会覆盖预定义的值
                 'fillable' => function ($model, $columns) {
                     $res = "";
@@ -90,9 +88,6 @@ return [
                 'name' => 'Controller',
             ],
         ],
-    ],
-    // api_default 模板组配置
-    'api_default' => [
         // 过滤器模板
         'V' => [
             'name' => 'validator',
@@ -101,13 +96,19 @@ return [
             'namespace' => 'App\Validators',
             'extands' => [],
         ],
-        // 服务层模板
-        'S' => [
-            'name' => 'service',
-            'postfix' => 'Service',
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Services',
-            'namespace' => 'App\Services',
-            'extands' => [],
+    ],
+    // api_default 模板组配置
+    'api_default' => [
+        // 资源层模板
+        'R' => [
+            'name' => 'resource',
+            'postfix' => 'Resource',
+            'path' => app_path() . DIRECTORY_SEPARATOR . 'Resources',
+            'namespace' => 'App\Resources',
+            'extands' => [
+                'namespace' => 'Illuminate\Http\Resources\Json',
+                'name' => 'Resource',
+            ],
         ],
     ],
     // web_default 模板组配置
@@ -117,7 +118,7 @@ return [
             'name' => 'index',
             'postfix' => '/index.balde', // 最终生成文件 {path}/{Model}/index.balde.php
             'path' => resource_path('views'),
-            'extra' => [
+            'replace' => [
                 'table' => function ($model, $columns) {
                     $arraylines = [];
                     foreach ($columns as $column) {
@@ -148,7 +149,7 @@ return [
             'name' => 'from',
             'postfix' => '/form.balde', // 最终生成文件 {path}/{Model}/form.balde.php
             'path' => resource_path('views'),
-            'extra' => [
+            'replace' => [
                 'from' => function ($model, $columns) {
                     // todo
                     return "";
