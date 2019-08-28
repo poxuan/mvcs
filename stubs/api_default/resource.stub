@@ -6,7 +6,7 @@ namespace $resource_ns;
 $resource_use
 
 
-class $resource_name $resource_extand
+class $resource_name $resource_extends
 {
     /**
      * Transform the resource into an array.

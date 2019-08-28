@@ -54,13 +54,13 @@ return [
             // 基础名字空间
             'namespace' => 'App\Models',
             // 继承基类。可以为空
-            'extands' => [
+            'extends' => [
                 'namespace' => 'Illuminate\Database\Eloquent', // 基类名字空间
                 'name' => 'Model', // 基类类名
             ],
             // 模板中的替换字段
             // PS：各模板均已预定义如下字段，部分模板还预定了其他一些字段
-            //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extands 基类继承,
+            //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
             'replace' => [
@@ -83,7 +83,7 @@ return [
             'postfix' => 'Controller',
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Controllers',
             'namespace' => 'App\Http\Controllers',
-            'extands' => [
+            'extends' => [
                 'namespace' => 'App\Http\Controllers',
                 'name' => 'Controller',
             ],
@@ -94,7 +94,7 @@ return [
             'postfix' => 'Validator',
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Validators',
             'namespace' => 'App\Validators',
-            'extands' => [],
+            'extends' => [],
         ],
     ],
     // api_default 模板组配置
@@ -105,9 +105,24 @@ return [
             'postfix' => 'Resource',
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Resources',
             'namespace' => 'App\Resources',
-            'extands' => [
+            'extends' => [
                 'namespace' => 'Illuminate\Http\Resources\Json',
                 'name' => 'Resource',
+            ],
+            'replace' => [
+                'array' => function ($model, $columns) {
+                    // todo
+                    $lines = [];
+                    foreach ($columns as $column) {
+                        $field = $column->Field;
+                        if (ends_with($column->Field, '_id')) {
+                            $field = substr($column->Field, 0, -3);
+                        }
+                        $lines[] = "'" . $field . "'  => \$this->" . $field;
+                        
+                    }
+                    return implode(',        ', $lines);
+                },
             ],
         ],
     ],

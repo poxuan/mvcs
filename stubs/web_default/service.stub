@@ -7,7 +7,7 @@ use $model_ns\$model_name;
 $validator_annouse $validator_ns\$validator_name;
 use Callmecsx\Mvcs\Service\ExcelService;
 
-class $service_name $service_extands
+class $service_name $service_extends
 {
     // 返回数据
     private $response = [

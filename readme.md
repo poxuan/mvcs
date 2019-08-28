@@ -121,7 +121,7 @@ use Illuminate\Http\Request;
  * @version $main_version
  * @since   $sub_version
  */
-class $controller_name $controller_extands
+class $controller_name $controller_extends
 {
     // 根据 config.tags.foo 的返回值控制哪个块显示
     {foo:a}

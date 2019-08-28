@@ -10,7 +10,7 @@ $resource_annouse $resource_ns\Helper;
 
 use Illuminate\Http\Request;
 
-class $controller_name $controller_extands
+class $controller_name $controller_extends
 {
     // protected $modular='$table_name';
     $resource_annouse Helper;

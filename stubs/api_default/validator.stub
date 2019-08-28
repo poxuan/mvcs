@@ -7,7 +7,7 @@ use $model_ns\$model_name;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Validator;
 
-class $validator_name $validator_extands
+class $validator_name $validator_extends
 {
 
     protected static $messages = [

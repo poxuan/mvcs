@@ -397,17 +397,17 @@ class MakeMvcsConsole extends Command
 
     private function getBaseUse($d)
     {
-        $ens = $this->stub_config($d, 'extands.namespace');
-        $en = $this->stub_config($d, 'extands.name');
+        $ens = $this->stub_config($d, 'extends.namespace');
+        $en = $this->stub_config($d, 'extends.name');
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
         return 'use ' . $ens . '\\' . $en . ';';
     }
 
-    private function getExtands($d)
+    private function getextends($d)
     {
-        $en = $this->stub_config($d, 'extands.name');
+        $en = $this->stub_config($d, 'extends.name');
         if (empty($en)) {
             return null;
         }
@@ -441,7 +441,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name . '_name'] = $this->getClassName($d);
             $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name . '_use'] = $this->getBaseUse($d);
-            $templateVar[$name . '_extands'] = $this->getExtands($d);
+            $templateVar[$name . '_extends'] = $this->getextends($d);
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
             $extra = $this->stub_config($d, 'replace', []);
             foreach ($extra as $key => $func) {

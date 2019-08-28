@@ -6,7 +6,7 @@ namespace $model_ns;
 //use Illuminate\Database\Eloquent\SoftDeletes;
 $model_use
 
-class $model_name $model_extands
+class $model_name $model_extends
 {
     // 软删除
     // use SoftDeletes;
