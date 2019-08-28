@@ -426,8 +426,7 @@ class MakeMvcsConsole extends Command
         $create_date = date('Y-m-d H:i:s');
         $tableName = $this->table;
         $modularName = strtoupper($tableName);
-        $tableColumns = $this->getTableColumns();
-        $this->tableColumns = $tableColumns ? $tableColumns->toArray(): []; 
+        $this->tableColumns = $tableColumns = $this->getTableColumns();
         $templateVar = [
             'create_date' => $create_date,
             'table_name' => $tableName,
@@ -446,7 +445,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
             $extra = $this->stub_config($d, 'replace', []);
             foreach ($extra as $key => $func) {
-                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns) : $func;
+                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
         $columns = [];
@@ -613,10 +612,11 @@ class MakeMvcsConsole extends Command
         $tags = Config::get("mvcs.tags", []);
         foreach($tags as $tag => $value ) {
             if(is_callable($value)) {
-                $value = $value($this->model, $this->tableColumns);
+                $value = $value($this->model, $this->tableColumns, $this);
             }
             $stub = $this->tagReplace($stub, $tag, $value);
         }
+        return $stub;
     }
 
     function tagStacks($stub, $tag) {

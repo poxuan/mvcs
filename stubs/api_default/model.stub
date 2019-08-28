@@ -22,13 +22,6 @@ class $model_name $model_extands
         'org_id', 'deleted_at', 'deleted_by'
     ];
 
-    public function scopeFilter($query, $params)
-    {
-        // return $query->where('org_id', '=', CURRENT_ORG_ID);
-        $this->filter($query, $params)
-        return $query;
-    }
-
     // 建立关联关系
     $model_relation
 
