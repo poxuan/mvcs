@@ -93,5 +93,5 @@ class $validator_name $validator_extends
 
     $validator_traits
 
-    // $resource_append 扩展模式下的锚点，勿删
+    // $validator_append 扩展模式下的锚点，勿删
 }
