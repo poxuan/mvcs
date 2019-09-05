@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Base\Traits;
-
-
+namespace Callmecsx\Mvcs\Traits;
 
 trait Response 
 {

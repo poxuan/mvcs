@@ -2,6 +2,7 @@
 
 namespace Callmecsx\Mvcs;
 
+use Callmecsx\Mvcs\Console\AppendMvcsConsole;
 use Callmecsx\Mvcs\Console\MakeMvcsAllConsole;
 use Callmecsx\Mvcs\Console\MakeMvcsConsole;
 use Callmecsx\Mvcs\Console\ImportMvcsDbConsole;
@@ -54,6 +55,10 @@ class MvcsServiceProvider extends ServiceProvider
             return new MakeMvcsConsole();
         });
 
+        $this->app->singleton('command.mvcs_append', function () {
+            return new AppendMvcsConsole();
+        });
+
         $this->app->singleton('command.mvcs_excel', function () {
             return new ImportMvcsDbConsole();
         });
@@ -62,7 +67,7 @@ class MvcsServiceProvider extends ServiceProvider
             return new MakeMvcsAllConsole();
         });
 
-        $this->commands(['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all']);
+        $this->commands(['command.mvcs_make','command.mvcs_append','command.mvcs_excel','command.mvcs_make_all']);
     }
 
     /**
@@ -72,6 +77,6 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['command.mvcs_make','command.mvcs_excel','command.mvcs_make_all'];
+        return ['command.mvcs_make','command.mvcs_append','command.mvcs_excel','command.mvcs_make_all'];
     }
 }

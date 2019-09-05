@@ -8,6 +8,7 @@ use $validator_ns\$validator_name;
 use $model_ns\$model_name;
 use $resource_ns\$resource_name;
 use Callmecsx\Mvcs\Traits\Filter;
+use Callmecsx\Mvcs\Traits\Response;
 use Illuminate\Http\Request;
 
 /**
@@ -19,7 +20,7 @@ use Illuminate\Http\Request;
  */
 class $controller_name $controller_extends
 {
-    use Filter;
+    use Filter,Response;
     // 默认查询规则
     protected $filterDefault = [
         'sort' => ['scope:mySort', 'recent']
@@ -88,8 +89,7 @@ class $controller_name $controller_extends
         $post   = $request->input();
         $validator_name::update($post, $id);
         $result = $model_name::where('id', $id)->update($post);
-        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
-        return response()->json($ret);
+        return $this->success($result);
     }
 
     /**
@@ -104,8 +104,7 @@ class $controller_name $controller_extends
     {
         $validator_name::destroy($id);
         $result = $model_name::destroy($id);
-        $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
-        return response()->json($ret);
+        return $this->success($result);
     }
 
     

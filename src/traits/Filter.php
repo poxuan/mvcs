@@ -158,16 +158,18 @@ trait Filter
     protected function filterThrough ($model, $column, $value, $through) 
     {
         $throughs   = explode(',', $through);
-        $table      = $throughs[0];
-        $ownerKey   = $throughs[1];
-        $compare    = $throughs[2] ?: '=';
-        $foreignKey = $throughs[3] ?: 'id';
+        $table      = $throughs[0]; // 表名
+        $ownerKey   = $throughs[1]; // 对应本表关联字段
+        $compare    = $throughs[2] ?: '=';  // 比较方式
+        $foreignKey = $throughs[3] ?: 'id'; // 关联表字段
         if ($compare == 'like') {
             $value = "%{$value}%";
         }
         $ids = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey);
         if ($ids) {
             $model->whereIn($ownerKey, $ids);
+        } else {
+            $model->whereIn($ownerKey, []);
         }
     }
 

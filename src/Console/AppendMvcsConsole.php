@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\DB;
  * @author chentengfei <tengfei.chen@atommatrix.com>
  * @since  1970-01-01 08:00:00
  */
-class MakeMvcsConsole extends Command
+class AppendMvcsConsole extends Command
 {
     // 脚本命令
-    protected $signature = 'mvcs:make {model} {--force=} {--only=} {--connect=} {--middleware=} {--style=} {--traits=}';
+    protected $signature = 'mvcs:append {model} {--only=} {--style=} {--traits=} {--connect=}';
 
     // 脚本描述
-    protected $description = '根据预定的文件模板创建文件';
+    protected $description = '扩展模板代码';
 
     // 模型
     private $model;
@@ -45,10 +45,7 @@ class MakeMvcsConsole extends Command
     private $extraSpace = '';
     private $extraPath = '';
 
-    //强制覆盖文件组
-    private $force = '';
-
-    //默认生成文件组
+    //扩展文件组
     private $only = 'MVCS';
 
     //数据库链接
@@ -71,9 +68,8 @@ class MakeMvcsConsole extends Command
         $this->ignoreColumns = Config::get('mvcs.ignore_columns') ?: [];
         $this->style = Config::get('mvcs.style') ?: 'api_default';
         $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
-        $this->middleware = Config::get('mvcs.routes.middlewares');
         $this->language = Config::get('mvcs.language') ?: 'zh-cn';
-        $this->traits = Config::get('mvcs.default_traits')[$this->style] ?: [];
+        $this->traits = [];
     }
 
     /**
@@ -98,11 +94,7 @@ class MakeMvcsConsole extends Command
         }
         if ($style = $this->option('style')) {
             $this->style = $style;
-            $this->only = Config::get('mvcs.default_stubs')[$style] ?? 'MVCS';
-            $this->traits = Config::get('mvcs.default_traits')[$style] ?: [];
-        }
-        if ($force = $this->option('force')) {
-            $this->force = $force;
+            $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
         }
         if (($only = $this->option('only')) && $only != 'all') {
             $this->only = strtoupper($only);
@@ -112,18 +104,19 @@ class MakeMvcsConsole extends Command
         } else {
             $this->connect = DB::getDefaultConnection();
         }
-        if ($middleware = $this->option('middleware', [])) {
-            $this->middleware += explode(',', $middleware);
-        }
         
         if ($traits = $this->option('traits')) {
             $this->traits = array_merge($this->traits, \explode(',', $traits));
+        } else {
+            return $this->myinfo('nothing_append', '', 'error');
         }
         $this->model = $model;
-        $this->tableF = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
+        // 对应表
         $this->table = $this->humpToLine($model);
+        // 表全名
+        $this->tableF = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->table;
         // 生成MVCS文件
-        $this->writeMVCS();
+        $this->appendMVCS();
 
     }
 
@@ -156,10 +149,9 @@ class MakeMvcsConsole extends Command
      * @date   2018-08-13 18:17:55
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function writeMVCS()
+    private function appendMVCS()
     {
-        $this->createDirectory();
-        if ($this->createClass()) {
+        if ($this->appendClass()) {
             //若生成成功,则输出信息
             $this->myinfo('success', $this->only);
             $this->addRoutes();
@@ -198,13 +190,6 @@ class MakeMvcsConsole extends Command
             }
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
-            foreach ($method as $met) {
-                $rs = Config::get('mvcs.routes.' . $met);
-                foreach ($rs as $m => $r) {
-                    $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
-                }
-            }
-            // 添加trait对应的路由
             foreach ($this->traits as $trait) {
                 $routes = Config::get('mvcs.traits.' . $trait.'.routes');
                 if ($routes) {
@@ -216,11 +201,6 @@ class MakeMvcsConsole extends Command
                     }
                 }
             }
-            if (Config::get('mvcs.routes.apiResource')) {
-                $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
-            } elseif (Config::get('mvcs.routes.resource')) {
-                $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
-            }
             if ($group) {
                 $routeStr .= "});\n\n";
             }
@@ -231,28 +211,6 @@ class MakeMvcsConsole extends Command
     }
 
     /**
-     * 创建目录
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:17:37
-     * @return bool
-     */
-    private function createDirectory()
-    {
-
-        for ($i = 0; $i < strlen($this->only); $i++) {
-            $d = $this->only[$i];
-            $path = $this->getPath($d);
-            $directory = dirname($path);
-            //检查路径是否存在,不存在创建一个,并赋予775权限
-            if (!$this->files->isDirectory($directory)) {
-                $this->files->makeDirectory($directory, 0755, true);
-            }
-        }
-        return true;
-    }
-
-    /**
      * 创建目标文件
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
@@ -260,7 +218,7 @@ class MakeMvcsConsole extends Command
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function createClass()
+    private function appendClass()
     {
         //渲染模板文件,替换模板文件中变量值
         $templates = $this->templateRender();
@@ -268,11 +226,15 @@ class MakeMvcsConsole extends Command
         foreach ($templates as $key => $template) {
             // 文件放置位置
             $path = $this->getPath($key);
-            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
-                $this->myinfo('file_exist', $this->getClassName($key));
-                continue;
+            if (file_exists($path)) {
+                // $controller_append
+                $name  = '// $'.$this->stub_config($d, 'name').'_append';
+                $content  = \file_get_contents($path);
+                $content  = str_replace($name, $template . "\n    ".$name, $content);
+                $class = $this->files->put($this->getPath($key), $content);
+            } else {
+                $this->myinfo('file_not_exist', $this->getClassName($key));
             }
-            $class = $this->files->put($this->getPath($key), $template);
         }
         return $class;
     }
@@ -377,22 +339,14 @@ class MakeMvcsConsole extends Command
             $key = $this->only[$i];
             $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
             if ($filename) {
-                $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
-                if (file_exists($filePath)) {
-                    $tempContent = $this->files->get($filePath);
-                    $trait_content = "";
-                    if ($this->traits) {
-                        foreach ($this->traits as $trait) {
-                            $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
-                            if (file_exists($traitPath)) {
-                                $trait_content .= $this->files->get($traitPath) . "\n";
-                            }
-                        }
+                $trait_content = "";
+                foreach ($this->traits as $trait) {
+                    $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
+                    if (file_exists($traitPath)) {
+                        $trait_content .= $this->files->get($traitPath) . "\n";
                     }
-                    $stubs[$key] = \str_replace('$'.$filename.'_traits', $trait_content, $tempContent);
-                } else {
-                    $this->myinfo('stub_not_found', $key, 'error');
                 }
+                $trait_content && $stubs[$key] = trim($trait_content);
             } else {
                 $this->myinfo('stub_not_found', $key, 'error');
             }

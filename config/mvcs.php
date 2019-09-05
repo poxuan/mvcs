@@ -6,24 +6,47 @@ return [
     /* 模板相关配置 */
     // 模板风格
     'style' => 'api_default',
+    'style_desc' => [
+        'api_default' => 'a default api template',
+        'web_default' => 'a default web template (not yet finish)',
+    ],
+
     // 语言包
     'language' => 'zh-cn',
     // 代码版本
     'version' => '1.0',
     // 默认生成模板
     'default_stubs' => [
-        'api_default' => 'MVCS',
-        'api_another' => 'MRQFC',
+        'api_default' => 'MVCR',
         'web_default' => 'MVCSIF',
     ],
     // 默认扩展；
     'default_traits' => [
-        'excel','updown'
+        'api_default' => ['excel','updown'],
     ],
     // 所有扩展，
     'traits' => [// 目录 => 简介
-        'updown' => '更新数据状态接口',
-        'excel'  => '导入导出数据接口',
+        'updown' => [
+            'desc' => '更新数据状态接口',
+            'routes' => [ // 路由规则
+                'put' => [
+                    '{id}/up' => 'up',
+                    '{id}/down' => 'down',
+                ],
+            ]
+        ],
+        'excel'  => [
+            'desc' => '导入导出数据接口',
+            'routes' => [
+                'post' => [
+                    'import' => 'import',
+                ],
+                // GET 路由
+                'get' => [
+                    'template' => 'template',
+                ],
+            ]
+        ],
     ],
     // 标签功能
     'tags_fix' => '{ }',//单空格分割前后缀
@@ -185,20 +208,13 @@ return [
     // 添加路由数组
     "routes" => [
         // post 路由 调用名 -> 方法名
-        'post' => [
-            'import' => 'import',
-        ],
+        'post' => [],
         // GET 路由
-        'get' => [
-            'template' => 'template',
-        ],
+        'get' => [],
         // DELETE 路由
         'delete' => [],
         // put 路由
-        'put' => [
-            '{id}/up' => 'up',
-            '{id}/down' => 'down',
-        ],
+        'put' => [],
         // patch 路由
         'patch' => [],
         // 是否添加 apiResource？
