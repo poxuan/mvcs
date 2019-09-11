@@ -2,29 +2,28 @@
 
 return [
     /* 使用前请务必阅读 readme 文件 */
-
+    // 语言包
+    'language' => 'zh-cn', // 目前只有这个。
+    // 代码代码，不是此项目版本，应随 stubs 的更新而更新
+    'version' => '1.0',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api_default',
+    'style' => 'api_default', // 默认风格
     'style_desc' => [
         'api_default' => 'a default api template',
         'web_default' => 'a default web template (not yet finish)',
     ],
 
-    // 语言包
-    'language' => 'zh-cn',
-    // 代码版本
-    'version' => '1.0',
     // 默认生成模板
     'default_stubs' => [
         'api_default' => 'MVCR',
         'web_default' => 'MVCSIF',
     ],
-    // 默认扩展；
+    // 各风格的默认扩展；
     'default_traits' => [
-        'api_default' => ['excel','updown'],
+        'api_default' => ['excel', 'updown'],
     ],
-    // 所有扩展，
+    // 扩展配置，
     'traits' => [// 目录 => 简介
         'updown' => [
             'desc' => '更新数据状态接口',
@@ -48,11 +47,11 @@ return [
             ]
         ],
     ],
-    // 标签功能
+    // 标签功能配置
     'tags_fix' => '{ }',//单空格分割前后缀
     'tags' => [
         // 不支持嵌套
-        // {foo} xxx {/foo} 返回false xxx删除 返回true xxx保留
+        // {foo} xxx {!foo} yyy {/foo} 返回false yyy保留 返回true xxx保留
         // {bar:a} xxx {bar:b} yyy {/bar} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
         'user' => function ($model, $columns) {
             foreach ($columns as $column) {
@@ -65,8 +64,13 @@ return [
             }
             return false;
         },
-        'bar' => function ($model, $columns) {
-            return 'b';
+        'status' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'status') {
+                    return true;
+                }
+            }
+            return false;
         },
     ],
     
@@ -74,13 +78,13 @@ return [
     'author' => env('AUTHOR', 'foo <foo@example.com>'),
     // 模板公共配置
     'common' => [
-        // model 模板
+        // model 模板配置
         'M' => [
             // stabs文件名,及替换参数前缀名
             'name' => 'model',
             // 类名及文件名后缀
             'postfix' => '',
-            // 文件基础地址
+            // 文件放置地址
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Models',
             // 基础名字空间
             'namespace' => 'App\Models',
@@ -94,6 +98,7 @@ return [
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
+            // PS3：{name}_append 作为扩展模式使用
             'replace' => [
                 // model_fillable 示例, 会覆盖预定义的值
                 'fillable' => function ($model, $columns) {
@@ -204,47 +209,38 @@ return [
     ],
 
     // 表中不该用户填充的字段
-    "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'],
+    "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at'],
 
     /* 自动添加路由配置 */
-
     // 是否自动添加路由
     "add_route" => true,
-    // 路由类型
+    // 路由类型,加到那个文件里
     "route_type" => 'api',
     // 添加路由数组
     "routes" => [
-        // post 路由 调用名 -> 方法名
-        'post' => [],
-        // GET 路由
+        // 默认路由 -> 方法
+        'post' => [
+            // '{id}/foo' => 'foo',
+        ],
+        // GET 路由等
         'get' => [],
-        // DELETE 路由
-        'delete' => [],
-        // put 路由
-        'put' => [],
-        // patch 路由
-        'patch' => [],
         // 是否添加 apiResource？
         'apiResource' => true,
         // 是否添加 resource？
         'resource' => false,
-        // 公共中间件
+        // 公共中间件，非全局
         'middlewares' => [],
-        // 公共前缀
+        // 公共路由前缀
         'prefix' => '',
         // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 test
         'namespace' => '',
     ],
 
-    /* report 脚本相关参数 */
-    "report" => [
+    /* mvcs:excel 脚本相关参数 */
+    "excel" => [
         // 公共额外数据库字段，migrate 写法
         "extra_columns" => [
-            //'$table->integer("org_id")->nullable()->comment("组织ID");',
-            //'$table->string("report_id",100)->nullable()->comment("报表ID");',
-            '$table->integer("created_by")->nullable();',
-            '$table->integer("updated_by")->nullable();',
-            '$table->integer("deleted_by")->nullable();',
+            //'$table->integer("org_id")->comment("组织ID");',
             '$table->timestamps();',
             '$table->timestamp("deleted_at")->nullable();',
         ],

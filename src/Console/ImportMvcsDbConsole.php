@@ -84,10 +84,10 @@ class ImportMvcsDbConsole extends Command
         if ($type && in_array($type, [self::TYPE_STRUCTURE_ONLY, self::TYPE_DATA_ONLY, self::TYPE_STRUCTURE_DATA])) {
             $this->type = $type;
         }
-        $this->extraColumns = config('mvcs.report.extra_columns', []);
-        $this->defaultVarCharLen = config('mvcs.report.default_varchar_length', 50);
-        $this->table_prefix = config('mvcs.report.table_prefix', '');
-        $this->table_postfix = config('mvcs.report.table_postfix', '');
+        $this->extraColumns = config('mvcs.excel.extra_columns', []);
+        $this->defaultVarCharLen = config('mvcs.excel.default_varchar_length', 50);
+        $this->table_prefix = config('mvcs.excel.table_prefix', '');
+        $this->table_postfix = config('mvcs.excel.table_postfix', '');
         if (($this->type & 1) == 1) {
             echo "Creating Table start";
             $this->myinfo('initing_structure');

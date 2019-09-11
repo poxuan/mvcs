@@ -14,6 +14,7 @@ trait Filter
     //     'status'     => '=', // 直接用的where
     //     'created_at' => 'between', 
     //     'sort'       => 'scope:MySort',
+    //     'foo'        => 'raw:find_in_set(?, foo_ids)'
     // ];
     /**
      * 过滤方式
@@ -175,6 +176,6 @@ trait Filter
 
     protected function filterRaw ($model, $column, $value, $raw)
     {
-        $model->whereRaw($column.' '.$raw, $value);
+        $model->whereRaw($raw, is_array($value) ? $value : [$value]);
     } 
 }

@@ -60,7 +60,7 @@ class MakeMvcsAllConsole extends Command
         $check = false;
         if (!$this->option('yes')) {
             $res = $this->ask("创建文件前是否询问？[Y/n]", 'y');
-            if (strtolower(trim($res))[0] == 'n') {
+            if ($res && strtolower(trim($res))[0] !== 'y') {
                 $check = true;
             }
         }
@@ -68,12 +68,12 @@ class MakeMvcsAllConsole extends Command
             $tableName = array_values((array) $table)[0];
             if ($check) {
                 $res = $this->ask("是否生成表 [$tableName] 相关文件[Y/n]", 'y');
-                if (strtolower(trim($res))[0] == 'n') {
+                if ($res && strtolower(trim($res))[0] !== 'y') {
                     continue;
                 }
             }
             $prefix = Config::get('database.connections.' . $connect . '.prefix', '');
-            $params['model'] = $this->lineToHump(str_replace($prefix, '', $tableName));
+            $params['model'] = $this->lineToHump(substr($tableName, strlen($prefix)));
             Artisan::call('mvcs:make', $params);
             $this->info("[$tableName] 相关文件已生成！");
         }
