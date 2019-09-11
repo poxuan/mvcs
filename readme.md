@@ -109,15 +109,15 @@ PS: 使用前应建表,包括表中备注,脚本会使用部分表格字段生�
 > file 为需导入文件,请使用绝对路径
 > --type 导入类型,1:结构,2:数据,3:数据和结构（默认）
 
-excel 格式 
+excel 格式
 
 > 第一行 表英文名、表中文解释
-> 第二行 各列名 [* ]英文[#注释] 开头* 表示必填项 
+> 第二行 各列名 [* ]英文[#注释] 开头* 表示必填项
 > 第三行 字段格式  type_length1_length2 [#index|unique|primary]
-> 例: int、char#index 、varchar_255#unique、decimal_8_2 
+> 例: int、char#index 、varchar_255#unique、decimal_8_2
 > 第四行以后 待导入数据
 
-PS: 第三行格式匹配失败时，当作字符尝试匹配字段类型 如 100 将匹配为 int \
+PS: 第三行格式匹配失败时，当作字符尝试匹配字段类型 如 100 将匹配为 int
 ```
 
 示例格式
@@ -143,6 +143,7 @@ namespace $controller_ns;
 $controller_use
 // 引用自定义模板类
 use $service_ns\$service_name;
+// 引用laravel类
 use Illuminate\Http\Request;
 
 /**
@@ -171,12 +172,13 @@ class $controller_name $controller_extends
     public function index(Request $request, $service_name $service)
     {
         $result = $service->list($request->all());
-        // 
         return response()->json($result);
     }
 
     // 根据config.traits 和指令行参数 加载额外代码块
     $controller_traits
+
+    // $controller_append 扩展锚点
 }
 
 ```
