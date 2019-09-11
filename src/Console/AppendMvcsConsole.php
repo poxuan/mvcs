@@ -228,7 +228,7 @@ class AppendMvcsConsole extends Command
             $path = $this->getPath($key);
             if (file_exists($path)) {
                 // $controller_append
-                $name  = '// $'.$this->stub_config($d, 'name').'_append';
+                $name  = '// $'.$this->stub_config($key, 'name').'_append';
                 $content  = \file_get_contents($path);
                 $content  = str_replace($name, $template . "\n    ".$name, $content);
                 $class = $this->files->put($this->getPath($key), $content);

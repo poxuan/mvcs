@@ -54,7 +54,15 @@ return [
         // 不支持嵌套
         // {foo} xxx {/foo} 返回false xxx删除 返回true xxx保留
         // {bar:a} xxx {bar:b} yyy {/bar} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
-        'foo' => function ($model, $columns) {
+        'user' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'user_id') {
+                    return 'user';
+                }
+                if ($column->Field == 'author_id') {
+                    return 'author';
+                }
+            }
             return false;
         },
         'bar' => function ($model, $columns) {
@@ -92,7 +100,6 @@ return [
                     $res = "";
                     foreach ($columns as $column) {
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            $v = [];
                             $res .= "'" . $column->Field . "',";
                         }
                     }
@@ -144,7 +151,7 @@ return [
                         $lines[] = "'" . $field . "'  => \$this->" . $field;
                         
                     }
-                    return implode(',        ', $lines);
+                    return implode(",\n            ", $lines);
                 },
             ],
         ],
@@ -238,8 +245,8 @@ return [
             '$table->integer("created_by")->nullable();',
             '$table->integer("updated_by")->nullable();',
             '$table->integer("deleted_by")->nullable();',
-            '$table->timestamp("deleted_at")->nullable();',
             '$table->timestamps();',
+            '$table->timestamp("deleted_at")->nullable();',
         ],
         // 表名前缀
         "table_prefix" => "",

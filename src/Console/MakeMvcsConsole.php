@@ -671,7 +671,6 @@ class MakeMvcsConsole extends Command
             $replace     = "";
             foreach ($stack['items'] as $key => $item) {
                 $match = explode(':', $item['match']);
-                echo $value;
                 if (isset($match[1])) {
                     if ($match[1] == $value) {
                         $start = $item['start'] + $item['length'];
