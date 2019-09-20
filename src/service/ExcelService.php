@@ -342,7 +342,7 @@ class ExcelService
             try {
                 $model->where($updateKey, '=', $item[$updateKey])->update(array_except($item, $unsetColumn));
             } catch (\Exception $e) {
-                $this->error_lines[] = '第 ' . $row . ' 行 更新失败';
+                $this->error_lines[] = '第 ' . $key . ' 行 更新失败';
             }
         }
         return true;
@@ -357,7 +357,7 @@ class ExcelService
     public function failUpdateLines()
     {
         foreach ($this->update_lines as $key => $item) {
-            $this->error_lines[] = '第 ' . $row . ' 行 已存在';
+            $this->error_lines[] = '第 ' . $key . ' 行 已存在';
         }
     }
 
