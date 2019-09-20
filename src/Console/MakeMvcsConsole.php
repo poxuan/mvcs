@@ -535,7 +535,11 @@ class MakeMvcsConsole extends Command
                         $v['example'] = date('Y-m-d');
                     } elseif (preg_match('/enum/', $column->Type, $match)) {
                         $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
-                        $v['enum'] = json_encode(explode(',', $enum), JSON_UNESCAPED_UNICODE);
+                        $enum = explode(',', $enum);
+                        $enum = array_map(function($item) {
+                            return "'$item' => '$item'";
+                        },$enum);
+                        $v['enum'] = "[ ".implode(',', $enum)." ]";
                         $v['rule'][] = 'in:' . $v['enum'];
                         $v['example'] = date('Y-m-d');
                     }
@@ -573,15 +577,15 @@ class MakeMvcsConsole extends Command
         $validatorExcel = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
             $nullable = $arr['nullable'] ? '选填' : '必填';
             $columns = [
-                "'c' => '{$arr['comment']}#{$nullable}'",
-                "'e' => '{$arr['example']}'",
+                "'{$arr['comment']}#{$nullable}'",
+                "'{$arr['example']}'",
             ];
             if (isset($arr['enum'])) {
                 $columns[] = $this->tabs(4, "\n") . "'l' => {$arr['enum']}";
             } elseif (isset($arr['relate'])) {
-                $columns[] = $this->tabs(4, "\n") . "'l' => '{$arr['relate']}'";
-                $columns[] = "'la' => false";
-                $columns[] = "'lc' => 'name'";
+                $columns[] = $this->tabs(4, "\n") . "'r' => '{$arr['relate']}'";
+                $columns[] = "'ra' => false";
+                $columns[] = "'rc' => 'name'";
             }
             return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $columns) . ']';
         }, $validators));

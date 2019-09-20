@@ -99,7 +99,7 @@ class ExcelService
             if ($l) {
                 $data[$row] = $l;
             } else {
-                $this->error_lines[] = 'Line ' . $row . ' is empty.';
+                $this->error_lines[] = '第 ' . $row . ' 行 为空行';
             }
         }
         return $data;
@@ -121,10 +121,10 @@ class ExcelService
                 $validate_class::$validate_func($item);
             } catch (ValidationException $e) {
                 $message = array_values($e->errors())[0][0];
-                $this->error_lines[] = 'Line ' . $row . ' is error:' . $message;
+                $this->error_lines[] = '第 ' . $row . ' 行 错误:' . $message;
                 unset($data[$row]);
             } catch (\Exception $e) {
-                $this->error_lines[] = 'Line ' . $row . ' is error:' . $e->getMessage();
+                $this->error_lines[] = '第 ' . $row . ' 行 错误:' . $e->getMessage();
                 unset($data[$row]);
             }
         }
@@ -177,20 +177,17 @@ class ExcelService
         // 关联额外插入值
         $fillColumn = $columnRule['rf'] ?? [];
         // 关联model
-        $model = new $columnRule['l']();
-        // 查找字段
-        $searchColumn = explode('-', $column)[0];
+        $model = new $columnRule['r']();
         // 当前字段值
         $currentValue = $data[$column] ?? '';
         // 缓存数据名
-        $cacheName = $columnRule['l'].':'.$realateColumn.'='.$currentValue;
+        $cacheName = $columnRule['r'].':'.$realateColumn.'='.$currentValue;
         if (isset($this->cacheData[$cacheName])) {
             $data[$column] = $this->cacheData[$cacheName];
         } elseif ($item = $model->where($realateColumn, $currentValue)->find()) {
             $this->cacheData[$cacheName] = $data[$column] = $item[$model->getKeyName()];
         } elseif ($creatable) { //如果可创建的话,就创建一个
             $info = [
-                // 'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
                 $realateColumn => $currentValue,
             ];
             $info = array_merge($info, $fillColumn);
@@ -301,11 +298,8 @@ class ExcelService
     private function getBaseColumns()
     {
         return [
-            'org_id' => defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0,
             'created_at' => date('Y-m-d H:i:s'),
-            'created_by' => defined('USER_ID') ? USER_ID : 0,
             'updated_at' => date('Y-m-d H:i:s'),
-            'updated_by' => defined('USER_ID') ? USER_ID : 0,
         ];
     }
 
@@ -348,7 +342,7 @@ class ExcelService
             try {
                 $model->where($updateKey, '=', $item[$updateKey])->update(array_except($item, $unsetColumn));
             } catch (\Exception $e) {
-                $this->error_lines[] = 'Line ' . $key . ' update failed!';
+                $this->error_lines[] = '第 ' . $row . ' 行 更新失败';
             }
         }
         return true;
@@ -363,8 +357,19 @@ class ExcelService
     public function failUpdateLines()
     {
         foreach ($this->update_lines as $key => $item) {
-            $this->error_lines[] = 'Line ' . $key . ' is existed and not be covered!';
+            $this->error_lines[] = '第 ' . $row . ' 行 已存在';
         }
+    }
+
+    /**
+     * 添加错误信息
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-15 18:59:11
+     */
+    public function appendError($error)
+    {
+        $this->error_lines[] = $error;
     }
 
 
@@ -403,7 +408,7 @@ class ExcelService
             //设置自动宽度
             $workSheet->getColumnDimension(Coordinate::stringFromColumnIndex($i))->setAutoSize(true);
             $workSheet->setCellValueByColumnAndRow($i, 2, $column[1]);
-            if (isset($column[2]) && is_array($column[2])) { //设置可选项
+            if (isset($column['l']) && is_array($column['l'])) { //设置可选项
                 $objValidate = $workSheet->getCellByColumnAndRow($i, 2)->getDataValidation();
                 $objValidate->setType(DataValidation::TYPE_LIST)
                     ->setErrorStyle(DataValidation::STYLE_INFORMATION)
@@ -413,7 +418,7 @@ class ExcelService
                     ->setErrorTitle('输入的值有误')
                     ->setError('您输入的值不在下拉框列表内.')
                     ->setPromptTitle($column[0])
-                    ->setFormula1('"' . implode(',', $column[2]) . '"');
+                    ->setFormula1('"' . implode(',', $column['l']) . '"');
             }
             $i++;
         }

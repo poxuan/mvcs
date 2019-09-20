@@ -23,22 +23,20 @@
         // 是否覆盖
         $cover = $request->post('cover', 0) ? true : false;
         // 本地临时存储
-        $filePath = $file->store('$table_name-' . time());
-        $excelService = new \Callmecsx\Mvcs\ExcelService($mimeType);
+        $filePath = $file->getRealPath('$table_name-' . time());
+        $excelService = new \Callmecsx\Mvcs\ExcelService($type);
+        $result = 0;
         do {
             $data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
             if ($data) {
                 // 额外规则,如:sku字段需要unique
-                // $excelService->ruleUnique($data, 'sku');
-                // 数据转换,如:将价格转为int以存储.覆盖情况下需要对更新行进行同样处理
-                // $this->decimalToIntFor2DArray($data, 'list_price');
-                // $this->decimalToIntFor2DArray($excelService->update_lines, 'list_price');
+                // $excelService->ruleUnique($data, 'sku', $model_name::class);
                 // 过滤字段
                 $unsetColumn = [];
                 // 批量导入数据库,成功一次就认为导入成功!
-                $result = $excelService->insertToSql($data,$validator_name::excelDefault(), '$table_name', $unsetColumn) || $result;
+                $excelService->insertToTable($data,$validator_name::excelDefault(), '$table_name', $unsetColumn) && $result++;
                 if ($cover) {
-                    $result = $excelService->updateByModel($model_name::default(), $unsetColumn) || $result; // 加default 防止跨角色更新
+                    $excelService->updateByModel($model_name::default(), $unsetColumn) && $result++; // 加default 防止跨角色更新
                 } else {
                     // 将需要更新行设为失败状态
                     $excelService->failUpdateLines();
@@ -48,7 +46,7 @@
         } while ($excelService->hasMore());
         $json = ['code' => 0, 'message' => 'success'];
         // 返回所有失败的行
-        $json['errorlines'] = $excelService->error_lines;
+        $json['errors'] = $excelService->error_lines;
         // 销毁临时文件
         @unlink($filePath);
         if (!$result) {

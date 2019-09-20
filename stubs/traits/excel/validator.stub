@@ -10,7 +10,7 @@
     {
         Validator::make($data,[
             $validator_rule
-        ],self::$message)->validate();
+        ],self::$messages)->validate();
     }
 
     /**
@@ -22,7 +22,8 @@
      * 数据项，下表简写。
      * c   comment 字段解释，用于表头
      * e   example 示例值
-     * l   limit   限制 数组或关联表名 array|relate_model(可以为当前model, 表示层级关系),
+     * l   limit   限制 数组 array 键值对,
+     * r   关联表名 relate_model(可以为当前model, 表示层级关系),
      * ra  relate_auto_create  关联表是否自动新建 true|false (default)
      * rc  relate_column       关联表对应字段，字符串，默认为 name 
      * re  relate_extra        关联表额外查询字段，数组

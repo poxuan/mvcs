@@ -17,20 +17,20 @@ trait ExcelRules
         foreach ($data as $k=>$v) { //data中进行unique操作
             if (isset($uniques[$v[$column]]))
             {
-                $this->error_lines[] = 'The line '.$k.' is repeated!';
+                $this->error_lines[] = '第 ' . $row . ' 行 重复';
                 unset($data);
             }
             $uniques[$v[$column]] = $k;
         }
         if(class_exists($model)) { //与表中数据进行unique操作
             $model = new $model();
-            $result = $model->default()->whereIn($column,array_keys($uniques))->select($column,'id')->get();
+            $result = $model->whereIn($column,array_keys($uniques))->select($column,'id')->get();
             foreach ($result as $item) {
-                foreach ($uniques as $sku=>$k) {
-                    if ($item->sku == $sku) {
-                        $data[$k]['id'] = $item->id;
-                        $this->update_lines[$k] = $data[$k];
-                        unset($data[$k]);
+                foreach ($uniques as $value => $key) {
+                    if ($item[$column] == $value) {
+                        $data[$key]['id'] = $item->id;
+                        $this->update_lines[$key] = $data[$key];
+                        unset($data[$key]);
                         continue;
                     }
                 }

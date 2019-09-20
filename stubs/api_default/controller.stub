@@ -86,7 +86,7 @@ class $controller_name $controller_extends
      */
     public function update(Request $request,int $id)
     {
-        $post   = $request->input();
+        $post   = $request->post();
         $validator_name::update($post, $id);
         $result = $model_name::where('id', $id)->update($post);
         return $this->success($result);
