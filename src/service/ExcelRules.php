@@ -17,7 +17,7 @@ trait ExcelRules
         foreach ($data as $k=>$v) { //data中进行unique操作
             if (isset($uniques[$v[$column]]))
             {
-                $this->error_lines[] = '第 ' . $key . ' 行 重复';
+                $this->error_lines[] = '第 ' . $k . ' 行 重复';
                 unset($data);
             } else {
                 $uniques[$v[$column]] = $k;
