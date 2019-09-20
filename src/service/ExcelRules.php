@@ -18,7 +18,7 @@ trait ExcelRules
             if (isset($uniques[$v[$column]]))
             {
                 $this->error_lines[] = '第 ' . $k . ' 行 重复';
-                unset($data);
+                unset($data[$k]);
             } else {
                 $uniques[$v[$column]] = $k;
             }
