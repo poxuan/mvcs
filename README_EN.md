@@ -1,6 +1,6 @@
 # Introduction
 
-> a project to simple create file from stubs relay on laravel;
+> a project to simple create file from stubs on laravel;
 
 ## Using Steps
 

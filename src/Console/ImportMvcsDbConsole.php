@@ -166,7 +166,7 @@ class ImportMvcsDbConsole extends Command
         // has primary?
         $has_primary = false;
         foreach ($columns as $key => $column) {
-            list($c_name, $c_comment) = array_map('trim', explode("#", $column));
+            list($c_name, $c_comment) = array_map('trim', explode("#", $column.'#'));
             $nullable = "->nullable()";
             if ($c_name[0] == '*') { // 必填
                 $nullable = "";
@@ -211,22 +211,22 @@ class ImportMvcsDbConsole extends Command
             } elseif (ends_with($c_name, 'date') || ends_with($c_name, 'datetime')) {
                 // name 以data 或 datetime 结尾，保存为datetime类型
                 $tableColumn[] = '$table->datetime("' . $c_name . '")' . $column_end;
-            } elseif (isset($example[$key]) && is_numeric($example[$key])) {
+            } elseif (isset($rules[$key]) && is_numeric($rules[$key])) {
                 // 数字处理方式
-                if (strpos($example[$key], '.')) {
+                if (strpos($rules[$key], '.')) {
                     // 小数用字符串记录
                     $tableColumn[] = '$table->string("' . $c_name . '",' . $this->defaultVarCharLen . ')' . $column_end;
-                } elseif (strlen($example[$key]) < 10) {
+                } elseif (strlen($rules[$key]) < 10) {
                     // 小于10位整数用int
                     $tableColumn[] = '$table->integer("' . $c_name . '")' . $column_end;
                 } else {
                     // 长整数用string
                     $tableColumn[] = '$table->string("' . $c_name . '",' . $this->defaultVarCharLen . ')' . $column_end;
                 }
-            } elseif (isset($example[$key]) && strlen($example[$key]) > 150) {
+            } elseif (isset($rules[$key]) && strlen($rules[$key]) > 150) {
                 // 超长字符串用text
                 $tableColumn[] = '$table->text("' . $c_name . '")' . $column_end;
-            } elseif (isset($example[$key]) && strlen($example[$key]) > $this->defaultVarCharLen / 2) {
+            } elseif (isset($rules[$key]) && strlen($rules[$key]) > $this->defaultVarCharLen / 2) {
                 // 较长字符串用255存储
                 $tableColumn[] = '$table->string("' . $c_name . '",255)' . $column_end;
             } else {
