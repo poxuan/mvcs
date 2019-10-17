@@ -185,6 +185,9 @@ class ImportMvcsDbConsole extends Command
             if (\substr($c_type, -3) == 'int') {
                 $c_type = str_replace('int', 'integer', $c_type);
             }
+            if ($c_type == 'bool') {
+                $c_type = 'boolean';
+            }
             if ($c_name == 'id' && substr($c_type, -7) == 'integer') {
                 $has_primary = true;
                 $c_type = 'increments';
