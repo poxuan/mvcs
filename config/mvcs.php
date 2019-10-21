@@ -72,6 +72,7 @@ return [
             }
             return false;
         },
+        'resource' => true,
     ],
     
     // 用户描述,用于注释中

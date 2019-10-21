@@ -35,14 +35,24 @@ class $controller_name $controller_extends
     /**
      * Display a listing of the resource.
      * @param  \Illuminate\Http\Request  $request
-     * @return $resource_name
+     * @return $resource_name|array
      */
     public function index(Request $request)
     {
         $params = $request->input();
         $validator_name::index($params);
         $collection = $this->filter($model_name::query(), $params)->paginate($request->get('limit',10));
+        {resource}
         return $resource_name::collection($collection);
+        {!resource}
+        $list = $collection->toArray();
+        return $this->success([
+            "list" => $list['data'],
+            'total' => $list['total'],
+            'page'  => $request->get('page',1),
+            'limit'  => $request->get('limit',1),
+        ]);
+        {/resource}
     }
 
     /**
@@ -51,14 +61,19 @@ class $controller_name $controller_extends
      * @author $author_info
      * @since  $sub_version
      * @param  \Illuminate\Http\Request  $request
-     * @return $resource_name
+     * @return $resource_name|array
      */
     public function store(Request $request)
     {
         $post   = $request->input();
         $validator_name::store($post);
         $obj = $model_name::create($post);
+        {resource}
         return new $resource_name($obj);
+        {!resource}
+        $info = $obj->toArray();
+        return $this->success($info);
+        {/resource}
     }
 
     /**
@@ -72,7 +87,12 @@ class $controller_name $controller_extends
     public function show($id)
     {
         $obj = $model_name::findOrFail($id);
+        {resource}
         return new $resource_name($obj);
+        {!resource}
+        $info = $obj->toArray();
+        return $this->success($info);
+        {/resource}
     }
 
     /**

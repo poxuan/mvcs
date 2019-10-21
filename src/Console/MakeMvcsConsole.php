@@ -493,7 +493,6 @@ class MakeMvcsConsole extends Command
             ];
         }
         $validators = [];
-        $excelColumn = [];
         $excelDefault = [];
         $relaies = [];
         if ($tableColumns) {
