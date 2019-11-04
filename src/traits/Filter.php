@@ -27,6 +27,7 @@ trait Filter
      */
     protected function filter($model, array $queries) 
     {
+        $queries = array_merge($this->filterDefault, $queries);
         foreach($this->filterRule as $column => $rule) {
             if (isset($queries[$column])) {
                 $value = $queries[$column];
@@ -36,17 +37,6 @@ trait Filter
                     $this->$func($model, $column, $value, $rules[1] ?? '');
                 } else {
                     $model->where($column, $rule, $value);
-                }
-            }
-        }
-        foreach($this->filterDefault as $column => $item) {
-            if (!isset($queries[$column])) {
-                $rules = explode(':',$item[0]);
-                $func  = 'filter' . $rules[0];
-                if (is_callable($this, $func)) {
-                    $this->$func($model, $column, $item[1] ?? '', $rules[1] ?? '');
-                } else {
-                    $model->where($column, $item[0], $item[1]);
                 }
             }
         }
@@ -166,9 +156,9 @@ trait Filter
         if ($compare == 'like') {
             $value = "%{$value}%";
         }
-        $ids = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey);
-        if ($ids) {
-            $model->whereIn($ownerKey, $ids);
+        $values = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey);
+        if ($values) {
+            $model->whereIn($ownerKey, $values);
         } else {
             $model->whereIn($ownerKey, []);
         }

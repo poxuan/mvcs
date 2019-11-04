@@ -451,7 +451,7 @@ class ExcelService
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public function export(string $name, array $columns, array $data, int $out = self::OUT_FILE)
+    public function export(string $name, array $columns, array $data, int $out = self::OUT_STREAM)
     {
         $spreadSheet = new Spreadsheet();
         $workSheet = $spreadSheet->getActiveSheet();

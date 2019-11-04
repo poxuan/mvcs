@@ -23,7 +23,7 @@ class $controller_name $controller_extends
     use Filter,Response;
     // 默认查询规则
     protected $filterDefault = [
-        'sort' => ['scope:mySort', 'recent']
+        'sort' => 'recent'
     ];
     // 可用查询规则
     protected $filterRule = [

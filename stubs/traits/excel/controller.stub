@@ -1,5 +1,5 @@
-/**
-     * Change the data status down.
+    /**
+     * 导入数据
      *
      * @author $author_info
      * @since  $sub_version
@@ -58,10 +58,31 @@
     }
 
     /**
-     * 导出模板
+     * 获取模板
+     *
+     * @author $author_info
+     * @since  $sub_version
      */
     public function template()
     {
         $excelService = new \Callmecsx\Mvcs\ExcelService();
         $excelService->template('$table_name - temp', $validator_name::excelColumn());
+    }
+
+    /**
+     * 导出数据
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function export(Request $request)
+    {
+        $params = $request->input();
+        $validator_name::index($params);
+        $data = $this->filter($model_name::query(), $params)->get()->toArray();
+        //todo datafix
+        $excelService->template('$table_name-' . time(), $validator_name::excelColumn(), $data);
+        
     }
