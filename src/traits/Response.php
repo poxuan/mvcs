@@ -19,9 +19,12 @@ trait Response
      * @author chentengfei
      * @since
      */
-    protected function success($data = [])
+    protected function success($data = [], $extra = [])
     {
         $this->response['data'] = $data;
+        foreach($extra as $key => $val) {
+            $this->response[$key] = $val;
+        }
         return response()->json($this->response);
     }
     

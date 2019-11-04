@@ -8,9 +8,9 @@
      */
     public function import(Request $request)
     {
-        $file = $request->file('$table_name');
+        $file = $request->file('file');
         if (empty($file)) {
-            return response()->json(['code'=>-1,'message'=>'请上传文件!']);
+            return $this->error(40008, '文件未上传');
         }
         $mimeType = $file->getClientMimeType();
         if ($mimeType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
@@ -18,7 +18,7 @@
         } elseif ($mimeType == 'application/vnd.ms-excel') {
             $type = 'Xls';
         } else {
-            return response()->json(['code'=>-1,'message'=>'请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType]);
+            return $this->error(40009, '请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType);
         }
         // 是否覆盖
         $cover = $request->post('cover', 0) ? true : false;
@@ -44,17 +44,8 @@
                 // 是否还要导入其他数据
             }
         } while ($excelService->hasMore());
-        $json = ['code' => 0, 'message' => 'success'];
-        // 返回所有失败的行
-        $json['errors'] = $excelService->error_lines;
-        // 销毁临时文件
         @unlink($filePath);
-        if (!$result) {
-            $json['errcode'] = -1;
-            $json['errmsg']  = 'no valid data in the file!';
-            $json['ret']     = false;
-        }
-        return response()->json($json);
+        return $this->success($excelService->error_lines);
     }
 
     /**
@@ -84,5 +75,5 @@
         $data = $this->filter($model_name::query(), $params)->get()->toArray();
         //todo datafix
         $excelService->template('$table_name-' . time(), $validator_name::excelColumn(), $data);
-        
+
     }

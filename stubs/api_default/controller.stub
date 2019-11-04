@@ -130,5 +130,5 @@ class $controller_name $controller_extends
     
     $controller_traits
 
-    // $controller_append 扩展模式下的锚点，勿删
+    // controller_append() 扩展模式下的锚点，勿删
 }
