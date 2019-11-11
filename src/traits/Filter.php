@@ -6,16 +6,21 @@ use DB;
 
 trait Filter 
 {
-    // 通过定义参数  filterRule 使用
+    // 通过定义参数  filterDefault filterRule 使用
     // 格式如下：
-    // protected $filterRule = [
+    // public $filterRule = [
     //     'title'      => 'like', //
     //     'nickname'   => 'through:user,user_id,like,id',
     //     'status'     => '=', // 直接用的where
     //     'created_at' => 'between', 
     //     'sort'       => 'scope:MySort',
-    //     'foo'        => 'raw:find_in_set(?, foo_ids)'
+    //     'foo'        => 'raw:find_in_set(?, foo_ids)',
+    //     'bar'        => [
+    //                        "1" => 'in',
+    //                        "2" => 'not in'
+    //                     ]
     // ];
+
     /**
      * 过滤方式
      *
@@ -31,12 +36,19 @@ trait Filter
         foreach($this->filterRule as $column => $rule) {
             if (isset($queries[$column])) {
                 $value = $queries[$column];
-                $rules = explode(':',$rule);
-                $func  = 'filter' . $rules[0];
-                if (is_callable($this, $func)) {
-                    $this->$func($model, $column, $value, $rules[1] ?? '');
+                if (is_array($rule)) { // 规则是array，则按入参取
+                    $rs = explode(':',$rule[$value] ?? '');
                 } else {
-                    $model->where($column, $rule, $value);
+                    $rs = explode(':',$rule);
+                }
+                if (empty($rs[0])) { // 规则为空。跳过
+                    continue;
+                }
+                $func  = 'filter' . $rs[0];
+                if (is_callable($this, $func)) {
+                    $this->$func($model, $column, $value, $rs[1] ?? '');
+                } else {
+                    $model->where($column, $rs[0], $value);
                 }
             }
         }
@@ -136,7 +148,7 @@ trait Filter
     }
     
     /**
-     * 联表查询，使用多次查询替代
+     * 两表查询
      *
      * @param Model $model
      * @param string $column
@@ -164,8 +176,35 @@ trait Filter
         }
     }
 
+    /**
+     * 原生sql，使用输入值做参数
+     *
+     * @param [type] $model
+     * @param [type] $column
+     * @param [type] $value
+     * @param [type] $raw
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     protected function filterRaw ($model, $column, $value, $raw)
     {
         $model->whereRaw($raw, is_array($value) ? $value : [$value]);
     } 
+
+    /**
+     * 原生sql，无参数
+     *
+     * @param [type] $model
+     * @param [type] $column
+     * @param [type] $value
+     * @param [type] $raw
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    protected function filterFullRaw ($model, $column, $value, $raw)
+    {
+        $model->whereRaw($raw);
+    }
 }

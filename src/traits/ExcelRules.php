@@ -3,14 +3,14 @@
  * @var ${TYPE_HINT} ExcelRules
  */
 
-namespace Callmecsx\Mvcs\Service;
+namespace Callmecsx\Mvcs\Traits;
 
 
 trait ExcelRules
 {
 
     private $handled_unique = [];
-    public function ruleUnique(& $data ,$column,$model = '')
+    public function ruleUnique(& $data ,$column,$modelClass = '')
     {
         $this->handled_unique[] = $column;
         $uniques = [];
@@ -23,8 +23,8 @@ trait ExcelRules
                 $uniques[$v[$column]] = $k;
             }
         }
-        if(class_exists($model)) { //与表中数据进行unique操作
-            $model = new $model();
+        if(class_exists($modelClass)) { //与表中数据进行unique操作
+            $model = new $modelClass();
             $result = $model->whereIn($column,array_keys($uniques))->select($column,'id')->get();
             foreach ($result as $item) {
                 foreach ($uniques as $value => $key) {
@@ -48,7 +48,6 @@ trait ExcelRules
                     $data[$k][$column] = date('Y-m-d H:i:s',strtotime($data[$k][$column]));
                 }
             }
-
         }
     }
 
@@ -62,7 +61,6 @@ trait ExcelRules
                     $data[$k][$column] = intval($data[$k][$column]);
                 }
             }
-
         }
     }
 
@@ -74,7 +72,6 @@ trait ExcelRules
             } else {
                 $data[$k] = array_filter($v);
             }
-
         }
     }
 }

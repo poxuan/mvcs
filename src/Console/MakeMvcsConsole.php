@@ -545,7 +545,7 @@ class MakeMvcsConsole extends Command
                     if (ends_with($column->Field, '_id')) {
                         $otherTable = str_replace('_id', '', $column->Field);
                         $otherModel = $this->lineToHump($otherTable);
-                        $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
+                        $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
                         $v['rule'][] = 'exists:' . $otherTable . ',id';
                         $v['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
                         $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
@@ -580,11 +580,10 @@ class MakeMvcsConsole extends Command
                 "'{$arr['example']}'",
             ];
             if (isset($arr['enum'])) {
-                $columns[] = $this->tabs(4, "\n") . "'l' => {$arr['enum']}";
+                $columns[] = "{$arr['enum']}";
             } elseif (isset($arr['relate'])) {
-                $columns[] = $this->tabs(4, "\n") . "'r' => '{$arr['relate']}'";
-                $columns[] = "'ra' => false";
-                $columns[] = "'rc' => 'name'";
+                $columns[] = "{$arr['relate']}";
+                $columns[] = "['rc' => 'name']"; // 关联表名
             }
             return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $columns) . ']';
         }, $validators));

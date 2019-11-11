@@ -6,18 +6,17 @@
 namespace Callmecsx\Mvcs\Service;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-
-
+use Callmecsx\Mvcs\Traits\ExcelRules;
+use Callmecsx\Mvcs\Traits\ExcelData;
 
 class ExcelService
 {
-    use ExcelRules; //额外规则
+    use ExcelRules,ExcelData; //额外规则
 
     public $error_lines = [];  //错误行错误原因
     public $update_lines = []; //更新行数据
@@ -29,10 +28,6 @@ class ExcelService
     private $limit = 1000;   //每次读取行数
     private $hasMore = true;   //还有更多数据
     private $type = 'Xlsx'; //默认文档类型
-
-    private $trans = []; // 转换字段
-
-    private $cacheData = []; //缓存数据
 
     /**
      * ExcelService constructor.
@@ -130,93 +125,22 @@ class ExcelService
         }
     }
 
-    /**
-     * 数据按规则转化
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:32:17
-     * @param $data
-     * @param $columns
-     */
-    private function transData(& $data, $columns)
-    {
-        foreach ($data as $key => $item) {
-            foreach ($item as $column => $value) {
-                if (isset($columns[$column]['l'])) {
-                    $regulation = $columns[$column]['l'];
-                    if (is_array($regulation)) {
-                        $item[$column] = array_search($value, $regulation);
-                    } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
-                        $this->replaceRelateColumn($item, $column, $columns[$column]);
-                    } else {
-                        throw new \Exception('unknown rule:' . $regulation);
-                    }
-                }
-            }
-            $data[$key] = $item;
-        }
-    }
-
-    /**
-     * 替换关联字段
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-06 19:40:05
-     * @param $data
-     * @param $column
-     * @param $columnRule
-     */
-    private function replaceRelateColumn(&$data, $column, $columnRule)
-    {
-        // 是否支持新建
-        $creatable = $columnRule['ra'] ?? false;
-        // 关联字段
-        $realateColumn = $columnRule['rc'] ?? 'name';
-        // 关联额外查询值
-        $extraColumn = $columnRule['re'] ?? [];
-        // 关联额外插入值
-        $fillColumn = $columnRule['rf'] ?? [];
-        // 关联model
-        $model = new $columnRule['r']();
-        // 当前字段值
-        $currentValue = $data[$column] ?? '';
-        // 缓存数据名
-        $cacheName = $columnRule['r'].':'.$realateColumn.'='.$currentValue;
-        if (isset($this->cacheData[$cacheName])) {
-            $data[$column] = $this->cacheData[$cacheName];
-        } elseif ($item = $model->where($realateColumn, $currentValue)->find()) {
-            $this->cacheData[$cacheName] = $data[$column] = $item[$model->getKeyName()];
-        } elseif ($creatable) { //如果可创建的话,就创建一个
-            $info = [
-                $realateColumn => $currentValue,
-            ];
-            $info = array_merge($info, $fillColumn);
-            $item = $model->create($info);
-            if ($item) {
-                $this->cacheData[$cacheName] = $data[$column] = $item[$model->getKeyName()];
-            }
-        } else { 
-            // 不可用就将其置空
-            $this->cacheData[$cacheName] = $data[$column] = '';
-        }
-    }
-
+    
     /**
      * 获取导入数据
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-07 09:57:05
-     * @param string $file_path //路径
-     * @param array $columns //列
+     * @param string $file_path       //路径
+     * @param array $columns          // 列二维数组
      * @param string $validator_class //验证类
-     * @param string $validator_func //验证类方法
+     * @param string $validator_func  //验证类方法
      * @param int $rowStart //数据开始行
      * @param int $columnStart //数据结束行
      * @param int $sheet //数据页
      * @return array
      */
-    public function importData($file_path, $columns, $validator_class = '',
-        $validator_func = 'excel', $rowStart = 2, $columnStart = 1, $sheet = 0)
+    public function importData($file_path, $columns, $validator_class = '', $validator_func = 'excel', $rowStart = 2, $columnStart = 1, $sheet = 0)
     {
         if (is_file($file_path)) {
             try {
@@ -224,7 +148,7 @@ class ExcelService
                 $data = $this->getDataFromExcel($file_path, $column_keys, $rowStart, $columnStart, $sheet);
 
                 if ($data) {
-                    $this->transData($data, $columns);
+                    $this->transDataFromExcel($data, $columns);
                     if ($validator_class && $validator_func) {
                         $this->validate($data, $validator_class, $validator_func);
                     }
@@ -239,7 +163,16 @@ class ExcelService
         return null;
     }
 
-
+    /**
+     * 获取所有表单的数据
+     *
+     * @param [type] $file
+     * @param integer $rowStart
+     * @param integer $columnStart
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     public function getAllData($file, $rowStart = 0, $columnStart = 1)
     {
         $reader = IOFactory::createReader($this->type);
@@ -286,45 +219,6 @@ class ExcelService
             $result[] = $data;
         }
         return $result;
-    }
-
-    /**
-     * 插入时的基础数据.可通过$unsetColumn删除
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-07 13:21:17
-     * @return array
-     */
-    private function getBaseColumns()
-    {
-        return [
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-    }
-
-    /**
-     * 插入数据到数据库
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-07 16:15:51
-     * @param array $data 待添加数据
-     * @param array $defaultColumn 可选字段默认值
-     * @param string $table 表名
-     * @param array $unsetColumn 过滤字段
-     * @return bool
-     */
-    public function insertToTable($data, $defaultColumn, $table, $unsetColumn = [])
-    {
-        if (!$data) {
-            return false;
-        }
-        $baseColumns = $this->getBaseColumns();
-        foreach ($data as & $item) {
-            $item = array_merge($defaultColumn, $item, $baseColumns);
-            $item = array_except($item, $unsetColumn);
-        }
-        return DB::table($table)->insert($data);
     }
 
     /**
@@ -444,19 +338,20 @@ class ExcelService
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date 2018-10-13 16:30:38
      * @param string $name
-     * @param array $columns
      * @param array $data
+     * @param array $columns
      * @param int $out
      * @return string
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      */
-    public function export(string $name, array $columns, array $data, int $out = self::OUT_STREAM)
+    public function export(string $name, array $data, array $columns, int $out = self::OUT_STREAM)
     {
         $spreadSheet = new Spreadsheet();
         $workSheet = $spreadSheet->getActiveSheet();
         $workSheet->setTitle($name);
         $i = 1;
+        $this->transDataToExcel($data, $columns);
         foreach ($columns as $key => $column) {
             $workSheet->setCellValueByColumnAndRow($i, 1, $column[0]);
             //设置自动宽度
@@ -464,7 +359,6 @@ class ExcelService
             $row = 2;
             foreach ($data as $item) {
                 $value = $item[$key] ?? '';
-                $value = is_array($value) ? implode(',', $value) : $value;
                 $workSheet->setCellValueByColumnAndRow($i, $row, str_replace(["\n", "\r", "\t"], ['\n', '\r', '\t'], $value));
                 $row++;
             }

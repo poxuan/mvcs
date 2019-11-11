@@ -20,14 +20,13 @@
      * 键名  小写,对应数据库字段,含有层次或数组关系时,键名末尾添加[-]+[序号]
      * 
      * 数据项，下表简写。
-     * c   comment 字段解释，用于表头
-     * e   example 示例值
-     * l   limit   限制 数组 array 键值对,
-     * r   关联表名 relate_model(可以为当前model, 表示层级关系),
-     * ra  relate_auto_create  关联表是否自动新建 true|false (default)
-     * rc  relate_column       关联表对应字段，字符串，默认为 name 
-     * re  relate_extra        关联表额外查询字段，数组
-     * rf  relate_fill         关联表填充字段，数组
+     * 0   字段解释，用于EXCEL表头
+     * 1   示例值
+     * 2   取值限制 数组 或 关联表名 或 callable($value, $lineArray, $from_excel = true # 转换方向)
+     * 3[create]  关联表导入是否自动新建 true|false (default)
+     * 3[column]  关联表对应字段，字符串，默认为 name 
+     * 3[condition]  关联表额外查询字段，数组
+     * 3[fill]  关联表导入填充字段，数组
      * 
      * @author $author_info
      * @since  $sub_version
