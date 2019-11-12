@@ -29,7 +29,7 @@ trait ExcelData
                 } elseif (isset($columns[$key][2])) {
                     $regulation = $columns[$key][2];
                     if (is_callable($regulation)) { // 闭包或函数参数定义 字段值，整条数据, 是否正向转换
-                        $item[$key] = $regulation($item[$key], $item);
+                        $item[$key] = $regulation($item[$key]);
                     } elseif (is_array($regulation)) {
                         $item[$key] = array_search($value, $regulation);
                     } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
@@ -105,7 +105,7 @@ trait ExcelData
                     if (is_callable($regulation)) {
                         $regulation = $rule[3] ?? '';
                         if (is_callable($regulation)) {
-                            $item[$column] = $regulation($item[$column2], $item);
+                            $item[$column] = $regulation($item[$column2]);
                         }
                     } elseif (is_array($regulation)) {
                         $item[$column] = $regulation[$column] ?? $item[$column2];

@@ -25,7 +25,7 @@
      *    'inviter_id#1' => ['邀请人', '小李', App\Models\User::class, ['column' => 'nickname']],
      *     // 键名#数字 => 【描述，示例，MODEL，替换列】 引申字段,导入时不填充数据库
      *    'created_at' => ['创建时间', '2019-12-31 12:00:00',
-     *               'strtotime', function($value, $item) { return date('Y-m-d H:i:s', $value); }
+     *               'strtotime', function($value) { return date('Y-m-d H:i:s', $value); }
      *          ],// 键名 => 【描述，示例，excel转换到table方法，table转换到excel方法，】
      * }
      * 
