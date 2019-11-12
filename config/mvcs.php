@@ -2,24 +2,28 @@
 
 return [
     /* 使用前请务必阅读 readme 文件 */
-    // 语言包
-    'language' => 'zh-cn', // 目前只有这个。
-    // 代码代码，不是此项目版本，应随 stubs 的更新而更新
-    'version' => '1.0',
+    // 语言包，目前只有这一个包。
+    'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api_default', // 默认风格
+    'style' => 'api_default',
     'style_desc' => [
         'api_default' => 'a default api template',
         'web_default' => 'a default web template (not yet finish)',
     ],
-
-    // 默认生成模板
+    // 模板全局替换参数
+    'global' => [
+        'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
+        'main_version' => '1.0',
+        'sub_version'  => '1.0.' . date('ymd'),
+        'create_date'  => date('Y-m-d H:i:s')
+    ],
+    // 各风格默认模板
     'default_stubs' => [
         'api_default' => 'MVCR',
         'web_default' => 'MVCSIF',
     ],
-    // 各风格的默认扩展；
+    // 各风格的默认使用扩展；
     'default_traits' => [
         'api_default' => ['excel', 'updown'],
     ],
@@ -27,7 +31,7 @@ return [
     'traits' => [// 目录 => 简介
         'updown' => [
             'desc' => '更新数据状态接口',
-            'routes' => [ // 路由规则
+            'routes' => [ // 扩展路由规则
                 'put' => [
                     '{id}/up' => 'up',
                     '{id}/down' => 'down',
@@ -40,9 +44,9 @@ return [
                 'post' => [
                     'import' => 'import',
                 ],
-                // GET 路由
                 'get' => [
                     'template' => 'template',
+                    'export'   => 'export'
                 ],
             ]
         ],
@@ -74,9 +78,6 @@ return [
         },
         'resource' => true,
     ],
-    
-    // 用户描述,用于注释中
-    'author' => env('AUTHOR', 'foo <foo@example.com>'),
     // 模板公共配置
     'common' => [
         // model 模板配置
@@ -208,7 +209,7 @@ return [
             ],
         ],
     ],
-
+    
     // 表中不该用户填充的字段
     "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at'],
 

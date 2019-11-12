@@ -438,18 +438,11 @@ class MakeMvcsConsole extends Command
      */
     private function getTemplateData()
     {
-        $create_date = date('Y-m-d H:i:s');
-        $tableName = $this->table;
-        $modularName = strtoupper($tableName);
-        $this->tableColumns = $tableColumns = $this->getTableColumns();
         $templateVar = [
-            'create_date' => $create_date,
-            'table_name' => $tableName,
-            'modular_name' => $modularName,
-            'author_info' => Config::get('mvcs.author'),
-            'main_version' => Config::get('mvcs.version'),
-            'sub_version' => Config::get('mvcs.version') . '.' . date('ymdH'),
+            'table_name' => $this->table
         ];
+        $this->tableColumns = $this->getTableColumns();
+        
         $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
         foreach ($stubs as $d) {
             $name = $this->stub_config($d, 'name');
@@ -463,9 +456,18 @@ class MakeMvcsConsole extends Command
                 $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
-        $columns = [];
+        $globalReplace = Config::get('mvcs.global', []);
+        foreach($globalReplace as $key => $val) {
+            if ($val instanceof \Closure) {
+                $templateVar[$key] = $val($this->model, $this->tableColumns);
+            } elseif(is_string($val)) {
+                $templateVar[$key] = $val;
+            } else {
+                $templateVar[$key] = strval($val);
+            }
+        }
         // 根据数据库字段生成一些模板数据。
-        $templateVar2 = $this->getDefaultData($tableColumns);
+        $templateVar2 = $this->getDefaultData($this->tableColumns);
         return array_merge($templateVar2, $templateVar);
     }
 
