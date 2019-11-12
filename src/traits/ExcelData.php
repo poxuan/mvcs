@@ -24,10 +24,12 @@ trait ExcelData
     {
         foreach ($data as $k => $item) {
             foreach ($item as $key => $value) {
-                if (isset($columns[$key][2])) {
+                if (strpos($key,'#')) {
+                    unset($item[$key]);
+                } elseif (isset($columns[$key][2])) {
                     $regulation = $columns[$key][2];
                     if (is_callable($regulation)) { // 闭包或函数参数定义 字段值，整条数据, 是否正向转换
-                        $item[$key] = $regulation($item[$key], $item, true);
+                        $item[$key] = $regulation($item[$key], $item);
                     } elseif (is_array($regulation)) {
                         $item[$key] = array_search($value, $regulation);
                     } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
@@ -96,15 +98,19 @@ trait ExcelData
     public function transDataToExcel(& $data, $columns)
     {
         foreach ($data as $k => $item) {
-            foreach ($item as $key => $value) {
-                if (isset($columns[$key][2])) {
-                    $regulation = $columns[$key][2];
+            foreach ($columns as $column => $rule) {
+                $column2 = explode('#', $column)[0]; // 数据原字段
+                if (isset($rule[2])) {
+                    $regulation = $rule[2];
                     if (is_callable($regulation)) {
-                        $item[$key] = $regulation($item[$key], $item, false);
+                        $regulation = $rule[3] ?? '';
+                        if (is_callable($regulation)) {
+                            $item[$column] = $regulation($item[$column2], $item);
+                        }
                     } elseif (is_array($regulation)) {
-                        $item[$key] = $regulation[$value] ?? $value;
+                        $item[$column] = $regulation[$column] ?? $item[$column2];
                     } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
-                        $item[$key] = $this->transRelateColumnToExcel($item[$key], $regulation, $columns[$key][3] ?? []);
+                        $item[$column] = $this->transRelateColumnToExcel($item[$column2], $regulation, $rule[3] ?? []);
                     }
                 } 
             }
@@ -148,13 +154,14 @@ trait ExcelData
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-07 16:15:51
-     * @param array $data 待添加数据
-     * @param array $defaultColumn 可选字段默认值
      * @param string $table 表名
+     * @param array $data 待添加数据
+     * @param array $defaultColumn 字段默认值，被data覆盖
      * @param array $unsetColumn 过滤字段
+     * @param array $baseColumns 基础字段，覆盖data
      * @return bool
      */
-    public function insertToTable($table, $data, $defaultColumn, $unsetColumn = [], $baseColumns = [])
+    public function insertToTable($table, $data, $defaultColumn = [], $unsetColumn = [], $baseColumns = [])
     {
         if (!$data) {
             return false;
@@ -165,5 +172,4 @@ trait ExcelData
         }
         return DB::table($table)->insert($data);
     }
-
 }

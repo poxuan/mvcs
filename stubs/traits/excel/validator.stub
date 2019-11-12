@@ -16,17 +16,18 @@
     /**
      * 产品导入导出字段及其规则
      *
-     * 二维数组
-     * 键名  小写,对应数据库字段,含有层次或数组关系时,键名末尾添加[-]+[序号]
-     * 
-     * 数据项，下表简写。
-     * 0   字段解释，用于EXCEL表头
-     * 1   示例值
-     * 2   取值限制 数组 或 关联表名 或 callable($value, $lineArray, $from_excel = true # 转换方向)
-     * 3[create]  关联表导入是否自动新建 true|false (default)
-     * 3[column]  关联表对应字段，字符串，默认为 name 
-     * 3[condition]  关联表额外查询字段，数组
-     * 3[fill]  关联表导入填充字段，数组
+     * 二维数组，形式如下
+     * {
+     *    'nickname' => ['昵称','小王'], // 键名 =>【描述，示例值】
+     *    'sex'  => ['性别','男',[1 => '男', 2 => '女', 3 => '未知']], // 键名 => 【描述，示例，数值转换】
+     *    'city_id' => ['城市', '北京', App\Models\City::class, ['column' => 'city']], // 键名 => 【描述，示例，关联MODEL，关联表替换列】
+     *    'inviter_id' => ['邀请人ID', 5],// 键名 => 【描述，示例】
+     *    'inviter_id#1' => ['邀请人', '小李', App\Models\User::class, ['column' => 'nickname']],
+     *     // 键名#数字 => 【描述，示例，MODEL，替换列】 引申字段,导入时不填充数据库
+     *    'created_at' => ['创建时间', '2019-12-31 12:00:00',
+     *               'strtotime', function($value, $item) { return date('Y-m-d H:i:s', $value); }
+     *          ],// 键名 => 【描述，示例，excel转换到table方法，table转换到excel方法，】
+     * }
      * 
      * @author $author_info
      * @since  $sub_version
