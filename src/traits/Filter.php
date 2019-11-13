@@ -169,9 +169,9 @@ trait Filter
         if ($compare == 'like') {
             $value = "%{$value}%";
         }
-        $values = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey);
+        $values = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey)->toArray();
         if ($values) {
-            $model->whereIn($ownerKey, $values->all());
+            $model->whereIn($ownerKey, $values);
         } else {
             $model->whereIn($ownerKey, []);
         }
