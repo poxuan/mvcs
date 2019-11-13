@@ -14,11 +14,12 @@ trait Filter
     //     'status'     => '=', // 直接用的where
     //     'created_at' => 'between', 
     //     'sort'       => 'scope:MySort',
-    //     'foo'        => 'raw:find_in_set(?, foo_ids)',
+    //     'foo'        => 'raw:find_in_set(?, foo)',
     //     'bar'        => [
-    //                        "1" => 'in',
-    //                        "2" => 'not in'
-    //                     ]
+    //         "-1" => 'fullraw:bar in (1,3,5)',
+    //         "0"  => '',
+    //         "*"  => '=' 
+    //     ]
     // ];
 
     /**
@@ -37,7 +38,7 @@ trait Filter
             if (isset($queries[$column])) {
                 $value = $queries[$column];
                 if (is_array($rule)) { // 规则是array，则按入参取
-                    $rs = explode(':',$rule[$value] ?? '');
+                    $rs = explode(':',$rule[$value] ?? ($rule['*'] ?? ''));
                 } else {
                     $rs = explode(':',$rule);
                 }
@@ -170,7 +171,7 @@ trait Filter
         }
         $values = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey);
         if ($values) {
-            $model->whereIn($ownerKey, $values);
+            $model->whereIn($ownerKey, $values->all());
         } else {
             $model->whereIn($ownerKey, []);
         }

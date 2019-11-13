@@ -41,6 +41,9 @@ trait Response
      */
     protected function error($errcode , $errmsg = 'error', $ret = false, $data = [])
     {
+        $responseCode = intval($errcode/100);
+        $responseCode = in_array($responseCode, [400,401,403,404,500,502]) ? $responseCode : 400;
+        http_response_code($responseCode);
         $this->response = compact('errcode', 'errmsg', 'ret', 'data');
         return response()->json($this->response);
     }
