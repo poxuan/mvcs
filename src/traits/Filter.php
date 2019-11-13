@@ -16,7 +16,7 @@ trait Filter
     //     'sort'       => 'scope:MySort',
     //     'foo'        => 'raw:find_in_set(?, foo)',
     //     'bar'        => [
-    //         "-1" => 'fullraw:bar in (1,3,5)',
+    //         "-1" => 'rawCN:in (1,3,5)',
     //         "0"  => '',
     //         "*"  => '=' 
     //     ]
@@ -204,8 +204,40 @@ trait Filter
      * @author chentengfei
      * @since
      */
-    protected function filterFullRaw ($model, $column, $value, $raw)
+    protected function filterRawN ($model, $column, $value, $raw)
     {
         $model->whereRaw($raw);
+    }
+
+    /**
+     * 原生sql，使用输入值做参数, 拼接column
+     *
+     * @param [type] $model
+     * @param [type] $column
+     * @param [type] $value
+     * @param [type] $raw
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    protected function filterRawC ($model, $column, $value, $raw)
+    {
+        $model->whereRaw($column . ' ' . $raw, is_array($value) ? $value : [$value]);
+    }
+
+    /**
+     * 原生sql，无参数
+     *
+     * @param [type] $model
+     * @param [type] $column
+     * @param [type] $value
+     * @param [type] $raw
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    protected function filterRawCN ($model, $column, $value, $raw)
+    {
+        $model->whereRaw($column . ' ' . $raw);
     }
 }
