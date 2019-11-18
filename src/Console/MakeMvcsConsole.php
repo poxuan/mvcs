@@ -284,11 +284,11 @@ class MakeMvcsConsole extends Command
 
     private function getDirectory($d)
     {
-        $path = $this->stub_config($d, 'path');
+        $path = $this->stubConfig($d, 'path');
         if (is_callable($path)) {
             return $path($this->model, $this->extraPath);
         }
-        return $this->stub_config($d, 'path') . $this->extraPath;
+        return $this->stubConfig($d, 'path') . $this->extraPath;
     }
 
     /**
@@ -402,18 +402,18 @@ class MakeMvcsConsole extends Command
 
     public function getClassName($d)
     {
-        return $this->model . $this->stub_config($d, 'postfix');
+        return $this->model . $this->stubConfig($d, 'postfix');
     }
 
     private function getNameSpace($d)
     {
-        return $this->stub_config($d, 'namespace') . $this->extraSpace;
+        return $this->stubConfig($d, 'namespace') . $this->extraSpace;
     }
 
     private function getBaseUse($d)
     {
-        $ens = $this->stub_config($d, 'extends.namespace');
-        $en = $this->stub_config($d, 'extends.name');
+        $ens = $this->stubConfig($d, 'extends.namespace');
+        $en = $this->stubConfig($d, 'extends.name');
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
@@ -422,7 +422,7 @@ class MakeMvcsConsole extends Command
 
     private function getextends($d)
     {
-        $en = $this->stub_config($d, 'extends.name');
+        $en = $this->stubConfig($d, 'extends.name');
         if (empty($en)) {
             return null;
         }
@@ -445,13 +445,13 @@ class MakeMvcsConsole extends Command
         
         $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
         foreach ($stubs as $d) {
-            $name = $this->stub_config($d, 'name');
+            $name = $this->stubConfig($d, 'name');
             $templateVar[$name . '_name'] = $this->getClassName($d);
             $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name . '_use'] = $this->getBaseUse($d);
             $templateVar[$name . '_extends'] = $this->getextends($d);
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
-            $extra = $this->stub_config($d, 'replace', []);
+            $extra = $this->stubConfig($d, 'replace', []);
             foreach ($extra as $key => $func) {
                 $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
@@ -709,7 +709,7 @@ class MakeMvcsConsole extends Command
      * @param  string $default 默认值
      * @return mixed
      */
-    public function stub_config($d, $key, $default = '')
+    public function stubConfig($d, $key, $default = '')
     {
         return Config::get("mvcs.{$this->style}.$d.$key", Config::get("mvcs.common.$d.$key", $default));
     }
@@ -734,6 +734,16 @@ class MakeMvcsConsole extends Command
         $this->$type($message);
     }
 
+    /**
+     * tab对齐
+     *
+     * @param integer $count
+     * @param string $pre
+     * @param string $post
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     public function tabs($count = 1, $pre = '', $post = '')
     {
         while ($count > 0) {
@@ -741,29 +751,5 @@ class MakeMvcsConsole extends Command
             $count--;
         }
         return $pre . $post;
-    }
-
-    /**
-     * 添加空格对齐
-     *
-     * @param string $str 原词
-     * @param integer $length 总长度
-     * @param boolean $right 补在右边
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    public function align(string $str, int $length = 15, $right = true)
-    {
-        $spaces = "";
-        $len = strlen($str);
-        while ($len < $length) {
-            $spaces .= " ";
-            $len++;
-        }
-        if ($right) {
-            return $str . $spaces;
-        }
-        return $spaces . $str;
     }
 }
