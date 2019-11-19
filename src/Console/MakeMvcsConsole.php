@@ -22,43 +22,43 @@ class MakeMvcsConsole extends Command
     protected $description = '根据预定的文件模板创建文件';
 
     // 模型
-    private $model;
+    public $model;
 
     // tab符
-    private $spaces = '    ';
+    public $spaces = '    ';
 
     // 表名
-    private $table;
-    private $tableF;
-    private $tableColumns;
+    public $table;
+    public $tableF;
+    public $tableColumns;
 
-    private $language = 'zh-cn.php';
+    public $language = 'zh-cn.php';
 
     // 文件组
-    private $files;
+    public $files;
 
-    private $style = 'api';
+    public $style = 'api';
     // 中间件
-    private $middleware = [];
+    public $middleware = [];
 
     // 额外名字空间和路径
-    private $extraSpace = '';
-    private $extraPath = '';
+    public $extraSpace = '';
+    public $extraPath = '';
 
     //强制覆盖文件组
-    private $force = '';
+    public $force = '';
 
     //默认生成文件组
-    private $only = 'MVCS';
+    public $only = 'MVCS';
 
     //数据库链接
-    private $connect = null;
+    public $connect = null;
 
     //不该被用户填充的字段
-    private $ignoreColumns = [];
+    public $ignoreColumns = [];
 
     // 扩展
-    private $traits = [];
+    public $traits = [];
 
     /**
      * Create a new command instance.
@@ -130,7 +130,7 @@ class MakeMvcsConsole extends Command
     /*
      * 驼峰转下划线
      */
-    private function humpToLine($str)
+    public function humpToLine($str)
     {
         $str = preg_replace_callback('/([A-Z]{1})/', function ($matches) {
             return '_' . strtolower($matches[0]);
@@ -141,7 +141,7 @@ class MakeMvcsConsole extends Command
     /*
      * 下划线转驼峰
      */
-    private function lineToHump($str)
+    public function lineToHump($str)
     {
         $str = preg_replace_callback('/([-_]+([a-z]{1}))/i', function ($matches) {
             return strtoupper($matches[2]);
@@ -267,21 +267,37 @@ class MakeMvcsConsole extends Command
         $class = null;
         foreach ($templates as $key => $template) {
             // 文件放置位置
-            $path = $this->getPath($key);
+            $path = $this->getSavePath($key);
             if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
                 $this->myinfo('file_exist', $this->getClassName($key));
                 continue;
             }
-            $class = $this->files->put($this->getPath($key), $template);
+            $class = $this->files->put($this->getSavePath($key), $template);
         }
         return $class;
     }
 
-    private function getPath($d)
+    /**
+     * 文件保存名
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getSavePath($d)
     {
-        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . '.php';
+        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
     }
 
+    /**
+     * 文件存储路径
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     private function getDirectory($d)
     {
         $path = $this->stubConfig($d, 'path');
@@ -400,16 +416,53 @@ class MakeMvcsConsole extends Command
         return $stubs;
     }
 
+    /**
+     * 获取类名
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     public function getClassName($d)
     {
         return $this->model . $this->stubConfig($d, 'postfix');
     }
 
+    /**
+     * 获取类后缀
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function getClassExt($d)
+    {
+        return $this->stubConfig($d, 'ext', '.php');
+    }
+
+    /**
+     * 获取类名字空间
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     private function getNameSpace($d)
     {
         return $this->stubConfig($d, 'namespace') . $this->extraSpace;
     }
 
+    /**
+     * 获取类的基类use
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     private function getBaseUse($d)
     {
         $ens = $this->stubConfig($d, 'extends.namespace');
@@ -420,7 +473,15 @@ class MakeMvcsConsole extends Command
         return 'use ' . $ens . '\\' . $en . ';';
     }
 
-    private function getextends($d)
+    /**
+     * 获取 extends
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getExtends($d)
     {
         $en = $this->stubConfig($d, 'extends.name');
         if (empty($en)) {
@@ -448,7 +509,7 @@ class MakeMvcsConsole extends Command
             $templateVar[$name . '_name'] = $this->getClassName($d);
             $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $templateVar[$name . '_use'] = $this->getBaseUse($d);
-            $templateVar[$name . '_extends'] = $this->getextends($d);
+            $templateVar[$name . '_extends'] = $this->getExtends($d);
             $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
             $extra = $this->stubConfig($d, 'replace', []);
             foreach ($extra as $key => $func) {
