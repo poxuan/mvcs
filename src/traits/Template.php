@@ -2,6 +2,12 @@
 
 namespace Callmecsx\Mvcs\Traits;
 
+/**
+ * 模板替换
+ *
+ * @author chentengfei
+ * @since
+ */
 trait Template 
 {
     // public $rplace_prefix  = "<{"

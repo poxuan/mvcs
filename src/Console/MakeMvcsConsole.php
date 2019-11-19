@@ -37,7 +37,7 @@ class MakeMvcsConsole extends Command
     // 文件组
     private $files;
 
-    private $style = 'api_default';
+    private $style = 'api';
     // 中间件
     private $middleware = [];
 
@@ -69,11 +69,11 @@ class MakeMvcsConsole extends Command
         parent::__construct();
         $this->files = new Filesystem();
         $this->ignoreColumns = Config::get('mvcs.ignore_columns') ?: [];
-        $this->style = Config::get('mvcs.style') ?: 'api_default';
-        $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
+        $this->style = Config::get('mvcs.style') ?: 'api';
+        $this->only = Config::get('mvcs.style_config')[$this->style]['stubs'] ?? 'MVCS';
+        $this->traits = Config::get('mvcs.style_config')[$this->style]['traits'] ?? [];
         $this->middleware = Config::get('mvcs.routes.middlewares');
         $this->language = Config::get('mvcs.language') ?: 'zh-cn';
-        $this->traits = Config::get('mvcs.default_traits')[$this->style] ?: [];
     }
 
     /**
@@ -98,8 +98,8 @@ class MakeMvcsConsole extends Command
         }
         if ($style = $this->option('style')) {
             $this->style = $style;
-            $this->only = Config::get('mvcs.default_stubs')[$style] ?? 'MVCS';
-            $this->traits = Config::get('mvcs.default_traits')[$style] ?: [];
+            $this->only = Config::get('mvcs.style_config')[$this->style]['stubs'] ?? 'MVCS';
+            $this->traits = Config::get('mvcs.style_config')[$this->style]['traits'] ?? [];
         }
         if ($force = $this->option('force')) {
             $this->force = $force;
@@ -117,7 +117,7 @@ class MakeMvcsConsole extends Command
         }
         
         if ($traits = $this->option('traits')) {
-            $this->traits = array_merge($this->traits, \explode(',', $traits));
+            $this->traits = array_unique(array_merge($this->traits, \explode(',', $traits)));
         }
         $this->model = $model;
         $this->tableF = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
@@ -199,7 +199,7 @@ class MakeMvcsConsole extends Command
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
             foreach ($method as $met) {
-                $rs = Config::get('mvcs.routes.' . $met);
+                $rs = Config::get('mvcs.routes.' . $met, []);
                 foreach ($rs as $m => $r) {
                     $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
                 }
@@ -442,7 +442,6 @@ class MakeMvcsConsole extends Command
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
-        
         $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
         foreach ($stubs as $d) {
             $name = $this->stubConfig($d, 'name');
@@ -547,7 +546,7 @@ class MakeMvcsConsole extends Command
                     if (ends_with($column->Field, '_id')) {
                         $otherTable = str_replace('_id', '', $column->Field);
                         $otherModel = $this->lineToHump($otherTable);
-                        $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
+                        $v['relate'] = '\\' . $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
                         $v['rule'][] = 'exists:' . $otherTable . ',id';
                         $v['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
                         $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
@@ -694,7 +693,7 @@ class MakeMvcsConsole extends Command
                     break;
                 }
             }
-            $stub = substr($stub, 0, $stack_start) . $replace . substr($stub, $stack_end + 1);
+            $stub = substr($stub, 0, $stack_start) . $replace . substr($stub, $stack_end);
         }
         return $stub;
     }

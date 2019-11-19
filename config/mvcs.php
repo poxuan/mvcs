@@ -6,10 +6,18 @@ return [
     'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api_default',
-    'style_desc' => [
-        'api_default' => 'a default api template',
-        'web_default' => 'a default web template (not yet finish)',
+    'style' => 'api',
+    'style_config' => [
+        'api' => [
+            'desc'   => 'a default api template',
+            'stubs'  => 'MVCR',
+            'traits' => ['excel', 'updown'],
+        ],
+        'web' => [
+            'desc'   => 'a default web template (not yet complate)',
+            'stubs'  => 'MVCIF',
+            'traits' => [],
+        ]
     ],
     // 模板全局替换参数
     'global' => [
@@ -17,15 +25,6 @@ return [
         'main_version' => '1.0',
         'sub_version'  => '1.0.' . date('ymd'),
         'create_date'  => date('Y-m-d H:i:s')
-    ],
-    // 各风格默认模板
-    'default_stubs' => [
-        'api_default' => 'MVCR',
-        'web_default' => 'MVCSIF',
-    ],
-    // 各风格的默认使用扩展；
-    'default_traits' => [
-        'api_default' => ['excel', 'updown'],
     ],
     // 扩展配置，
     'traits' => [// 目录 => 简介
@@ -54,9 +53,12 @@ return [
     // 标签功能配置
     'tags_fix' => '{ }',//单空格分割前后缀
     'tags' => [
-        // 不支持嵌套
+        // 支持不同标签嵌套，同名嵌套会报错
         // {foo} xxx {!foo} yyy {/foo} 返回false yyy保留 返回true xxx保留
-        // {bar:a} xxx {bar:b} yyy {/bar} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
+        // {style:api} xxx {style:web} yyy {/style} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
+        'style' => function ($model, $columns, $obj) {
+            return $obj->style;
+        },
         'user' => function ($model, $columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'user_id') {
@@ -135,7 +137,7 @@ return [
         ],
     ],
     // api_default 模板组配置
-    'api_default' => [
+    'api' => [
         // 资源层模板
         'R' => [
             'name' => 'resource',
@@ -164,7 +166,7 @@ return [
         ],
     ],
     // web_default 模板组配置
-    'web_default' => [
+    'web' => [
         // 主视图模板
         'I' => [
             'name' => 'index',
