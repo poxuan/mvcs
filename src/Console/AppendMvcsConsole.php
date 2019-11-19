@@ -22,40 +22,40 @@ class AppendMvcsConsole extends Command
     protected $description = '扩展模板代码';
 
     // 模型
-    private $model;
+    public $model;
 
     // tab符
-    private $spaces = '    ';
+    public $spaces = '    ';
 
     // 表名
-    private $table;
-    private $tableF;
-    private $tableColumns;
+    public $table;
+    public $tableF;
+    public $tableColumns;
 
-    private $language = 'zh-cn.php';
+    public $language = 'zh-cn.php';
 
     // 文件组
-    private $files;
+    public $files;
 
-    private $style = 'api_default';
+    public $style = 'api_default';
     // 中间件
-    private $middleware = [];
+    public $middleware = [];
 
     // 额外名字空间和路径
-    private $extraSpace = '';
-    private $extraPath = '';
+    public $extraSpace = '';
+    public $extraPath = '';
 
     //扩展文件组
-    private $only = 'MVCS';
+    public $only = 'MVCS';
 
     //数据库链接
-    private $connect = null;
+    public $connect = null;
 
     //不该被用户填充的字段
-    private $ignoreColumns = [];
+    public $ignoreColumns = [];
 
     // 扩展
-    private $traits = [];
+    public $traits = [];
 
     /**
      * Create a new command instance.
@@ -123,7 +123,7 @@ class AppendMvcsConsole extends Command
     /*
      * 驼峰转下划线
      */
-    private function humpToLine($str)
+    public function humpToLine($str)
     {
         $str = preg_replace_callback('/([A-Z]{1})/', function ($matches) {
             return '_' . strtolower($matches[0]);
@@ -134,7 +134,7 @@ class AppendMvcsConsole extends Command
     /*
      * 下划线转驼峰
      */
-    private function lineToHump($str)
+    public function lineToHump($str)
     {
         $str = preg_replace_callback('/([-_]+([a-z]{1}))/i', function ($matches) {
             return strtoupper($matches[2]);
@@ -149,7 +149,7 @@ class AppendMvcsConsole extends Command
      * @date   2018-08-13 18:17:55
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function appendMVCS()
+    public function appendMVCS()
     {
         if ($this->appendClass()) {
             //若生成成功,则输出信息
@@ -218,7 +218,7 @@ class AppendMvcsConsole extends Command
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function appendClass()
+    public function appendClass()
     {
         //渲染模板文件,替换模板文件中变量值
         $templates = $this->templateRender();
@@ -241,12 +241,12 @@ class AppendMvcsConsole extends Command
         return $class;
     }
 
-    private function getPath($d)
+    public function getPath($d)
     {
         return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . '.php';
     }
 
-    private function getDirectory($d)
+    public function getDirectory($d)
     {
         $path = $this->stub_config($d, 'path');
         if (is_callable($path)) {
@@ -310,7 +310,7 @@ class AppendMvcsConsole extends Command
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function templateRender()
+    public function templateRender()
     {
         // 获取各模板文件
         $stubs = $this->getStub();
@@ -334,7 +334,7 @@ class AppendMvcsConsole extends Command
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function getStub()
+    public function getStub()
     {
         $configs = Config::get('mvcs');
         $stubs = [];
@@ -373,12 +373,12 @@ class AppendMvcsConsole extends Command
         return $this->model . $this->stub_config($d, 'postfix');
     }
 
-    private function getNameSpace($d)
+    public function getNameSpace($d)
     {
         return $this->stub_config($d, 'namespace') . $this->extraSpace;
     }
 
-    private function getBaseUse($d)
+    public function getBaseUse($d)
     {
         $ens = $this->stub_config($d, 'extends.namespace');
         $en = $this->stub_config($d, 'extends.name');
@@ -388,7 +388,7 @@ class AppendMvcsConsole extends Command
         return 'use ' . $ens . '\\' . $en . ';';
     }
 
-    private function getextends($d)
+    public function getextends($d)
     {
         $en = $this->stub_config($d, 'extends.name');
         if (empty($en)) {
@@ -404,7 +404,7 @@ class AppendMvcsConsole extends Command
      * @date   2018-08-13 18:14:56
      * @return array
      */
-    private function getTemplateData()
+    public function getTemplateData()
     {
         $templateVar = [
             'table_name' => $this->table
@@ -449,7 +449,7 @@ class AppendMvcsConsole extends Command
      * @param $validatorExcel
      * @param $validatorExcelDefault
      */
-    private function getDefaultData($tableColumns)
+    public function getDefaultData($tableColumns)
     {
         if (empty($tableColumns)) {
             return [
@@ -579,7 +579,7 @@ class AppendMvcsConsole extends Command
      * @param $stub
      * @return mixed
      */
-    private function replaceStub($templateData, $stub)
+    public function replaceStub($templateData, $stub)
     {
         
         foreach ($templateData as $search => $replace) {
@@ -591,7 +591,7 @@ class AppendMvcsConsole extends Command
         return $stub;
     }
 
-    private function solveTags($stub) 
+    public function solveTags($stub) 
     {
         $tags = Config::get("mvcs.tags", []);
         foreach($tags as $tag => $value ) {
