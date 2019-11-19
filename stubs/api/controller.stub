@@ -11,6 +11,10 @@ use Callmecsx\Mvcs\Traits\Filter;
 use Callmecsx\Mvcs\Traits\Response;
 use Illuminate\Http\Request;
 
+$controller_traits_head
+
+#controller_hook_head
+
 /**
  * $controller_name
  *
@@ -128,7 +132,7 @@ class $controller_name $controller_extends
     }
 
     
-    $controller_traits
-
-    // controller_append() 扩展模式下的锚点，勿删
+    $controller_traits_body
+    
+    #controller_hook_body
 }

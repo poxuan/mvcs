@@ -1,3 +1,6 @@
+::head
+use Callmecsx\Mvcs\Service\ExcelService;
+::body
     /**
      * 导入数据
      *
@@ -24,7 +27,7 @@
         $cover = $request->post('cover', 0) ? true : false;
         // 本地临时存储
         $filePath = $file->getRealPath('$table_name-' . time());
-        $excelService = new \Callmecsx\Mvcs\Service\ExcelService($type);
+        $excelService = new ExcelService($type);
         $result = 0;
         do {
             $data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
@@ -56,7 +59,7 @@
      */
     public function template()
     {
-        $excelService = new \Callmecsx\Mvcs\Service\ExcelService();
+        $excelService = new ExcelService();
         $excelService->template('$table_name - temp', $validator_name::excelColumn());
     }
 
@@ -74,7 +77,7 @@
         $validator_name::index($params);
         $data = $this->filter($model_name::query(), $params)->get()->toArray();
         //todo datafix
-        $excelService = new \Callmecsx\Mvcs\Service\ExcelService();
+        $excelService = new ExcelService();
         $excelService->template('$table_name-' . time(), $validator_name::excelColumn(), $data);
 
     }

@@ -91,7 +91,7 @@ class $validator_name $validator_extends
        ])->validate();
     }
 
-    $validator_traits
-
-    // $validator_append 扩展模式下的锚点，勿删
+    $validator_traits_body
+    
+    #validator_hook_body
 }

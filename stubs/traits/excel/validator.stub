@@ -1,4 +1,5 @@
-/**
+body:
+    /**
      * 批量导入验证规则
      *
      * @author $author_info

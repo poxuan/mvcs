@@ -227,10 +227,12 @@ class AppendMvcsConsole extends Command
             // 文件放置位置
             $path = $this->getPath($key);
             if (file_exists($path)) {
-                // $controller_append
-                $name  = '// $'.$this->stub_config($key, 'name').'_append';
                 $content  = \file_get_contents($path);
-                $content  = str_replace($name, $template . "\n    ".$name, $content);
+                foreach($template as $point => $hook) {
+                    // $controller_append
+                    $name  = '#'.$this->stub_config($key, 'name').'_append_' . $point;
+                    $content  = str_replace($name, $name . "\n" . $hook, $content);
+                }
                 $class = $this->files->put($this->getPath($key), $content);
             } else {
                 $this->myinfo('file_not_exist', $this->getClassName($key));
@@ -310,16 +312,17 @@ class AppendMvcsConsole extends Command
      */
     private function templateRender()
     {
-        // 获取两个模板文件
+        // 获取各模板文件
         $stubs = $this->getStub();
         // 获取需要替换的模板文件中变量
         $templateData = $this->getTemplateData();
         $renderStubs = [];
         foreach ($stubs as $key => $stub) {
             // 进行模板渲染
-            $renderStubs[$key] = $this->replaceStub($templateData, $stub);
+            foreach($stub as $point => $content) {
+                $renderStubs[$key][$point] = $this->replaceStub($templateData, $content);
+            }
         }
-
         return $renderStubs;
     }
 
@@ -339,14 +342,25 @@ class AppendMvcsConsole extends Command
             $key = $this->only[$i];
             $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
             if ($filename) {
-                $trait_content = "";
+                $traitContent = [];
                 foreach ($this->traits as $trait) {
                     $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
-                    if (file_exists($traitPath)) {
-                        $trait_content .= $this->files->get($traitPath) . "\n";
+                    $handle = @fopen($traitPath, 'r+');
+                    $point  = 'body';
+                    if ($handle) {
+                        while(!feof($handle)) {
+                            $line = fgets($handle);
+                            if (substr($line,0,2) == '::') { // 以双冒号开头
+                                $point = trim(substr($line,2));
+                            } elseif(isset($traitContent[$point])) {
+                                $traitContent[$point] .= $line;
+                            } else {
+                                $traitContent[$point] = ltrim($line);
+                            }
+                        }
                     }
                 }
-                $trait_content && $stubs[$key] = trim($trait_content);
+                $traitContent && $stubs[$key] = $traitContent;
             } else {
                 $this->myinfo('stub_not_found', $key, 'error');
             }

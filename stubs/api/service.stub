@@ -257,4 +257,8 @@ class $service_name $service_extends
         $excelService = new ExcelService();
         $validator_anno$excelService->template('XX模板',$validator_name::excelColumn());
     }
+
+    $service_traits_body
+    
+    #service_hook_body
 }

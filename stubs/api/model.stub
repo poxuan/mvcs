@@ -5,6 +5,9 @@ namespace $model_ns;
 //use Illuminate\Database\Eloquent\Model;
 //use Illuminate\Database\Eloquent\SoftDeletes;
 $model_use
+$model_traits_head
+
+#model_hook_head
 
 class $model_name $model_extends
 {
@@ -25,7 +28,7 @@ class $model_name $model_extends
     // 建立关联关系
     $model_relation
 
-    $model_traits
-
-    // $model_append 扩展模式下的锚点，勿删
+    $model_traits_body
+    
+    #model_hook_body
 }

@@ -392,26 +392,42 @@ class MakeMvcsConsole extends Command
         for ($i = 0; $i < strlen($this->only); $i++) {
             $key = $this->only[$i];
             $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
-            if ($filename) {
-                $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
-                if (file_exists($filePath)) {
-                    $tempContent = $this->files->get($filePath);
-                    $trait_content = "";
-                    if ($this->traits) {
-                        foreach ($this->traits as $trait) {
-                            $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
-                            if (file_exists($traitPath)) {
-                                $trait_content .= $this->files->get($traitPath) . "\n";
+            if (!$filename) {
+                $this->myinfo('stub_not_found', $key, 'error');
+                continue;
+            }
+            $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
+            if (!file_exists($filePath)) {
+                $this->myinfo('stub_not_found', $key, 'error');
+                continue;
+            }
+            $tempContent = $this->files->get($filePath);
+            $traitContent = [];
+            if ($this->traits) {
+                foreach ($this->traits as $trait) {
+                    $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
+                    $handle = @fopen($traitPath, 'r+');
+                    $point  = 'body';
+                    if ($handle) {
+                        while(!feof($handle)) {
+                            $line = fgets($handle);
+                            if (substr($line,0,2) == '@@') { // 以双@开头
+                                $point = trim(substr($line,2));
+                            } elseif(isset($traitContent[$point])) {
+                                $traitContent[$point] .= $line;
+                            } else {
+                                $traitContent[$point] = $line;
                             }
                         }
                     }
-                    $stubs[$key] = \str_replace('$'.$filename.'_traits', $trait_content, $tempContent);
-                } else {
-                    $this->myinfo('stub_not_found', $key, 'error');
+                    fclose($handle);
                 }
-            } else {
-                $this->myinfo('stub_not_found', $key, 'error');
             }
+            foreach($traitContent as $point => $content) {
+                $stubs[$key] = \str_replace('$'.$filename.'_traits_' . $point, $content, $tempContent);
+            }
+            // 把没用到的traits消掉
+            $stubs[$key] = \preg_replace('/\$'.$filename.'_traits_[a-z0-9]*/i', '', $tempContent);
         }
         return $stubs;
     }
