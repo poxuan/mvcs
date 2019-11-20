@@ -56,8 +56,8 @@ return [
     'tags_fix' => '{ }',//单空格分割前后缀
     'tags' => [
         // 支持不同标签嵌套，同名嵌套会报错
-        // {foo} xxx {!foo} yyy {/foo} 返回false yyy保留 返回true xxx保留
-        // {style:api} xxx {style:web} yyy {/style} 返回a xxx保留 返回b yyy保留 返回其他 全部块删除
+        // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
+        // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
         'style' => function ($model, $columns, $obj) {
             return $obj->style;
         },

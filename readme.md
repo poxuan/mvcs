@@ -11,7 +11,7 @@
 
 > composer require callmecsx/mvcs
 
-第一步: 在config/app.php 的 providers 添加 provider
+第一步: 在config/app.php 的 providers 添加 provider（5.5以上版本跳过此步）
 
 > Callmecsx\Mvcs\MvcsServiceProvider::class
 
@@ -20,7 +20,7 @@
 > php artisan vendor:publish \
 > 选择相应序号发布
 
-第三步：修改config 及 stubs
+第三步：修改config/mvcs.php 及 resource/stubs/
 
 > 发布成功后，分别出现在config 和 resource 中，内有中文注解。
 
