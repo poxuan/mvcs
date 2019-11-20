@@ -59,7 +59,7 @@ class MakeMvcsAllConsole extends Command
         }
         $check = false;
         if (!$this->option('yes')) {
-            $res = $this->ask("创建文件前是否询问？[Y/n]", 'y');
+            $res = $this->ask("共有".count($tables)."张表，创建文件是否跳过询问？[Y/n]", 'y');
             if ($res && strtolower(trim($res))[0] !== 'y') {
                 $check = true;
             }

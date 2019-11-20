@@ -43,15 +43,15 @@ class $validator_name $validator_extends
             $validator_rule
         ],self::$messages)->validate();
         $model = $model_name::findOrFail($id);
-        {user:author}
+        {usercheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('',40300);
         }
-        {user}
+        {usercheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('',40300);
         }
-        {/user}
+        {/usercheck}
     }
 
     /**
@@ -65,15 +65,15 @@ class $validator_name $validator_extends
     public static function destroy($id)
     {
         $model = $model_name::findOrFail($id);
-        {user:author}
+        {usercheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('',40300);
         }
-        {user}
+        {usercheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('',40300);
         }
-        {/user}
+        {/usercheck}
     }
 
     /**

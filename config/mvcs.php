@@ -2,16 +2,18 @@
 
 return [
     /* 使用前请务必阅读 readme 文件 */
+    // 版本信息
+    'version'  => '1.5.0',
     // 语言包，目前只有这一个包。
     'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api',
-    'style_config' => [
+    'style' => 'api', //默认
+    'style_config' => [ //配置
         'api' => [
             'desc'   => 'a default api template',
-            'stubs'  => 'MVCR',
-            'traits' => ['excel', 'updown'],
+            'stubs'  => 'MVCR', //默认模板
+            'traits' => ['excel', 'updown'], //默认扩展
         ],
         'web' => [
             'desc'   => 'a default web template (not yet complate)',
@@ -59,7 +61,7 @@ return [
         'style' => function ($model, $columns, $obj) {
             return $obj->style;
         },
-        'user' => function ($model, $columns) {
+        'usercheck' => function ($model, $columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'user_id') {
                     return 'user';
@@ -78,7 +80,8 @@ return [
             }
             return false;
         },
-        'resource' => true,
+        'softdelete' => true,
+        'resource' => false,
     ],
     // 模板公共配置
     'common' => [
@@ -136,7 +139,7 @@ return [
             'extends' => [],
         ],
     ],
-    // api_default 模板组配置
+    // api 默认模板组配置
     'api' => [
         // 资源层模板
         'R' => [
@@ -165,7 +168,7 @@ return [
             ],
         ],
     ],
-    // web_default 模板组配置
+    // web 默认模板组配置
     'web' => [
         // 主视图模板
         'I' => [
@@ -201,7 +204,8 @@ return [
         // 详情/编辑视图模板
         'F' => [
             'name' => 'from',
-            'postfix' => '/form.balde', // 最终生成文件 {path}/{Model}/form.balde.php
+            'postfix' => '/form.balde', // 最终生成文件 {path}/{Model}{postfix}{ext|.php}
+            // 'ext' => '.vue', // 通过定义文件后缀生成非 php 文件
             'path' => resource_path('views'),
             'replace' => [
                 'from' => function ($model, $columns) {

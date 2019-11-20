@@ -90,6 +90,9 @@ class MakeMvcsConsole extends Command
         if (empty($model)) {
             return $this->myinfo('param_lack', 'model', 'error');
         }
+        if (!preg_match('/^[a-z][a-z0-9]*$/i',$model)) {
+            return $this->myinfo('invalid_model', $model, 'error');
+        }
         if (count($modelArray = explode('/', $model)) > 1) {
             $modelArray = array_map('ucfirst', $modelArray);
             $model = ucfirst(array_pop($modelArray));
@@ -242,7 +245,7 @@ class MakeMvcsConsole extends Command
 
         for ($i = 0; $i < strlen($this->only); $i++) {
             $d = $this->only[$i];
-            $path = $this->getPath($d);
+            $path = $this->getSavePath($d);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
             if (!$this->files->isDirectory($directory)) {
@@ -419,8 +422,8 @@ class MakeMvcsConsole extends Command
                                 $traitContent[$point] = $line;
                             }
                         }
+                        fclose($handle);
                     }
-                    fclose($handle);
                 }
             }
             foreach($traitContent as $point => $content) {

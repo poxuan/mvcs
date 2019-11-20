@@ -183,6 +183,13 @@ class $controller_name $controller_extends
 
 ```
 
+## 更新
+
+```text
+1.5.0 功能拓展及问题修复
+    - 扩展模板增加了新的写法 ::body 用于指定插入位置
+```
+
 ## License
 
 Callmecsx mvcs is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).

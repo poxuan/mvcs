@@ -3,6 +3,7 @@
 return [
     'success' => '成功生成 %s 文件!',
     'fail' => '没有文件生成!',
+    'invalid_model' => '不合法的model名 %s',
     'deny' => '禁止在线上环境运行!',
     'param_lack' => '缺少参数 %s!',
     'param_invalid' => '参数 %s 错误!',
