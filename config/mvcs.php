@@ -21,68 +21,6 @@ return [
             'traits' => [],
         ]
     ],
-    // 模板全局替换参数
-    'global' => [
-        'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
-        'main_version' => '1.0',
-        'sub_version'  => '1.0.' . date('ymd'),
-        'create_date'  => date('Y-m-d H:i:s')
-    ],
-    // 扩展配置，
-    'traits' => [// 目录 => 简介
-        'updown' => [
-            'desc' => '更新数据状态接口',
-            'routes' => [ // 扩展路由规则
-                'put' => [
-                    '{id}/up' => 'up',
-                    '{id}/down' => 'down',
-                ],
-            ]
-        ],
-        'excel'  => [
-            'desc' => '导入导出数据接口',
-            'routes' => [
-                'post' => [
-                    'import' => 'import',
-                ],
-                'get' => [
-                    'template' => 'template',
-                    'export'   => 'export'
-                ],
-            ]
-        ],
-    ],
-    // 标签功能配置
-    'tags_fix' => '{ }',//单空格分割前后缀
-    'tags' => [
-        // 支持不同标签嵌套，同名嵌套会报错
-        // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
-        // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
-        'style' => function ($model, $columns, $obj) {
-            return $obj->style;
-        },
-        'usercheck' => function ($model, $columns) {
-            foreach ($columns as $column) {
-                if ($column->Field == 'user_id') {
-                    return 'user';
-                }
-                if ($column->Field == 'author_id') {
-                    return 'author';
-                }
-            }
-            return false;
-        },
-        'status' => function ($model, $columns) {
-            foreach ($columns as $column) {
-                if ($column->Field == 'status') {
-                    return true;
-                }
-            }
-            return false;
-        },
-        'softdelete' => true,
-        'resource' => false,
-    ],
     // 模板公共配置
     'common' => [
         // model 模板配置
@@ -214,6 +152,68 @@ return [
                 },
             ],
         ],
+    ],
+    // 模板全局替换参数
+    'global' => [
+        'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
+        'main_version' => '1.0',
+        'sub_version'  => '1.0.' . date('ymd'),
+        'create_date'  => date('Y-m-d H:i:s')
+    ],
+    // 扩展配置，
+    'traits' => [// 目录 => 简介
+        'updown' => [
+            'desc' => '更新数据状态接口',
+            'routes' => [ // 扩展路由规则
+                'put' => [
+                    '{id}/up' => 'up',
+                    '{id}/down' => 'down',
+                ],
+            ]
+        ],
+        'excel'  => [
+            'desc' => '导入导出数据接口',
+            'routes' => [
+                'post' => [
+                    'import' => 'import',
+                ],
+                'get' => [
+                    'template' => 'template',
+                    'export'   => 'export'
+                ],
+            ]
+        ],
+    ],
+    // 标签功能配置
+    'tags_fix' => '{ }',//单空格分割前后缀
+    'tags' => [
+        // 支持不同标签嵌套，同名嵌套会报错
+        // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
+        // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
+        'style' => function ($model, $columns, $obj) {
+            return $obj->style;
+        },
+        'usercheck' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'user_id') {
+                    return 'user';
+                }
+                if ($column->Field == 'author_id') {
+                    return 'author';
+                }
+            }
+            return false;
+        },
+        'status' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'status') {
+                    return true;
+                }
+            }
+            return false;
+        },
+        'softdelete' => true,
+        'resource' => false,
     ],
     
     // 表中不该用户填充的字段
