@@ -427,7 +427,7 @@ class MakeMvcsConsole extends Command
                 }
             }
             foreach($traitContent as $point => $content) {
-                $stubs[$key] = \str_replace('$'.$filename.'_traits_' . $point, $content, $tempContent);
+                $tempContent = \str_replace('$'.$filename.'_traits_' . $point, $content, $tempContent);
             }
             // 把没用到的traits消掉
             $stubs[$key] = \preg_replace('/\$'.$filename.'_traits_[a-z0-9]*/i', '', $tempContent);
