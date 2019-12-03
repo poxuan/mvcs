@@ -147,6 +147,7 @@ if(!function_exists('curlPost')) {
         $data = curl_exec($curl);
 
         if ($error = curl_error($curl)) {
+            
             logger()->error('remote invoking failed',['url'=>$url,'params'=>$params,'error'=>$error]);
             curl_close($curl);
             throw new \App\Exceptions\RemoteInvokeException();

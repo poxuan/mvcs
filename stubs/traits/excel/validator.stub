@@ -33,7 +33,7 @@ body:
         *    //3. 键名 => 【描述，表格示例，关联MODEL，关联表替换列等属性】
         *    'city_id' => ['城市', '北京', App\Models\City::class, ['column' => 'city']], 
         *    'inviter_id' => ['邀请人ID', 5],
-        *    //4. 键名#数字 => 【描述，表格示例，MODEL，替换列】引申字段,导入时忽略
+        *    //4. 键名#xxx => 【描述，表格示例，MODEL，替换列】引申字段,导入时忽略，目前只支持一级关联且值为另一表的主键
         *    'inviter_id#1' => ['邀请人', '小李', App\Models\User::class, ['column' => 'nickname']],
         *    //5. 键名 => 【描述，表格示例，表格转换到数据库时的方法，数据库转换到表格方法】
         *    'created_at' => ['创建时间', '2019-12-31 12:00:00','strtotime', function($value) { return date('Y-m-d H:i:s', $value); }],

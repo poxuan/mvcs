@@ -43,7 +43,7 @@ class $controller_name $controller_extends
      */
     public function index(Request $request)
     {
-        $params = $request->input();
+        $params = $request->list();
         $validator_name::index($params);
         $collection = $this->filter($model_name::query(), $params)->paginate($request->get('limit',10));
         {resource}

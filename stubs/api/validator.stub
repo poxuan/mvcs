@@ -84,7 +84,7 @@ class $validator_name $validator_extends
      * @param  array $filter 要筛选字段
      * @return void
      */
-    public static function select($filter) {
+    public static function list($filter) {
         Validator::make($filter,[
             'page'       => 'sometimes|int|min:1',
             'pageSize'   => 'sometimes|int|in:5,10,15,20,50,100,200',

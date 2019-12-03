@@ -12,7 +12,7 @@ return [
     'style_config' => [ //配置
         'api' => [
             'desc'   => 'a default api template',
-            'stubs'  => 'MVCR', //默认模板
+            'stubs'  => 'MVC', //默认模板
             'traits' => ['excel', 'updown'], //默认扩展
         ],
         'web' => [
