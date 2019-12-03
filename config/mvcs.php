@@ -43,15 +43,12 @@ return [
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
-            // PS3：{name}_append 作为扩展模式使用
             'replace' => [
-                // model_fillable 示例, 会覆盖预定义的值
-                'fillable' => function ($model, $columns) {
+                // model_params 示例, 会覆盖预定义的值
+                'params' => function ($model, $columns) {
                     $res = "";
                     foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            $res .= "'" . $column->Field . "',";
-                        }
+                        $res .= "\n * @param string $" . $column->Field;
                     }
                     return $res;
                 },
@@ -212,7 +209,14 @@ return [
             }
             return false;
         },
-        'softdelete' => true,
+        'softdelete' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'deleted_at') {
+                    return true;
+                }
+            }
+            return false;
+        },
         'resource' => false,
     ],
     

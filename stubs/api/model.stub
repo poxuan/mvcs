@@ -11,6 +11,14 @@ $model_traits_head
 
 #model_hook_head
 
+/**
+ * $model_name
+ *
+ * $model_params
+ * @author  $author_info
+ * @version $main_version
+ * @since   $sub_version
+ */
 class $model_name $model_extends
 {
     {softdelete}
