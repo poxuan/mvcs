@@ -2,23 +2,12 @@
 
 namespace $model_ns;
 
-//use Illuminate\Database\Eloquent\Model;
 {softdelete}
 use Illuminate\Database\Eloquent\SoftDeletes;
 {/softdelete}
 $model_use
 $model_traits_head
-
 #model_hook_head
-
-/**
- * $model_name
- *
- * $model_params
- * @author  $author_info
- * @version $main_version
- * @since   $sub_version
- */
 class $model_name $model_extends
 {
     {softdelete}
@@ -31,15 +20,39 @@ class $model_name $model_extends
     protected $fillable = [
         $model_fillable
     ];
+    // 展示字段
+    protected $visible = [
+        //'org_id', 'deleted_at', 'deleted_by'
+    ];
     // 不展示字段
     protected $hidden = [
-        'org_id', 'deleted_at', 'deleted_by'
+        //'org_id', 'deleted_at', 'deleted_by'
     ];
+
+    // 简单模式下展示的字段
+    protected $visible2 = [
+        'id','name'
+    ];
+
+    public function toArray()
+    {
+        return parent::toArray();
+    }
+    
+    public function toSimpleArray()
+    {
+        $data = $this->toArray();
+        foreach($data as $key => $val) {
+            if (!in_array($key, $this->visible2)) {
+                unset($data[$key]);
+            }
+        }
+        return $data;
+    }
 
     // 建立关联关系
     $model_relation
 
     $model_traits_body
-    
     #model_hook_body
 }

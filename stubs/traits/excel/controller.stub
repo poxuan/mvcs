@@ -13,7 +13,7 @@ use Callmecsx\Mvcs\Service\ExcelService;
     {
         $file = $request->file('file');
         if (empty($file)) {
-            return $this->error(40008, '请导入上传文件');
+            return $this->error(40008, '文件未上传');
         }
         $mimeType = $file->getClientMimeType();
         if ($mimeType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
@@ -48,7 +48,7 @@ use Callmecsx\Mvcs\Service\ExcelService;
             }
         } while ($excelService->hasMore());
         @unlink($filePath);
-        return $this->success(['error_lines' => $excelService->error_lines]);
+        return $this->success($excelService->error_lines);
     }
 
     /**
@@ -73,10 +73,12 @@ use Callmecsx\Mvcs\Service\ExcelService;
      */
     public function export(Request $request)
     {
-        $params = $request->input();
-        $validator_name::index($params);
+        $params = $request->input() ?: [];
+        $validator_name::list($params);
         $data = $this->filter($model_name::query(), $params)->get()->toArray();
         //todo datafix
         $excelService = new ExcelService();
-        $excelService->export('$table_name-' . time(), $data, $validator_name::excelColumn());
+        $excelService->template('$table_name-' . time(), $validator_name::excelColumn(), $data);
+
     }
+

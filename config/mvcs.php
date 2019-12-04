@@ -13,7 +13,7 @@ return [
         'api' => [
             'desc'   => 'a default api template',
             'stubs'  => 'MVC', //默认模板
-            'traits' => ['excel', 'updown'], //默认扩展
+            'traits' => ['toggle',], //默认扩展
         ],
         'web' => [
             'desc'   => 'a default web template (not yet complate)',
@@ -43,12 +43,15 @@ return [
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
+            // PS3：{name}_append 作为扩展模式使用
             'replace' => [
-                // model_params 示例, 会覆盖预定义的值
-                'params' => function ($model, $columns) {
+                // model_fillable 示例, 会覆盖预定义的值
+                'fillable' => function ($model, $columns) {
                     $res = "";
                     foreach ($columns as $column) {
-                        $res .= "\n * @param string $" . $column->Field;
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            $res .= "'" . $column->Field . "',";
+                        }
                     }
                     return $res;
                 },
@@ -161,10 +164,21 @@ return [
     'traits' => [// 目录 => 简介
         'updown' => [
             'desc' => '更新数据状态接口',
-            'routes' => [ // 扩展路由规则
+            'routes' => [ // 扩展路由规则,可以没有
                 'put' => [
                     '{id}/up' => 'up',
                     '{id}/down' => 'down',
+                ],
+            ]
+        ],
+        'toggle' => [
+            'desc' => '状态更新接口',
+            'routes' => [ // 扩展路由规则
+                'put' => [
+                    '{id}/toggle_something' => 'toggle_something',
+                ],
+                'post' => [
+                    'batch_something' => 'batch_something',
                 ],
             ]
         ],
@@ -190,15 +204,16 @@ return [
         'style' => function ($model, $columns, $obj) {
             return $obj->style;
         },
+        'user' => false,
         'usercheck' => function ($model, $columns) {
-            foreach ($columns as $column) {
-                if ($column->Field == 'user_id') {
-                    return 'user';
-                }
-                if ($column->Field == 'author_id') {
-                    return 'author';
-                }
-            }
+            // foreach ($columns as $column) {
+            //     if ($column->Field == 'user_id') {
+            //         return 'user';
+            //     }
+            //     if ($column->Field == 'author_id') {
+            //         return 'author';
+            //     }
+            // }
             return false;
         },
         'status' => function ($model, $columns) {

@@ -10,13 +10,5 @@
     public static function upDown($id)
     {
         $models = $model_name::findOrFail($id);
-        {user:author}
-        if ($model->author_id != user()->id) {
-            throw new \Exception('',40300);
-        }
-        {user}
-        if ($model->user_id != user()->id) {
-            throw new \Exception('',40300);
-        }
-        {/user}
     }
+

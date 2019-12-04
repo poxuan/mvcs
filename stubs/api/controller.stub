@@ -14,7 +14,6 @@ use Callmecsx\Mvcs\Traits\Response;
 use Illuminate\Http\Request;
 
 $controller_traits_head
-
 #controller_hook_head
 
 /**
@@ -45,8 +44,8 @@ class $controller_name $controller_extends
      */
     public function index(Request $request)
     {
-        $params = $request->list();
-        $validator_name::index($params);
+        $params = $request->input() ?: [];
+        $validator_name::list($params);
         $collection = $this->filter($model_name::query(), $params)->paginate($request->get('limit',10));
         {resource}
         return $resource_name::collection($collection);
@@ -133,8 +132,7 @@ class $controller_name $controller_extends
         return $this->success($result);
     }
 
-    $controller_traits_body
     
+    $controller_traits_body
     #controller_hook_body
-
 }
