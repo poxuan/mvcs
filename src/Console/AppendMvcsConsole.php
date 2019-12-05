@@ -67,7 +67,7 @@ class AppendMvcsConsole extends Command
         $this->files = new Filesystem();
         $this->ignoreColumns = Config::get('mvcs.ignore_columns') ?: [];
         $this->style = Config::get('mvcs.style') ?: 'api_default';
-        $this->only = Config::get('mvcs.default_stubs')[$this->style] ?? 'MVCS';
+        $this->only = Config::get('mvcs.style_config')[$this->style]['stubs'] ?? 'MVCS';
         $this->language = Config::get('mvcs.language') ?: 'zh-cn';
         $this->traits = [];
     }
@@ -225,13 +225,14 @@ class AppendMvcsConsole extends Command
         $class = null;
         foreach ($templates as $key => $template) {
             // 文件放置位置
+            
             $path = $this->getPath($key);
             if (file_exists($path)) {
                 $content  = \file_get_contents($path);
                 foreach($template as $point => $hook) {
                     // $controller_append
-                    $name  = '#'.$this->stub_config($key, 'name').'_append_' . $point;
-                    $content  = str_replace($name, $name . "\n" . $hook, $content);
+                    $name  = '#'.$this->stub_config($key, 'name').'_hook_' . $point;
+                    $content  = str_replace($name, $hook. "\n" . $name, $content);
                 }
                 $class = $this->files->put($this->getPath($key), $content);
             } else {
@@ -350,7 +351,7 @@ class AppendMvcsConsole extends Command
                     if ($handle) {
                         while(!feof($handle)) {
                             $line = fgets($handle);
-                            if (substr($line,0,2) == '::') { // 以双冒号开头
+                            if (substr($line,0,2) == '@@') { // 以双冒号开头
                                 $point = trim(substr($line,2));
                             } elseif(isset($traitContent[$point])) {
                                 $traitContent[$point] .= $line;
@@ -434,140 +435,7 @@ class AppendMvcsConsole extends Command
             }
         }
         // 根据数据库字段生成一些模板数据。
-        $templateVar2 = $this->getDefaultData($this->tableColumns);
-        return array_merge($templateVar2, $templateVar);
-    }
-
-    /**
-     * 生成 Validator 配置
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:14:08
-     * @param $tableColumns
-     * @param $columns
-     * @param $validatorRule
-     * @param $validatorExcel
-     * @param $validatorExcelDefault
-     */
-    public function getDefaultData($tableColumns)
-    {
-        if (empty($tableColumns)) {
-            return [
-                'validator_rule' => '',
-                'validator_excel_rule' => '',
-                'validator_excel_default' => '',
-                'validator_message' => '',
-                'model_fillable' => '',
-                'model_relation' => '',
-            ];
-        }
-        $validators = [];
-        $excelColumn = [];
-        $excelDefault = [];
-        $relaies = [];
-        if ($tableColumns) {
-            foreach ($tableColumns as $column) {
-                if (!in_array($column->Field, $this->ignoreColumns)) {
-                    $v = [];
-                    $v['column'] = $column->Field;
-                    $columns[] = "'" . $column->Field . "'";
-                    $v['comment'] = str_replace(['"', "'", "\n", "\t", "\r", "\\"], '', $column->Comment ?: $column->Field);
-                    $v['example'] = '';
-                    if ($column->Nullable == 'NO' && $column->Default === null) {
-                        $v['rule'][] = 'required';
-                        $v['messages'][$column->Field . '.required'] = $v['comment'] . ' 必填';
-                        $v['nullable'] = false;
-                    } else {
-                        $v['rule'][] = 'sometimes';
-                        $v['nullable'] = true;
-                        $ed['column'] = $v['column'];
-                        $ed['default'] = $column->Default ? "'{$column->Default}'" : (preg_match('/int/', $column->Type) ? 0 :
-                            (starts_with($column->Type, 'date') ? "Db::raw('now()')" : "''"));
-                        $excelDefault[] = $ed;
-                    }
-                    if (preg_match("/char\((\d+)\)/", $column->Type, $match)) {
-                        $v['rule'][] = 'string';
-                        $v['rule'][] = 'max:' . $match[1];// 可能需要添加扩展 mbmax
-                        $v['messages'][$column->Field . '.max'] = $v['comment'] . ' 长度不得超过:' . $match[1];
-                        $v['example'] = $column->Default ?: '';
-                    } elseif (preg_match('/int/', $column->Type, $match)) {
-                        $v['rule'][] = 'int';
-                        $v['rule'][] = 'min:0';
-                        $v['messages'][$column->Field . '.min'] = $v['comment'] . ' 不得小于:0';
-                        $v['example'] = 1;
-                    } elseif (preg_match('/decimal\((\d+),(\d+)\)/', $column->Type, $match)) {
-                        //$v['rule'][] = 'int';
-                        $v['rule'][] = 'decimal:' . $match[1] . ',' . $match[2];
-                        $v['example'] = '1.00';
-                    } elseif (preg_match('/date/', $column->Type, $match)) {
-                        $v['rule'][] = 'date';
-                        $v['example'] = date('Y-m-d');
-                    } elseif (preg_match('/enum/', $column->Type, $match)) {
-                        $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
-                        $v['enum'] = json_encode(explode(',', $enum), JSON_UNESCAPED_UNICODE);
-                        $v['rule'][] = 'in:' . $v['enum'];
-                        $v['example'] = date('Y-m-d');
-                    }
-                    if (ends_with($column->Field, '_id')) {
-                        $otherTable = str_replace('_id', '', $column->Field);
-                        $otherModel = $this->lineToHump($otherTable);
-                        $v['relate'] = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                        $v['rule'][] = 'exists:' . $otherTable . ',id';
-                        $v['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
-                        $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                        $relaies[] = "public function $otherModel() {" 
-                            . $this->tabs(2, "\n") 
-                            . 'return $this->belongsTo("' . $fullOtherModel . '");' 
-                            . $this->tabs(1, "\n", "}\n");
-                    }
-                    $validators[] = $v;
-                }
-            }
-        }
-        $validatorRule = implode($this->tabs(3, "\n"), array_map(function ($arr) {
-            $rule = str_pad("'{$arr['column']}'", 25) . " => '" . implode('|', $arr['rule']) . "',";
-            return str_pad($rule, 80) . '    //' . $arr['comment']; // 补充注释
-        }, $validators));
-
-        $validatorMessages = implode('', array_map(function ($arr) {
-            $messages = '';
-            if ($arr['messages'] ?? []) {
-                foreach ($arr['messages'] as $key => $message) {
-                    $messages .= str_pad($this->tabs(2) . "'$key'", 28) . " => '$message',\n";
-                }
-            }
-            return $messages;
-        }, $validators));
-
-        $validatorExcel = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
-            $nullable = $arr['nullable'] ? '选填' : '必填';
-            $columns = [
-                "'c' => '{$arr['comment']}#{$nullable}'",
-                "'e' => '{$arr['example']}'",
-            ];
-            if (isset($arr['enum'])) {
-                $columns[] = $this->tabs(4, "\n") . "'l' => {$arr['enum']}";
-            } elseif (isset($arr['relate'])) {
-                $columns[] = $this->tabs(4, "\n") . "'l' => '{$arr['relate']}'";
-                $columns[] = "'la' => false";
-                $columns[] = "'lc' => 'name'";
-            }
-            return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $columns) . ']';
-        }, $validators));
-
-        $validatorExcelDefault = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
-            return str_pad("'{$arr['column']}'", 25) . ' => ' . $arr['default'];
-        }, $excelDefault));
-
-        $result = [
-            'validator_rule' => trim($validatorRule),
-            'validator_excel_rule' => trim($validatorExcel),
-            'validator_excel_default' => trim($validatorExcelDefault),
-            'validator_message' => trim($validatorMessages),
-            'model_fillable' => implode(',', $columns),
-            'model_relation' => implode($this->tabs(1, "\n\n"), $relaies),
-        ];
-        return $result;
+        return $templateVar;
     }
 
     /**

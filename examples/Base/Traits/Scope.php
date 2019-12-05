@@ -21,13 +21,13 @@ trait Scope
             case 'hot':
                 return $query->hot();
             case 'recent':
-                return $query->orderBy('created_at', 'desc');
+                return $query->orderBy('id', 'desc');
             case 'origin':
                 return $query->orderBy('id');
             case 'update':
                 return $query->orderBy('updated_at', 'desc');
         }
-        return $query->orderBy('created_at', 'desc');
+        return $query->orderByRaw($order);
     }
 
     public function scopeHot($query)

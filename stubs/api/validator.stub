@@ -86,10 +86,11 @@ class $validator_name $validator_extends
     public static function list($filter) {
         Validator::make($filter,[
             'page'       => 'sometimes|int|min:1',
-            'pageSize'   => 'sometimes|int|in:5,10,15,20,50,100,200',
+            'limit'   => 'sometimes|int|in:5,10,15,20,50,100,200',
        ])->validate();
     }
 
     $validator_traits_body
-    #validator_hook_body
+
+#validator_hook_body
 }

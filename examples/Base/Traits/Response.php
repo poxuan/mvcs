@@ -7,7 +7,7 @@ namespace App\Base\Traits;
 trait Response 
 {
     protected $response = [
-        'errcode' => 200,
+        'errcode' => 0,
         'errmsg'  => 'success!',
         'ret'     => true,
         'data'    => []

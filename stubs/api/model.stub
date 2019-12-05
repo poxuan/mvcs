@@ -5,11 +5,13 @@ namespace $model_ns;
 {softdelete}
 use Illuminate\Database\Eloquent\SoftDeletes;
 {/softdelete}
+use App\Base\Traits\Scope;
 $model_use
 $model_traits_head
 #model_hook_head
 class $model_name $model_extends
 {
+    use Scope;
     {softdelete}
     use SoftDeletes;
     {/softdelete}
@@ -29,6 +31,7 @@ class $model_name $model_extends
         //'org_id', 'deleted_at', 'deleted_by'
     ];
 
+    {mytoarray}
     // 简单模式下展示的字段
     protected $visible2 = [
         'id','name'
@@ -36,23 +39,26 @@ class $model_name $model_extends
 
     public function toArray()
     {
-        return parent::toArray();
-    }
-    
-    public function toSimpleArray()
-    {
-        $data = $this->toArray();
-        foreach($data as $key => $val) {
-            if (!in_array($key, $this->visible2)) {
-                unset($data[$key]);
+        $data = parent::toArray();
+        if (!app()->runningInConsole() && !app()->runningUnitTests()) {
+            $actionName = request()->route()->getActionName();
+            list($controller, $action) = explode('@',$actionName);
+            if ($action == 'simple' || ends_with($controller,'\\$controller_name')) {
+                foreach($data as $key => $val) {
+                    if (!in_array($key, $this->visible2)) {
+                        unset($data[$key]);
+                    }
+                }
             }
         }
         return $data;
     }
-
+    {/mytoarray}
+    
     // 建立关联关系
     $model_relation
 
     $model_traits_body
-    #model_hook_body
+
+#model_hook_body
 }

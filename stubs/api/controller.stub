@@ -9,8 +9,8 @@ use $model_ns\$model_name;
 {resource}
 use $resource_ns\$resource_name;
 {/resource}
-use Callmecsx\Mvcs\Traits\Filter;
-use Callmecsx\Mvcs\Traits\Response;
+use App\Base\Traits\Filter;
+use App\Base\Traits\Response;
 use Illuminate\Http\Request;
 
 $controller_traits_head
@@ -34,7 +34,7 @@ class $controller_name $controller_extends
     public $filterRule = [
         'name'   => 'like',
         'status' => '=',
-        'sort'   => 'scope:mySort'
+        'sort'   => 'scope:MyOrder'
     ];
 
     /**
@@ -132,7 +132,21 @@ class $controller_name $controller_extends
         return $this->success($result);
     }
 
-    
+    /**
+     * Display a simple listing of the resource.
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return XdyResource|array
+     */
+    public function simple(Request $request)
+    {
+        $params = $request->input() ?: [];
+        $validator_name::list($params);
+        $list = $this->filter($model_name::query(), $params)->limit($params['limit'] ?? 500)->get()->toArray();
+        return $this->success($list);
+    }
+
     $controller_traits_body
-    #controller_hook_body
+
+#controller_hook_body
 }

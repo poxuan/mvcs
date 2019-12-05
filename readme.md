@@ -17,7 +17,7 @@
 
 第二步: 发布 MVCS 模板和配置
 
-> php artisan vendor:publish \
+> php artisan vendor:publish --provider="Callmecsx\Mvcs\MvcsServiceProvider"\
 > 选择相应序号发布
 
 第三步：修改config/mvcs.php 及 resource/stubs/
@@ -136,7 +136,7 @@ jack ma|1|1980-12-21
 
 ```PHP
 <?php
-// 名字空间，由config.common.C.namespace 和指令决定
+// 名字空间，由config.common.C.namespace 和 指令 model 决定
 namespace $controller_ns;
 
 // 引用基类，没有基类返回空
@@ -145,6 +145,10 @@ $controller_use
 use $service_ns\$service_name;
 // 引用laravel类
 use Illuminate\Http\Request;
+
+$controller_traits_head
+
+#controller_hook_head 扩展锚点
 
 /**
  * $controller_name
@@ -176,16 +180,215 @@ class $controller_name $controller_extends
     }
 
     // 根据config.traits 和指令行参数 加载额外代码块
-    $controller_traits
+    $controller_traits_body
 
-    // $controller_append 扩展锚点
+#controller_hook_body 扩展锚点
 }
+
+```
+
+## 扩展编写
+
+扩展文件写法如下
+
+```PHP
+// 每套扩展可能有多个文件，以 reply/controller 文件为例
+
+// 双@@ 在行首，表示锚点，替换内容为 $[file]_traits_head
+// 扩展模式下 mvcs:append 替换内容为 #[file]_hook_head
+@@head
+use Illuminate\Http\Request;
+@@body
+    /**
+     * teacher reply
+     *
+     * @param  Request $request
+     * @param  int $id
+     * @return void
+     * @author $author_info
+     * @since  $sub_version
+     */
+    public function reply(Request $request,$id) {
+        $params = $request->input() ?: [];
+        // 扩展文件同样可以使用预定的值和标签写法
+        // 在扩展模式下，少部分原生内置的值不再提供，如：validator_rule、model_fillable 等
+        $validator_name::reply($params);
+        $info = $model_name::findOrfail($id);
+        $info->reply = $params['reply'];
+        $info->reply_teacher = $params['reply_teacher'];
+        $res = $info->save();
+        if (!$res) {
+            return $this->error(Code::FATAL_ERROR);
+        }
+        return $this->success([]);
+    }
+```
+
+> 编写文件后，须将其在config 文件中定义
+
+## 配置编写
+
+```php
+<?php
+
+return [
+    // 配置版本信息, 部分版本配置向前不兼容
+    'version'  => '2.0',
+    // 语言包，目前只有这一个包。
+    'language' => 'zh-cn',
+    /* 模板相关配置 */
+    // 模板风格
+    'style' => 'api',   // 默认风格
+    'style_config' => [ // 配置
+        'api' => [
+            'desc'   => 'a default api template', // 描述
+            'stubs'  => 'MVC',       // 默认模板，模板大写字母任意组合
+            'traits' => ['toggle',], // 默认扩展
+        ],
+        // 略
+    ],
+    // 模板公共配置
+    'common' => [
+        // model 模板配置，单大写字母定义，
+        'M' => [
+            // stabs文件名,及替换参数前缀名
+            'name' => 'model',
+            // 类名及文件名后缀，默认为php，可定义为 '.vue', 返回vue文件
+            'postfix' => '',
+            // 文件放置地址
+            'path' => app_path() . DIRECTORY_SEPARATOR . 'Models',
+            // 基础名字空间
+            'namespace' => 'App\Models',
+            // 继承基类。可以为空
+            'extends' => [
+                'namespace' => 'Illuminate\Database\Eloquent', // 基类名字空间
+                'name' => 'Model', // 基类类名
+            ],
+            // 模板中的替换字段
+            // PS：各模板均已预定义如下字段，部分模板还预定了其他一些字段
+            //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
+            //     {name}_anno 行注释，{name}_traits_* 扩展
+            // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
+            // PS3：#{name}_hook_* 在扩展模式使用使用，此元素对 html、js 等不友好，酌情使用
+            'replace' => [
+                // model_fillable 原生内置提供，自定义会覆盖
+                'fillable' => function ($model, $columns) {
+                    $res = "";
+                    foreach ($columns as $column) {
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            $res .= "'" . $column->Field . "',";
+                        }
+                    }
+                    return $res;
+                },
+            ],
+        ],
+        // 控制器模板 略
+        // 过滤器模板 略
+    ],
+    // api 风格模板组配置
+    'api' => [
+        // 资源层模板
+        'R' => [
+            // 略
+        ],
+    ],
+    // 模板全局替换参数
+    'global' => [
+        'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
+        'main_version' => '1.0', // 当前代码主版本号
+        'sub_version'  => '1.0.' . date('ymd'), // 当前代码副版本号
+        'create_date'  => date('Y-m-d H:i:s')
+        ... // 定义任何值
+    ],
+    // 扩展配置，
+    'traits' => [// 目录 => 简介
+        'toggle' => [
+            'desc' => '状态更新接口',
+            'routes' => [ // 扩展路由
+                'put' => [
+                    'toggle_something' => '{id}/toggle_something', // 方法 =》 路由格式
+                ],
+                'post' => [
+                    'batch_something' => 'batch_something',
+                ],
+            ]
+        ],
+        // 略
+    ],
+    // 标签功能配置
+    'tags_fix' => '{ }',//单空格分割前后缀
+    'tags' => [
+        // 支持不同标签嵌套，同名嵌套会报错
+        // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
+        // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
+        'style' => function ($model, $columns, $obj) {
+            return $obj->style;
+        },
+        'softdelete' => function ($model, $columns) {
+            foreach ($columns as $column) {
+                if ($column->Field == 'deleted_at') {
+                    return true;
+                }
+            }
+            return false;
+        },
+        // 略
+    ],
+    // 表中不该用户填充的字段
+    "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at'],
+
+    /* 自动添加路由配置 */
+    // 是否自动添加路由
+    "add_route" => true,
+    // 路由类型,加到那个文件里
+    "route_type" => 'api',
+    // 添加路由数组
+    "routes" => [
+        // 方法 -> 路由
+        'post' => [
+            // 'foo' => '{id}/foo',
+        ],
+        // GET 路由等
+        'get' => [
+            'simple' => 'simple',
+        ],
+        // 是否添加 apiResource？
+        'apiResource' => true,
+        // 是否添加 resource？
+        'resource' => false,
+        // 公共中间件，非全局
+        'middlewares' => [],
+        // 公共路由前缀
+        'prefix' => '',
+        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 test
+        'namespace' => '',
+    ],
+
+    /* mvcs:excel 脚本相关参数 */
+    "excel" => [
+        // 公共额外数据库字段，migrate 写法
+        "extra_columns" => [
+            //'$table->integer("org_id")->comment("组织ID");',
+            '$table->timestamps();',
+            '$table->timestamp("deleted_at")->nullable();',
+        ],
+        // 表名前缀
+        "table_prefix" => "",
+        // 表名后缀
+        "table_postfix" => "",
+        // 未定义varchar长度时的默认值。
+        "default_varchar_length" => 50,
+    ],
+];
 
 ```
 
 ## 更新
 
 ```text
+2.0.0 配置文件向前不兼容
+    - 增加了一些自己使用到的内容
 1.5.0 功能拓展及问题修复
     - 扩展模板增加了新的写法 ::body 用于指定插入位置
 ```

@@ -37,6 +37,16 @@ class MvcsServiceProvider extends ServiceProvider
                     $this->publishes([$stubs.'/'.$dir  => resource_path('stubs/'.$dir)]);
                 }
             }
+            // 隐藏功能，把我的一些基础代码挪过去
+            if (config('mvcs.base')) {
+                $base  = realpath($raw = __DIR__ . '/../examples/Base') ?: $raw;
+                $this->publishes([$base  => app_path('Base')]);
+                foreach(scandir($base) as $dir) {
+                    if ($dir[0] != '.' && \is_dir($base.'/'.$dir)) {
+                        $this->publishes([$base.'/'.$dir  => app_path('Base/'.$dir)]);
+                    }
+                }
+            }
         } elseif ($this->app instanceof LumenApplication) {
             $this->app->configure('mvcs');
         }

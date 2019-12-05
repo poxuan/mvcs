@@ -3,7 +3,7 @@
 return [
     /* 使用前请务必阅读 readme 文件 */
     // 版本信息
-    'version'  => '1.5.0',
+    'version'  => '2.0',
     // 语言包，目前只有这一个包。
     'language' => 'zh-cn',
     /* 模板相关配置 */
@@ -164,10 +164,10 @@ return [
     'traits' => [// 目录 => 简介
         'updown' => [
             'desc' => '更新数据状态接口',
-            'routes' => [ // 扩展路由规则,可以没有
+            'routes' => [ // 扩展路由规则
                 'put' => [
-                    '{id}/up' => 'up',
-                    '{id}/down' => 'down',
+                    'up' => '{id}/up',
+                    'down' => '{id}/down',
                 ],
             ]
         ],
@@ -175,11 +175,19 @@ return [
             'desc' => '状态更新接口',
             'routes' => [ // 扩展路由规则
                 'put' => [
-                    '{id}/toggle_something' => 'toggle_something',
+                    'toggle_something' => '{id}/toggle_something',
                 ],
                 'post' => [
                     'batch_something' => 'batch_something',
                 ],
+            ]
+        ],
+        'reply' => [
+            'desc' => '老师回复',
+            'routes' => [ // 扩展路由规则
+                'post' => [
+                    'reply' => '{id}/reply',
+                ]
             ]
         ],
         'excel'  => [
@@ -205,17 +213,7 @@ return [
             return $obj->style;
         },
         'user' => false,
-        'usercheck' => function ($model, $columns) {
-            // foreach ($columns as $column) {
-            //     if ($column->Field == 'user_id') {
-            //         return 'user';
-            //     }
-            //     if ($column->Field == 'author_id') {
-            //         return 'author';
-            //     }
-            // }
-            return false;
-        },
+        'usercheck' => false,
         'status' => function ($model, $columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'status') {
@@ -232,6 +230,7 @@ return [
             }
             return false;
         },
+        'mytoarray' => true,
         'resource' => false,
     ],
     
@@ -245,12 +244,14 @@ return [
     "route_type" => 'api',
     // 添加路由数组
     "routes" => [
-        // 默认路由 -> 方法
+        // 方法 -> 路由
         'post' => [
-            // '{id}/foo' => 'foo',
+            // 'foo' => '{id}/foo',
         ],
         // GET 路由等
-        'get' => [],
+        'get' => [
+            'simple' => 'simple',
+        ],
         // 是否添加 apiResource？
         'apiResource' => true,
         // 是否添加 resource？

@@ -22,5 +22,6 @@ class $resource_name $resource_extends
     }
 
     $resource_traits_body
-    #resource_hook_body
+    
+#resource_hook_body
 }

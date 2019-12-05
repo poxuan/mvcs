@@ -68,12 +68,12 @@ class MakeMvcsConsole extends Command
     {
         parent::__construct();
         $this->files = new Filesystem();
-        $this->ignoreColumns = Config::get('mvcs.ignore_columns') ?: [];
-        $this->style = Config::get('mvcs.style') ?: 'api';
-        $this->only = Config::get('mvcs.style_config')[$this->style]['stubs'] ?? 'MVCS';
-        $this->traits = Config::get('mvcs.style_config')[$this->style]['traits'] ?? [];
-        $this->middleware = Config::get('mvcs.routes.middlewares');
-        $this->language = Config::get('mvcs.language') ?: 'zh-cn';
+        $this->ignoreColumns = $this->config('ignore_columns') ?: [];
+        $this->style = $this->config('style', 'api');
+        $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
+        $this->traits = $this->config('style_config.'.$this->style.'.traits', []);
+        $this->middleware = $this->config('routes.middlewares');
+        $this->language = $this->config('language', 'zh-cn');
     }
 
     /**
@@ -85,6 +85,9 @@ class MakeMvcsConsole extends Command
     {
         if (Config::get('app.env') == 'production') {
             return $this->myinfo('deny', '', 'error');
+        }
+        if (Config::get('mvcs.version') < '2.0') {
+            return $this->myinfo('version_deny', '2.0', 'error');
         }
         $model = ucfirst($this->lineToHump($this->argument('model')));
         if (empty($model)) {
@@ -101,8 +104,8 @@ class MakeMvcsConsole extends Command
         }
         if ($style = $this->option('style')) {
             $this->style = $style;
-            $this->only = Config::get('mvcs.style_config')[$this->style]['stubs'] ?? 'MVCS';
-            $this->traits = Config::get('mvcs.style_config')[$this->style]['traits'] ?? [];
+            $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
+            $this->traits = $this->config('style_config.'.$this->style.'.traits', []);
         }
         if ($force = $this->option('force')) {
             $this->force = $force;
@@ -179,20 +182,19 @@ class MakeMvcsConsole extends Command
      */
     public function addRoutes()
     {
-        if (Config::get('mvcs.add_route')) {
+        if ($this->config('add_route')) {
             $routeStr = '';
             $group = false;
-            $type = Config::get('mvcs.route_type') ?: 'api';
-            $routes = Config::get('mvcs.routes');
+            $type = $this->config('route_type', 'api');
             if ($this->middleware) {
                 $routeStr .= 'Route::middleware(' . \json_encode($this->middleware) . ')';
                 $group = true;
             }
-            if ($prefix = Config::get('mvcs.routes.prefix')) {
+            if ($prefix = $this->config('routes.prefix')) {
                 $routeStr .= ($routeStr ? "->prefix('$prefix')" : "Route::prefix('$prefix')");
                 $group = true;
             }
-            if ($namespace = Config::get('mvcs.routes.namespace')) {
+            if ($namespace = $this->config('routes.namespace')) {
                 $routeStr .= ($routeStr ? "->namespace('$namespace')" : "Route::namespace('$namespace')");
                 $group = true;
             }
@@ -202,14 +204,14 @@ class MakeMvcsConsole extends Command
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
             foreach ($method as $met) {
-                $rs = Config::get('mvcs.routes.' . $met, []);
+                $rs = $this->config('routes.' . $met, []);
                 foreach ($rs as $m => $r) {
                     $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
                 }
             }
             // 添加trait对应的路由
             foreach ($this->traits as $trait) {
-                $routes = Config::get('mvcs.traits.' . $trait.'.routes');
+                $routes = $this->config('traits.' . $trait.'.routes');
                 if ($routes) {
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
@@ -219,9 +221,9 @@ class MakeMvcsConsole extends Command
                     }
                 }
             }
-            if (Config::get('mvcs.routes.apiResource')) {
+            if ($this->config('routes.apiResource')) {
                 $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
-            } elseif (Config::get('mvcs.routes.resource')) {
+            } elseif ($this->config('routes.resource')) {
                 $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
             }
             if ($group) {
@@ -390,11 +392,10 @@ class MakeMvcsConsole extends Command
      */
     private function getStub()
     {
-        $configs = Config::get('mvcs');
         $stubs = [];
         for ($i = 0; $i < strlen($this->only); $i++) {
             $key = $this->only[$i];
-            $filename = $configs[$this->style][$key]['name'] ?? ($configs['common'][$key]['name'] ?? '');
+            $filename = $this->stubConfig($key, 'name', '');
             if (!$filename) {
                 $this->myinfo('stub_not_found', $key, 'error');
                 continue;
@@ -522,7 +523,7 @@ class MakeMvcsConsole extends Command
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
-        $stubs = array_keys(Config::get('mvcs.common') + Config::get('mvcs.' . $this->style));
+        $stubs = array_keys($this->config('common') + $this->config('' . $this->style));
         foreach ($stubs as $d) {
             $name = $this->stubConfig($d, 'name');
             $templateVar[$name . '_name'] = $this->getClassName($d);
@@ -535,7 +536,7 @@ class MakeMvcsConsole extends Command
                 $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
-        $globalReplace = Config::get('mvcs.global', []);
+        $globalReplace = $this->config('global', []);
         foreach($globalReplace as $key => $val) {
             if ($val instanceof \Closure) {
                 $templateVar[$key] = $val($this->model, $this->tableColumns);
@@ -707,7 +708,7 @@ class MakeMvcsConsole extends Command
 
     private function solveTags($stub) 
     {
-        $tags = Config::get("mvcs.tags", []);
+        $tags = $this->config('tags', []);
         foreach($tags as $tag => $value ) {
             if(is_callable($value)) {
                 $value = $value($this->model, $this->tableColumns, $this);
@@ -718,7 +719,7 @@ class MakeMvcsConsole extends Command
     }
 
     function tagStacks($stub, $tag) {
-        $tags_fix = Config::get("mvcs.tags_fix", "{ }");
+        $tags_fix = $this->config('tags_fix', '{ }');
         list($tags_pre, $tags_post) = explode(' ', $tags_fix);
         $patton = '/'.$tags_pre.'((!|\/)?'.$tag.'(:[\w]*)?)'.$tags_post.'/i';
         $m = preg_match_all($patton, $stub, $matches);
@@ -785,12 +786,28 @@ class MakeMvcsConsole extends Command
      * @date   2018-08-13 18:13:56
      * @param string $d 模板简称
      * @param string $key 配置项
-     * @param  string $default 默认值
+     * @param  mixed $default 默认值
      * @return mixed
      */
     public function stubConfig($d, $key, $default = '')
     {
         return Config::get("mvcs.{$this->style}.$d.$key", Config::get("mvcs.common.$d.$key", $default));
+    }
+
+
+    /**
+     * 获取配置
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param string $d 模板简称
+     * @param string $key 配置项
+     * @param  mixed $default 默认值
+     * @return mixed
+     */
+    public function config(string $key, $default = '', $base = 'mvcs.')
+    {
+        return Config::get($base.$key, $default);
     }
 
     /**

@@ -5,6 +5,7 @@ return [
     'fail' => '没有文件生成!',
     'invalid_model' => '不合法的model名 %s',
     'deny' => '禁止在线上环境运行!',
+    'version_deny' => '配置文件版本不得低于 %s!',
     'param_lack' => '缺少参数 %s!',
     'param_invalid' => '参数 %s 错误!',
     'file_exist' => '%s 已存在，可添加 --force=all 来覆盖旧文件!',

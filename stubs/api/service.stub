@@ -259,5 +259,6 @@ class $service_name $service_extends
     }
 
     $service_traits_body
-    #service_hook_body
+
+#service_hook_body
 }
