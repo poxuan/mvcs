@@ -196,7 +196,7 @@ class AppendMvcsConsole extends Command
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
                         foreach ($rs as $m => $r) {
-                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
+                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
                         }
                     }
                 }

@@ -206,7 +206,7 @@ class MakeMvcsConsole extends Command
             foreach ($method as $met) {
                 $rs = $this->config('routes.' . $met, []);
                 foreach ($rs as $m => $r) {
-                    $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
+                    $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
                 }
             }
             // 添加trait对应的路由
@@ -216,7 +216,7 @@ class MakeMvcsConsole extends Command
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
                         foreach ($rs as $m => $r) {
-                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m');\n";
+                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
                         }
                     }
                 }
