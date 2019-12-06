@@ -190,13 +190,17 @@ class AppendMvcsConsole extends Command
             }
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
+            $routefile = @file_get_contents(base_path("routes/$type.php"));
             foreach ($this->traits as $trait) {
                 $routes = Config::get('mvcs.traits.' . $trait.'.routes');
                 if ($routes) {
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
                         foreach ($rs as $m => $r) {
-                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
+                            $alias = ($prefix ? $prefix.'.' : '') . $this->table.$m;
+                            if (!strpos($routefile, $alias)) {
+                                $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('$alias');\n";
+                            }
                         }
                     }
                 }

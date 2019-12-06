@@ -203,10 +203,14 @@ class MakeMvcsConsole extends Command
             }
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
+            $routefile = @file_get_contents(base_path("routes/$type.php"));
             foreach ($method as $met) {
                 $rs = $this->config('routes.' . $met, []);
                 foreach ($rs as $m => $r) {
-                    $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
+                    $alias = ($prefix ? $prefix.'.' : '') . $this->table.'.'.$m;
+                    if (!strpos($routefile, $alias)) {
+                        $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('$alias');\n";
+                    }
                 }
             }
             // 添加trait对应的路由
@@ -216,7 +220,10 @@ class MakeMvcsConsole extends Command
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
                         foreach ($rs as $m => $r) {
-                            $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('{$this->table}.$m');\n";
+                            $alias = ($prefix ? $prefix.'.' : '') . $this->table.$m;
+                            if (!strpos($routefile, $alias)) {
+                                $routeStr .= "    Route::$met('{$this->table}/$r','$controller@$m')->name('$alias');\n";
+                            }
                         }
                     }
                 }
@@ -547,12 +554,12 @@ class MakeMvcsConsole extends Command
             }
         }
         // 根据数据库字段生成一些模板数据。
-        $templateVar2 = $this->getDefaultData($this->tableColumns);
+        $templateVar2 = $this->getBuiltInData($this->tableColumns);
         return array_merge($templateVar2, $templateVar);
     }
 
     /**
-     * 生成 Validator 配置
+     * 生成 内置配置
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:14:08
@@ -562,7 +569,7 @@ class MakeMvcsConsole extends Command
      * @param $validatorExcel
      * @param $validatorExcelDefault
      */
-    private function getDefaultData($tableColumns)
+    private function getBuiltInData($tableColumns)
     {
         if (empty($tableColumns)) {
             return [
@@ -575,71 +582,15 @@ class MakeMvcsConsole extends Command
             ];
         }
         $validators = [];
-        $excelDefault = [];
         $relaies = [];
-        if ($tableColumns) {
-            foreach ($tableColumns as $column) {
-                if (!in_array($column->Field, $this->ignoreColumns)) {
-                    $v = [];
-                    $v['column'] = $column->Field;
-                    $columns[] = "'" . $column->Field . "'";
-                    $v['comment'] = str_replace(['"', "'", "\n", "\t", "\r", "\\"], '', $column->Comment ?: $column->Field);
-                    $v['example'] = '';
-                    if ($column->Nullable == 'NO' && $column->Default === null) {
-                        $v['rule'][] = 'required';
-                        $v['messages'][$column->Field . '.required'] = $v['comment'] . ' 必填';
-                        $v['nullable'] = false;
-                    } else {
-                        $v['rule'][] = 'sometimes';
-                        $v['nullable'] = true;
-                        $ed['column'] = $v['column'];
-                        $ed['default'] = $column->Default ? "'{$column->Default}'" : (preg_match('/int/', $column->Type) ? 0 :
-                            (starts_with($column->Type, 'date') ? "Db::raw('now()')" : "''"));
-                        $excelDefault[] = $ed;
-                    }
-                    if (preg_match("/char\((\d+)\)/", $column->Type, $match)) {
-                        $v['rule'][] = 'string';
-                        $v['rule'][] = 'max:' . $match[1];// 可能需要添加扩展 mbmax
-                        $v['messages'][$column->Field . '.max'] = $v['comment'] . ' 长度不得超过:' . $match[1];
-                        $v['example'] = $column->Default ?: '';
-                    } elseif (preg_match('/int/', $column->Type, $match)) {
-                        $v['rule'][] = 'int';
-                        $v['rule'][] = 'min:0';
-                        $v['messages'][$column->Field . '.min'] = $v['comment'] . ' 不得小于:0';
-                        $v['example'] = 1;
-                    } elseif (preg_match('/decimal\((\d+),(\d+)\)/', $column->Type, $match)) {
-                        //$v['rule'][] = 'int';
-                        $v['rule'][] = 'decimal:' . $match[1] . ',' . $match[2];
-                        $v['example'] = '1.00';
-                    } elseif (preg_match('/date/', $column->Type, $match)) {
-                        $v['rule'][] = 'date';
-                        $v['example'] = date('Y-m-d');
-                    } elseif (preg_match('/enum/', $column->Type, $match)) {
-                        $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
-                        $enum = explode(',', $enum);
-                        $enum = array_map(function($item) {
-                            return "'$item' => '$item'";
-                        },$enum);
-                        $v['enum'] = "[ ".implode(',', $enum)." ]";
-                        $v['rule'][] = 'in:' . $v['enum'];
-                        $v['example'] = date('Y-m-d');
-                    }
-                    if (ends_with($column->Field, '_id')) {
-                        $otherTable = str_replace('_id', '', $column->Field);
-                        $otherModel = $this->lineToHump($otherTable);
-                        $v['relate'] = '\\' . $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
-                        $v['rule'][] = 'exists:' . $otherTable . ',id';
-                        $v['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
-                        $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                        $relaies[] = "public function $otherModel() {" 
-                            . $this->tabs(2, "\n") 
-                            . 'return $this->belongsTo("' . $fullOtherModel . '");' 
-                            . $this->tabs(1, "\n", "}\n");
-                    }
-                    $validators[] = $v;
-                }
+        $columns = [];
+        
+        foreach ($tableColumns as $column) {
+            if (!in_array($column->Field, $this->ignoreColumns)) {
+                $validators[] = $this->getColumnInfo($column, $columns, $relaies);
             }
         }
+        
         $validatorRule = implode($this->tabs(3, "\n"), array_map(function ($arr) {
             $rule = str_pad("'{$arr['column']}'", 25) . " => '" . implode('|', $arr['rule']) . "',";
             return str_pad($rule, 80) . '    //' . $arr['comment']; // 补充注释
@@ -672,7 +623,7 @@ class MakeMvcsConsole extends Command
 
         $validatorExcelDefault = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
             return str_pad("'{$arr['column']}'", 25) . ' => ' . $arr['default'];
-        }, $excelDefault));
+        }, array_filter($validators, function($item) { return is_null($item['default']);})));
 
         $result = [
             'validator_rule' => trim($validatorRule),
@@ -683,6 +634,75 @@ class MakeMvcsConsole extends Command
             'model_relation' => implode($this->tabs(1, "\n\n"), $relaies),
         ];
         return $result;
+    }
+
+    private function getColumnInfo($column, &$columns, & $relaies)
+    {
+        $info = [];
+        $info['column'] = $column->Field;
+        $columns[] = $this->surround($column->Field);
+        $info['comment'] = str_replace(['"', "'", "\n", "\t", "\r", "\\"], '', $column->Comment ?: $column->Field);
+        $info['example'] = '';
+        if ($column->Nullable == 'NO' && $column->Default === null) {
+            $info['rule'][] = 'required';
+            $info['messages'][$column->Field . '.required'] = $info['comment'] . ' 必填';
+            $info['nullable'] = false;
+            $info['default'] = null;
+        } else {
+            $info['rule'][] = 'sometimes';
+            $info['nullable'] = true;
+            $info['default'] = "''";
+            if ($column->Default) {
+                if ($column->Default == 'CURRENT_TIMESTAMP') {
+                    $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
+                } else {
+                    $info['default'] = $this->surround(str_replace("'","\\'", $column->Default));
+                }
+            } elseif (preg_match('/int/', $column->Type)) {
+                $info['default'] = 0;
+            } elseif (starts_with($column->Type, 'date') || starts_with($column->Type, 'time')) {
+                $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
+            }
+        }
+        if (preg_match("/char\((\d+)\)/", $column->Type, $match)) {
+            $info['rule'][] = 'string';
+            $info['rule'][] = 'max:' . $match[1];// 可能需要添加扩展 mbmax
+            $info['messages'][$column->Field . '.max'] = $info['comment'] . ' 长度不得超过:' . $match[1];
+            $info['example'] = $column->Default ?: '';
+        } elseif (preg_match('/int/', $column->Type, $match)) {
+            $info['rule'][] = 'int';
+            $info['rule'][] = 'min:0';
+            $info['messages'][$column->Field . '.min'] = $info['comment'] . ' 不得小于:0';
+            $info['example'] = 1;
+        } elseif (preg_match('/decimal\((\d+),(\d+)\)/', $column->Type, $match)) {
+            //$info['rule'][] = 'int';
+            $info['rule'][] = 'decimal:' . $match[1] . ',' . $match[2];
+            $info['example'] = '1.00';
+        } elseif (preg_match('/date/', $column->Type, $match)) {
+            $info['rule'][] = 'date';
+            $info['example'] = date('Y-m-d');
+        } elseif (preg_match('/enum/', $column->Type, $match)) {
+            $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
+            $enum = explode(',', $enum);
+            $enum = array_map(function($item) {
+                return "'$item' => '$item'";
+            },$enum);
+            $info['enum'] = "[ ".implode(',', $enum)." ]";
+            $info['rule'][] = 'in:' . $info['enum'];
+            $info['example'] = date('Y-m-d');
+        }
+        if (ends_with($column->Field, '_id')) {
+            $otherTable = str_replace('_id', '', $column->Field);
+            $otherModel = $this->lineToHump($otherTable);
+            $info['relate'] = '\\' . $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
+            $info['rule'][] = 'exists:' . $otherTable . ',id';
+            $info['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
+            $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
+            $relaies[] = "public function $otherModel() {\n" 
+                . $this->tabs(2) . 'return $this->belongsTo("' . $fullOtherModel . '");' . "\n"
+                . $this->tabs(1) . "}\n";
+        }
+        return $info;
     }
 
     /**
@@ -847,5 +867,20 @@ class MakeMvcsConsole extends Command
             $count--;
         }
         return $pre . $post;
+    }
+
+    /**
+     * 字符串加边界符
+     *
+     * @param integer $count
+     * @param string $pre
+     * @param string $post
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function surround($str, $char = "'") 
+    {
+        return $char.$str.$char;
     }
 }
