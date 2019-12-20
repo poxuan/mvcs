@@ -3,7 +3,6 @@
 namespace Callmecsx\Mvcs\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
@@ -35,7 +34,6 @@ class MakeMvcsConsole extends Command
     public $language = 'zh-cn.php';
 
     // 文件组
-    public $files;
 
     public $style = 'api';
     // 中间件
@@ -67,7 +65,6 @@ class MakeMvcsConsole extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->files = new Filesystem();
         $this->ignoreColumns = $this->config('ignore_columns') ?: [];
         $this->style = $this->config('style', 'api');
         $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
@@ -83,10 +80,10 @@ class MakeMvcsConsole extends Command
      */
     public function handle()
     {
-        if (Config::get('app.env') == 'production') {
+        if ($this->config('env', 'local', 'app.') == 'production') {
             return $this->myinfo('deny', '', 'error');
         }
-        if (Config::get('mvcs.version') < '2.0') {
+        if ($this->config('version') < '2.0') {
             return $this->myinfo('version_deny', '2.0', 'error');
         }
         $model = ucfirst($this->lineToHump($this->argument('model')));
@@ -126,7 +123,7 @@ class MakeMvcsConsole extends Command
             $this->traits = array_unique(array_merge($this->traits, \explode(',', $traits)));
         }
         $this->model = $model;
-        $this->tableF = Config::get('database.connections.' . $this->connect . '.prefix', '') . $this->humpToLine($model);
+        $this->tableF = $this->config("connections." . $this->connect . '.prefix', '', 'database.') . $this->humpToLine($model);
         $this->table = $this->humpToLine($model);
         // 生成MVCS文件
         $this->writeMVCS();
@@ -203,7 +200,7 @@ class MakeMvcsConsole extends Command
             }
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
-            $routefile = @file_get_contents(base_path("routes/$type.php"));
+            $routefile = @file_get_contents($this->projectPath("routes/$type.php"));
             foreach ($method as $met) {
                 $rs = $this->config('routes.' . $met, []);
                 foreach ($rs as $m => $r) {
@@ -236,7 +233,7 @@ class MakeMvcsConsole extends Command
             if ($group) {
                 $routeStr .= "});\n\n";
             }
-            $handle = fopen(base_path("routes/$type.php"), 'a+');
+            $handle = fopen($this->projectPath("routes/$type.php"), 'a+');
             fwrite($handle, $routeStr);
             fclose($handle);
         }
@@ -257,8 +254,8 @@ class MakeMvcsConsole extends Command
             $path = $this->getSavePath($d);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
-            if (!$this->files->isDirectory($directory)) {
-                $this->files->makeDirectory($directory, 0755, true);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
             }
         }
         return true;
@@ -284,7 +281,7 @@ class MakeMvcsConsole extends Command
                 $this->myinfo('file_exist', $this->getClassName($key));
                 continue;
             }
-            $class = $this->files->put($this->getSavePath($key), $template);
+            $class = file_put_contents($this->getSavePath($key), $template);
         }
         return $class;
     }
@@ -332,7 +329,7 @@ class MakeMvcsConsole extends Command
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
 
-            $connect = Config::get('database.connections.' . $this->connect);
+            $connect = $this->config('connections.' . $this->connect, '', 'database.');
             DB::setDefaultConnection($this->connect);
             switch ($connect['driver']) { //
                 case 'mysql':
@@ -407,16 +404,16 @@ class MakeMvcsConsole extends Command
                 $this->myinfo('stub_not_found', $key, 'error');
                 continue;
             }
-            $filePath = resource_path('stubs') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
+            $filePath = $this->projectPath('stubs', 'resource') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
             if (!file_exists($filePath)) {
                 $this->myinfo('stub_not_found', $key, 'error');
                 continue;
             }
-            $tempContent = $this->files->get($filePath);
+            $tempContent = file_get_contents($filePath);
             $traitContent = [];
             if ($this->traits) {
                 foreach ($this->traits as $trait) {
-                    $traitPath = resource_path('stubs/traits') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
+                    $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
                     $handle = @fopen($traitPath, 'r+');
                     $point  = 'body';
                     if ($handle) {
@@ -660,7 +657,7 @@ class MakeMvcsConsole extends Command
                 }
             } elseif (preg_match('/int/', $column->Type)) {
                 $info['default'] = 0;
-            } elseif (starts_with($column->Type, 'date') || starts_with($column->Type, 'time')) {
+            } elseif ($this->starts_with($column->Type, 'date') || $this->starts_with($column->Type, 'time')) {
                 $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
             }
         }
@@ -691,7 +688,7 @@ class MakeMvcsConsole extends Command
             $info['rule'][] = 'in:' . $info['enum'];
             $info['example'] = date('Y-m-d');
         }
-        if (ends_with($column->Field, '_id')) {
+        if ($this->ends_with($column->Field, '_id')) {
             $otherTable = str_replace('_id', '', $column->Field);
             $otherModel = $this->lineToHump($otherTable);
             $info['relate'] = '\\' . $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
@@ -811,7 +808,8 @@ class MakeMvcsConsole extends Command
      */
     public function stubConfig($d, $key, $default = '')
     {
-        return Config::get("mvcs.{$this->style}.$d.$key", Config::get("mvcs.common.$d.$key", $default));
+        return $this->config("$d.$key", $default, "mvcs.{$this->style}.") 
+                ?: $this->config("$d.$key", $default, "mvcs.common.");
     }
 
 
@@ -882,5 +880,37 @@ class MakeMvcsConsole extends Command
     public function surround($str, $char = "'") 
     {
         return $char.$str.$char;
+    }
+
+    /**
+     * 获取项目目录
+     *
+     * @param [type] $filepath
+     * @param string $base
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function projectPath($filepath, $base = 'base')
+    {
+        $pathfunc = $base.'_path';
+
+        return $pathfunc($filepath);
+    }
+
+    public function starts_with(string $haystack, string $needle, bool $sensitive = true)
+    {
+        $substr = substr($haystack,0, count($needle));
+        if ($sensitive) 
+            return $substr == $needle;
+        return strtolower($substr) == strtolower($needle); 
+    }
+
+    public function ends_with(string $haystack, string $needle, bool $sensitive = true)
+    {
+        $substr = substr($haystack, -1 * count($needle));
+        if ($sensitive) 
+            return $substr == $needle;
+        return strtolower($substr) == strtolower($needle); 
     }
 }
