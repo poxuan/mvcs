@@ -225,10 +225,12 @@ class MakeMvcsConsole extends Command
                     }
                 }
             }
-            if ($this->config('routes.apiResource')) {
-                $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
-            } elseif ($this->config('routes.resource')) {
-                $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
+            if (!strpos($routefile, "source('{$this->table}'")) {
+                if ($this->config('routes.apiResource')) {
+                    $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";
+                } elseif ($this->config('routes.resource')) {
+                    $routeStr .= "    Route::resource('{$this->table}','{$controller}');\n";
+                }
             }
             if ($group) {
                 $routeStr .= "});\n\n";
