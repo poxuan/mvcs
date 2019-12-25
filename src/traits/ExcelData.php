@@ -108,7 +108,7 @@ trait ExcelData
                             $item[$column] = $regulation($item[$column2]);
                         }
                     } elseif (is_array($regulation)) {
-                        $item[$column] = $regulation[$column] ?? $item[$column2];
+                        $item[$column] = $regulation[$item[$column2]] ?? $item[$column2];
                     } elseif (class_exists($regulation) && (new $regulation() instanceof Model)) {
                         $item[$column] = $this->transRelateColumnToExcel($item[$column2], $regulation, $rule[3] ?? []);
                     }
@@ -139,7 +139,7 @@ trait ExcelData
         $cacheName = md5($modelClass.'::'.$realatePk.'@'.$currentValue);
         if (isset($this->cacheData[$cacheName])) {
             return $this->cacheData[$cacheName];
-        } elseif ($item = $model->where($realatePk , $currentValue)->find()) {
+        } elseif ($item = $model->where($realatePk , $currentValue)->first()) {
             $this->cacheData[$cacheName] = $item[$realateColumn];
             
         } else { 

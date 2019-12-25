@@ -78,7 +78,7 @@ use Callmecsx\Mvcs\Service\ExcelService;
         $data = $this->filter($model_name::query(), $params)->get()->toArray();
         //todo datafix
         $excelService = new ExcelService();
-        $excelService->template('$table_name-' . time(), $validator_name::excelColumn(), $data);
+        $excelService->export('$table_name-' . time(), $data, $validator_name::excelColumn());
 
     }
 
