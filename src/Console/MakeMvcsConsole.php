@@ -902,7 +902,7 @@ class MakeMvcsConsole extends Command
 
     public function starts_with(string $haystack, string $needle, bool $sensitive = true)
     {
-        $substr = substr($haystack,0, count($needle));
+        $substr = substr($haystack,0, strlen($needle));
         if ($sensitive) 
             return $substr == $needle;
         return strtolower($substr) == strtolower($needle); 
@@ -910,7 +910,7 @@ class MakeMvcsConsole extends Command
 
     public function ends_with(string $haystack, string $needle, bool $sensitive = true)
     {
-        $substr = substr($haystack, -1 * count($needle));
+        $substr = substr($haystack, -1 * strlen($needle));
         if ($sensitive) 
             return $substr == $needle;
         return strtolower($substr) == strtolower($needle); 
