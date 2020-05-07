@@ -42,6 +42,20 @@ trait Replace
                 $templateVar[$key] = strval($val);
             }
         }
+        foreach ($this->traits as $trait) {
+            $item = $this->config('tags.'.$trait);
+            if ($rep = $item['replace'] ?? '') {
+                foreach($rep as $key => $val) {
+                    if ($val instanceof \Closure) {
+                        $templateVar[$key] = $val($this->model, $this->tableColumns);
+                    } elseif(is_string($val)) {
+                        $templateVar[$key] = $val;
+                    } else {
+                        $templateVar[$key] = strval($val);
+                    }
+                }
+            }
+        }
         // 根据数据库字段生成一些模板数据。
         $templateVar2 = $this->getBuiltInData($this->tableColumns);
         return array_merge($templateVar2, $templateVar);

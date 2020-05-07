@@ -91,7 +91,7 @@ trait Helper
      */
     public function myinfo($sign, $param = '', $type = 'info')
     {
-        $lang = require_once __DIR__ . '/../language/' . $this->language . '.php';
+        $lang = require __DIR__ . '/../language/' . $this->language . '.php';
         $message = $lang[$sign] ?? $param;
         if ($param) {
             $message = sprintf($message, $param);
