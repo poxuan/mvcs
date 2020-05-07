@@ -96,7 +96,19 @@ trait Helper
         if ($param) {
             $message = sprintf($message, $param);
         }
-        echo $type . " : " . $message . "\n";
+        $color = 32;
+        switch ($type) {
+            case 'info':
+                $color = 33;
+            break;
+            case 'error':
+                $color = 31;
+            break;
+            case 'debug':
+                $color = 34;
+            break;
+        }
+        echo "\033[{$color}m " . $type . " : " . $message . " \033[0m\n";
     }
 
     /**
@@ -237,7 +249,7 @@ trait Helper
 
 
     /**
-     * 创建目录
+     * 创建文件保存目录
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:17:37
@@ -257,30 +269,4 @@ trait Helper
         }
         return true;
     }
-
-    /**
-     * 创建目标文件
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:16:56
-     * @return int|null
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     */
-    private function createClass()
-    {
-        //渲染模板文件,替换模板文件中变量值
-        $templates = $this->templateRender();
-        $class = null;
-        foreach ($templates as $key => $template) {
-            // 文件放置位置
-            $path = $this->getSaveFile($key);
-            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
-                $this->myinfo('file_exist', $this->getClassName($key));
-                continue;
-            }
-            $class = file_put_contents($this->getSaveFile($key), $template);
-        }
-        return $class;
-    }
-
 }

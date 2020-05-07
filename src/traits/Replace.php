@@ -13,33 +13,33 @@ trait Replace
      * @date   2018-08-13 18:14:56
      * @return array
      */
-    function getTemplateParams()
+    function getStubParams()
     {
-        $templateVar = [
+        $stubVar = [
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
         $stubs = array_keys($this->config('common') + $this->config('' . $this->style));
         foreach ($stubs as $d) {
             $name = $this->stubConfig($d, 'name');
-            $templateVar[$name . '_name'] = $this->getClassName($d);
-            $templateVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
-            $templateVar[$name . '_use'] = $this->getBaseUse($d);
-            $templateVar[$name . '_extends'] = $this->getExtends($d);
-            $templateVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
+            $stubVar[$name . '_name'] = $this->getClassName($d);
+            $stubVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
+            $stubVar[$name . '_use'] = $this->getBaseUse($d);
+            $stubVar[$name . '_extends'] = $this->getExtends($d);
+            $stubVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
             $extra = $this->stubConfig($d, 'replace', []);
             foreach ($extra as $key => $func) {
-                $templateVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
+                $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
         $globalReplace = $this->config('global', []);
         foreach($globalReplace as $key => $val) {
             if ($val instanceof \Closure) {
-                $templateVar[$key] = $val($this->model, $this->tableColumns);
+                $stubVar[$key] = $val($this->model, $this->tableColumns);
             } elseif(is_string($val)) {
-                $templateVar[$key] = $val;
+                $stubVar[$key] = $val;
             } else {
-                $templateVar[$key] = strval($val);
+                $stubVar[$key] = strval($val);
             }
         }
         foreach ($this->traits as $trait) {
@@ -47,18 +47,18 @@ trait Replace
             if ($rep = $item['replace'] ?? '') {
                 foreach($rep as $key => $val) {
                     if ($val instanceof \Closure) {
-                        $templateVar[$key] = $val($this->model, $this->tableColumns);
+                        $stubVar[$key] = $val($this->model, $this->tableColumns);
                     } elseif(is_string($val)) {
-                        $templateVar[$key] = $val;
+                        $stubVar[$key] = $val;
                     } else {
-                        $templateVar[$key] = strval($val);
+                        $stubVar[$key] = strval($val);
                     }
                 }
             }
         }
         // 根据数据库字段生成一些模板数据。
-        $templateVar2 = $this->getBuiltInData($this->tableColumns);
-        return array_merge($templateVar2, $templateVar);
+        $stubVar2 = $this->getBuiltInData($this->tableColumns);
+        return array_merge($stubVar2, $stubVar);
     }
 
     /**
@@ -261,7 +261,7 @@ trait Replace
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:13:56
-     * @param $templateData
+     * @param $stubData
      * @param $stub
      * @return mixed
      */

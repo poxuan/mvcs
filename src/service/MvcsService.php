@@ -177,7 +177,7 @@ class MvcsService
     private function writeMVCS()
     {
         $this->createDirectory();
-        if ($this->createClass()) {
+        if ($this->saveFiles()) {
             //若生成成功,则输出信息
             $this->myinfo('success', $this->only);
             $this->addRoutes();
@@ -195,7 +195,7 @@ class MvcsService
      */
     private function appendMVCS()
     {
-        if ($this->appendClass()) {
+        if ($this->appendFiles()) {
             // 若生成成功,则输出信息
             $this->myinfo('success', $this->only);
             // $this->appendRoutes();
@@ -212,10 +212,10 @@ class MvcsService
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function appendClass()
+    public function appendFiles()
     {
         //渲染模板文件,替换模板文件中变量值
-        $params = $this->getTemplateParams();
+        $params = $this->getStubParams();
         $res = false;
         $len = strlen($this->only);
         for($i =0 ; $i < $len; $i ++) {
@@ -240,6 +240,32 @@ class MvcsService
     }
 
     /**
+     * 创建目标文件
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:16:56
+     * @return int|null
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
+    private function saveFiles()
+    {
+        //渲染模板文件,替换模板文件中变量值
+        $stubs = $this->stubRender();
+        $res = false;
+        foreach ($stubs as $key => $stub) {
+            // 文件放置位置
+            $path = $this->getSaveFile($key);
+            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
+                $this->myinfo('file_exist', $this->getClassName($key));
+                continue;
+            }
+            $res = file_put_contents($this->getSaveFile($key), $stub);
+        }
+        return $res;
+    }
+
+
+    /**
      * 模板渲染
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
@@ -247,16 +273,16 @@ class MvcsService
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function templateRender()
+    private function stubRender()
     {
         // 获取模板文件内容
         $stubs = $this->getStubContents();
         // 获取需要替换的模板文件中变量
-        $templateData = $this->getTemplateParams();
+        $stubParams = $this->getStubParams();
         $renderStubs = [];
         foreach ($stubs as $key => $stub) {
             // 进行模板渲染，替换字段
-            $renderStubs[$key] = $this->replaceStubParams($templateData, $stub);
+            $renderStubs[$key] = $this->replaceStubParams($stubParams, $stub);
         }
 
         return $renderStubs;
