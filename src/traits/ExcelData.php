@@ -44,7 +44,7 @@ trait ExcelData
     }
 
     /**
-     * 
+     * 将EXCEL关联字段转换为数据库字段
      *
      * @param mixed $value
      * @param string $modelClass
@@ -88,7 +88,7 @@ trait ExcelData
     }
 
     /**
-     * 按规则转化从表单获取的数据
+     * 按规则转化待导出表单的数据
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-06 19:32:17
@@ -119,7 +119,7 @@ trait ExcelData
     }
 
     /**
-     * 将数据库字段转为EXCEL字段
+     * 将关联字段转为EXCEL字段
      *
      * @param mixed $currentValue
      * @param string $modelClass

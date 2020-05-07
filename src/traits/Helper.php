@@ -30,22 +30,6 @@ trait Helper
         return $str;
     }
 
-    public function starts_with(string $haystack, string $needle, bool $sensitive = true)
-    {
-        $substr = substr($haystack,0, strlen($needle));
-        if ($sensitive) 
-            return $substr == $needle;
-        return strtolower($substr) == strtolower($needle); 
-    }
-
-    public function ends_with(string $haystack, string $needle, bool $sensitive = true)
-    {
-        $substr = substr($haystack, -1 * strlen($needle));
-        if ($sensitive) 
-            return $substr == $needle;
-        return strtolower($substr) == strtolower($needle); 
-    }
-    
     /**
      * tab对齐
      *
@@ -114,4 +98,189 @@ trait Helper
         }
         echo $type . " : " . $message;
     }
+
+    /**
+     * 文件保存名
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getSavePath($d)
+    {
+        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
+    }
+
+    /**
+     * 文件存储路径
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getDirectory($d)
+    {
+        $path = $this->stubConfig($d, 'path');
+        if (is_callable($path)) {
+            return $path($this->model, $this->extraPath);
+        }
+        return $this->stubConfig($d, 'path') . $this->extraPath;
+    }
+
+     /**
+     * 获取类名
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function getClassName($d)
+    {
+        return $this->model . $this->stubConfig($d, 'postfix');
+    }
+
+    /**
+     * 获取类后缀
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function getClassExt($d)
+    {
+        return $this->stubConfig($d, 'ext', '.php');
+    }
+
+    /**
+     * 获取类名字空间
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getNameSpace($d)
+    {
+        return $this->stubConfig($d, 'namespace') . $this->extraSpace;
+    }
+
+    /**
+     * 获取类的基类use
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getBaseUse($d)
+    {
+        $ens = $this->stubConfig($d, 'extends.namespace');
+        $en = $this->stubConfig($d, 'extends.name');
+        if (empty($ens) || $ens == $this->getNameSpace($d)) {
+            return null;
+        }
+        return 'use ' . $ens . '\\' . $en . ';';
+    }
+
+    /**
+     * 获取 extends
+     *
+     * @param [type] $d
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    private function getExtends($d)
+    {
+        $en = $this->stubConfig($d, 'extends.name');
+        if (empty($en)) {
+            return null;
+        }
+        return ' extends ' . $en;
+    }
+
+    /**
+     * 获取模板配置
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param string $d 模板简称
+     * @param string $key 配置项
+     * @param  mixed $default 默认值
+     * @return mixed
+     */
+    public function stubConfig($d, $key, $default = '')
+    {
+        return $this->config("$d.$key", $default, "mvcs.{$this->style}.") 
+                ?: $this->config("$d.$key", $default, "mvcs.common.");
+    }
+
+    /**
+     * 获取项目目录
+     *
+     * @param [type] $filepath
+     * @param string $base
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function projectPath($filepath, $base = 'base')
+    {
+        $pathfunc = $base.'_path';
+
+        return $pathfunc($filepath);
+    }
+
+
+    /**
+     * 创建目录
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:17:37
+     * @return bool
+     */
+    private function createDirectory()
+    {
+
+        for ($i = 0; $i < strlen($this->only); $i++) {
+            $d = $this->only[$i];
+            $path = $this->getSavePath($d);
+            $directory = dirname($path);
+            //检查路径是否存在,不存在创建一个,并赋予775权限
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 创建目标文件
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:16:56
+     * @return int|null
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
+    private function createClass()
+    {
+        //渲染模板文件,替换模板文件中变量值
+        $templates = $this->templateRender();
+        $class = null;
+        foreach ($templates as $key => $template) {
+            // 文件放置位置
+            $path = $this->getSavePath($key);
+            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
+                $this->myinfo('file_exist', $this->getClassName($key));
+                continue;
+            }
+            $class = file_put_contents($this->getSavePath($key), $template);
+        }
+        return $class;
+    }
+
 }

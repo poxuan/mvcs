@@ -2,6 +2,7 @@
 
 namespace Callmecsx\Mvcs\Traits;
 
+use Illuminate\Support\Facades\DB;
 
 trait Replace 
 {
@@ -12,7 +13,7 @@ trait Replace
      * @date   2018-08-13 18:14:56
      * @return array
      */
-    function getTemplateData()
+    function getTemplateParams()
     {
         $templateVar = [
             'table_name' => $this->table
@@ -44,6 +45,53 @@ trait Replace
         // 根据数据库字段生成一些模板数据。
         $templateVar2 = $this->getBuiltInData($this->tableColumns);
         return array_merge($templateVar2, $templateVar);
+    }
+
+    /**
+     * 获取数据库字段
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:16:11
+     * @return array
+     */
+    function getTableColumns()
+    {
+
+        try {
+            $this->connect = $this->connect ?: DB::getDefaultConnection();
+
+            $connect = $this->config('connections.' . $this->connect, '', 'database.');
+            DB::setDefaultConnection($this->connect);
+            switch ($connect['driver']) { //
+                case 'mysql':
+                    return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
+                       IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
+                       from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
+                        [':table' => $this->tableF, ':schema' => $connect['database']]);
+                case 'sqlsrv':
+                    return DB::select("SELECT a.name as Field,b.name as 'Type',COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
+                        isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
+                        (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
+                        isnull(e.text,'') as Default,isnull(g.[value],'') as Comment
+                        FROM   syscolumns   a
+                        left   join   systypes   b   on   a.xusertype=b.xusertype
+                        inner  join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
+                        left   join   syscomments   e   on   a.cdefault=e.id
+                        left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
+                        left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
+                        where   d.name= :table order by a.id,a.colorder",
+                        [':table' => $this->tableF, ':schema' => $connect['database']]);
+                default:
+                    $this->myinfo('db_not_support', $connect['driver']);
+                    return [];
+            }
+
+        } catch (\Exception $e) {
+            $this->myinfo('db_disabled', $this->connect);
+            $this->myinfo('message', $e->getMessage(), 'error');
+            return [];
+        }
+
     }
 
     /**
@@ -148,7 +196,7 @@ trait Replace
                 }
             } elseif (preg_match('/int/', $column->Type)) {
                 $info['default'] = 0;
-            } elseif ($this->starts_with($column->Type, 'date') || $this->starts_with($column->Type, 'time')) {
+            } elseif ($this->startsWith($column->Type, 'date') || $this->startsWith($column->Type, 'time')) {
                 $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
             }
         }
@@ -179,7 +227,7 @@ trait Replace
             $info['rule'][] = 'in:' . $info['enum'];
             $info['example'] = date('Y-m-d');
         }
-        if ($this->ends_with($column->Field, '_id')) {
+        if ($this->endsWith($column->Field, '_id')) {
             $otherTable = str_replace('_id', '', $column->Field);
             $otherModel = $this->lineToHump($otherTable);
             $info['relate'] = '\\' . $this->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
@@ -194,11 +242,40 @@ trait Replace
     }
 
 
-    public function getTraitContent() {
+    /**
+     * 替换参数，生成目标文件内容
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param $templateData
+     * @param $stub
+     * @return mixed
+     */
+    function replaceStubParams($params, $stub)
+    {
+        // 先处理标签
+        $stub = $this->replaceTags($stub, $this->config('tags'));
+        $this->tagFix = $this->config('tags_fix', '{ }');
+        foreach ($params as $search => $replace) {
+            // 替换参数
+            $stub = str_replace('$' . $search, $replace, $stub);
+        }
+        return $stub;
+    }
+
+    /**
+     * 根据类型获取代码内容
+     *
+     * @param [type] $filename
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    function getTraitContent($type) {
         $traitContent = [];
         if ($this->traits) {
             foreach ($this->traits as $trait) {
-                $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $filename . '.stub';
+                $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $type . '.stub';
                 $handle = @fopen($traitPath, 'r+');
                 $point  = 'body';
                 if ($handle) {
@@ -219,4 +296,20 @@ trait Replace
         return $traitContent;
     }
 
+    function startsWith(string $haystack, string $needle, bool $sensitive = true)
+    {
+        $substr = substr($haystack,0, strlen($needle));
+        if ($sensitive) 
+            return $substr == $needle;
+        return strtolower($substr) == strtolower($needle); 
+    }
+
+    function endsWith(string $haystack, string $needle, bool $sensitive = true)
+    {
+        $substr = substr($haystack, -1 * strlen($needle));
+        if ($sensitive) 
+            return $substr == $needle;
+        return strtolower($substr) == strtolower($needle); 
+    }
+    
 }

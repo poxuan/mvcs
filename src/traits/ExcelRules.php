@@ -10,6 +10,10 @@ trait ExcelRules
 {
 
     private $handled_unique = [];
+
+    /**
+     * 从元数据中过滤重复数据
+     */
     public function ruleUnique(& $data ,$column,$modelClass = '')
     {
         $this->handled_unique[] = $column;
@@ -39,6 +43,9 @@ trait ExcelRules
         }
     }
 
+    /**
+     * 将元数据中的时间戳改为时间格式
+     */
     public function ruleDatetime(& $data ,$columns)
     {
         foreach ($data as $k=>$v) { //data中进行unique操作
@@ -51,6 +58,9 @@ trait ExcelRules
         }
     }
 
+    /**
+     * 将元数据中的非数字转为数字
+     */
     public function ruleNumber(& $data ,$columns)
     {
         foreach ($data as $k=>$v) { //data中进行unique操作
@@ -64,6 +74,9 @@ trait ExcelRules
         }
     }
 
+    /**
+     * 过滤元数据中的项
+     */
     public function ruleFilter(& $data ,$callable = null)
     {
         foreach ($data as $k=>$v) { //data中进行unique操作

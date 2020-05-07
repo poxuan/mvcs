@@ -75,7 +75,7 @@ class MvcsService
      *
      * @return mixed
      */
-    public function handle($model, $configs = [])
+    public function create($model, $configs = [])
     {
         $model = ucfirst($this->lineToHump($model));
         if (empty($model)) {
@@ -121,7 +121,51 @@ class MvcsService
 
     }
 
-    
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function append($model, $configs = [])
+    {
+        $model = ucfirst($this->lineToHump($model));
+        if (empty($model)) {
+            return $this->myinfo('param_lack', 'model', 'error');
+        }
+        if (!preg_match('/^[a-z][a-z0-9]*$/i',$model)) {
+            return $this->myinfo('invalid_model', $model, 'error');
+        }
+        if (count($modelArray = explode('/', $model)) > 1) {
+            $modelArray = array_map('ucfirst', $modelArray);
+            $model = ucfirst(array_pop($modelArray));
+            $this->extraSpace = '\\' . implode('\\', $modelArray);
+            $this->extraPath = DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $modelArray);
+        }
+        if ($style = $configs['style'] ?? '') {
+            $this->style = $style;
+            $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
+        }
+        if (($only = $configs['only'] ?? '') && $only != 'all') {
+            $this->only = strtoupper($only);
+        }
+        if ($connect = $configs['connect'] ?? '') {
+            $this->connect = $connect;
+        } else {
+            $this->connect = DB::getDefaultConnection();
+        }
+        $this->traits = [];
+        if ($traits = $configs['traits'] ?? '') {
+            $this->traits = array_merge($this->traits, \explode(',', $traits));
+        } else {
+            return $this->myinfo('nothing_append', '', 'error');
+        }
+        $this->model  = $model;
+        $this->tableF = $this->config("connections." . $this->connect . '.prefix', '', 'database.') . $this->humpToLine($model);
+        $this->table  = $this->humpToLine($model);
+        // 生成MVCS文件
+        $this->appendMVCS();
+
+    }
 
     /**
      * 生成mvcs文件
@@ -143,25 +187,21 @@ class MvcsService
     }
 
     /**
-     * 创建目录
+     * 扩展mvcs文件
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:17:37
-     * @return bool
+     * @date   2018-08-13 18:17:55
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function createDirectory()
+    private function appendMVCS()
     {
-
-        for ($i = 0; $i < strlen($this->only); $i++) {
-            $d = $this->only[$i];
-            $path = $this->getSavePath($d);
-            $directory = dirname($path);
-            //检查路径是否存在,不存在创建一个,并赋予775权限
-            if (!is_dir($directory)) {
-                mkdir($directory, 0755, true);
-            }
+        if ($this->appendClass()) {
+            // 若生成成功,则输出信息
+            $this->myinfo('success', $this->only);
+            // $this->appendRoutes();
+        } else {
+            $this->myinfo('fail');
         }
-        return true;
     }
 
     /**
@@ -172,98 +212,31 @@ class MvcsService
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function createClass()
+    public function appendClass()
     {
         //渲染模板文件,替换模板文件中变量值
-        $templates = $this->templateRender();
-        $class = null;
-        foreach ($templates as $key => $template) {
+        $params = $this->getTemplateParams();
+        $res = false;
+        $len = count($this->only);
+        for($i =0 ; $i < $this->only; $i ++) {
+            $key  = $this->only[$i];
             // 文件放置位置
             $path = $this->getSavePath($key);
-            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
-                $this->myinfo('file_exist', $this->getClassName($key));
+            if (!file_exists($path)) {
+                $this->myinfo('file_not_exist', $this->getClassName($key));
                 continue;
             }
-            $class = file_put_contents($this->getSavePath($key), $template);
-        }
-        return $class;
-    }
+            $content  = \file_get_contents($path);
 
-    /**
-     * 文件保存名
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    private function getSavePath($d)
-    {
-        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
-    }
-
-    /**
-     * 文件存储路径
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    private function getDirectory($d)
-    {
-        $path = $this->stubConfig($d, 'path');
-        if (is_callable($path)) {
-            return $path($this->model, $this->extraPath);
-        }
-        return $this->stubConfig($d, 'path') . $this->extraPath;
-    }
-
-    /**
-     * 获取数据库字段
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:16:11
-     * @return array
-     */
-    public function getTableColumns()
-    {
-
-        try {
-            $this->connect = $this->connect ?: DB::getDefaultConnection();
-
-            $connect = $this->config('connections.' . $this->connect, '', 'database.');
-            DB::setDefaultConnection($this->connect);
-            switch ($connect['driver']) { //
-                case 'mysql':
-                    return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
-                       IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
-                       from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                        [':table' => $this->tableF, ':schema' => $connect['database']]);
-                case 'sqlsrv':
-                    return DB::select("SELECT a.name as Field,b.name as 'Type',COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
-                        isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
-                        (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
-                        isnull(e.text,'') as Default,isnull(g.[value],'') as Comment
-                        FROM   syscolumns   a
-                        left   join   systypes   b   on   a.xusertype=b.xusertype
-                        inner  join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
-                        left   join   syscomments   e   on   a.cdefault=e.id
-                        left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
-                        left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
-                        where   d.name= :table order by a.id,a.colorder",
-                        [':table' => $this->tableF, ':schema' => $connect['database']]);
-                default:
-                    $this->myinfo('db_not_support', $connect['driver']);
-                    return [];
+            $filename = $this->stubConfig($key, 'name', '');
+            $traitContent = $this->getTraitContent($filename);
+            foreach($traitContent as $point => $hook) {
+                $hook = $this->replaceStubParams($params, $hook);
+                $content = \str_replace('#'.$filename.'_hook_' . $point, ltrim($hook), $content);
             }
-
-        } catch (\Exception $e) {
-            $this->myinfo('db_disabled', $this->connect);
-            $this->myinfo('message', $e->getMessage(), 'error');
-            return [];
+            $res = $this->files->put($this->getSavePath($key), $content);
         }
-
+        return $res;
     }
 
     /**
@@ -276,14 +249,14 @@ class MvcsService
      */
     private function templateRender()
     {
-        // 获取两个模板文件
-        $stubs = $this->getStub();
+        // 获取模板文件内容
+        $stubs = $this->getStubContents();
         // 获取需要替换的模板文件中变量
-        $templateData = $this->getTemplateData();
+        $templateData = $this->getTemplateParams();
         $renderStubs = [];
         foreach ($stubs as $key => $stub) {
-            // 进行模板渲染
-            $renderStubs[$key] = $this->replaceStub($templateData, $stub);
+            // 进行模板渲染，替换字段
+            $renderStubs[$key] = $this->replaceStubParams($templateData, $stub);
         }
 
         return $renderStubs;
@@ -297,10 +270,9 @@ class MvcsService
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function getStub()
+    private function getStubContents()
     {
         $stubs = [];
-        $traitContent = $this->getTraitContent();
         for ($i = 0; $i < strlen($this->only); $i++) {
             $key = $this->only[$i];
             $filename = $this->stubConfig($key, 'name', '');
@@ -313,6 +285,7 @@ class MvcsService
                 $this->myinfo('stub_not_found', $key, 'error');
                 continue;
             }
+            $traitContent = $this->getTraitContent($filename);
             $tempContent = file_get_contents($filePath);
             
             foreach($traitContent as $point => $content) {
@@ -323,135 +296,4 @@ class MvcsService
         }
         return $stubs;
     }
-
-    
-    /**
-     * 获取类名
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    public function getClassName($d)
-    {
-        return $this->model . $this->stubConfig($d, 'postfix');
-    }
-
-    /**
-     * 获取类后缀
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    public function getClassExt($d)
-    {
-        return $this->stubConfig($d, 'ext', '.php');
-    }
-
-    /**
-     * 获取类名字空间
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    private function getNameSpace($d)
-    {
-        return $this->stubConfig($d, 'namespace') . $this->extraSpace;
-    }
-
-    /**
-     * 获取类的基类use
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    private function getBaseUse($d)
-    {
-        $ens = $this->stubConfig($d, 'extends.namespace');
-        $en = $this->stubConfig($d, 'extends.name');
-        if (empty($ens) || $ens == $this->getNameSpace($d)) {
-            return null;
-        }
-        return 'use ' . $ens . '\\' . $en . ';';
-    }
-
-    /**
-     * 获取 extends
-     *
-     * @param [type] $d
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    private function getExtends($d)
-    {
-        $en = $this->stubConfig($d, 'extends.name');
-        if (empty($en)) {
-            return null;
-        }
-        return ' extends ' . $en;
-    }
-
-    
-    /**
-     * 替换参数，生成目标文件
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:13:56
-     * @param $templateData
-     * @param $stub
-     * @return mixed
-     */
-    private function replaceStub($templateData, $stub)
-    {
-        
-        $this->tagFix = $this->config('tags_fix', '{ }');
-        foreach ($templateData as $search => $replace) {
-            // 先处理标签
-            $stub = $this->solveTags($stub, $this->config('tags'));
-            // 替换参数
-            $stub = str_replace('$' . $search, $replace, $stub);
-        }
-        return $stub;
-    }
-
-    /**
-     * 获取模板配置
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:13:56
-     * @param string $d 模板简称
-     * @param string $key 配置项
-     * @param  mixed $default 默认值
-     * @return mixed
-     */
-    public function stubConfig($d, $key, $default = '')
-    {
-        return $this->config("$d.$key", $default, "mvcs.{$this->style}.") 
-                ?: $this->config("$d.$key", $default, "mvcs.common.");
-    }
-
-    /**
-     * 获取项目目录
-     *
-     * @param [type] $filepath
-     * @param string $base
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    public function projectPath($filepath, $base = 'base')
-    {
-        $pathfunc = $base.'_path';
-
-        return $pathfunc($filepath);
-    }
-
 }

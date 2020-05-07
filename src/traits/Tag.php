@@ -8,7 +8,7 @@ trait Tag
 
     public $tagFix = '{ }';
 
-    function solveTags($stub, $tags) 
+    function replaceTags($stub, $tags) 
     {
         // $tags = $this->config('tags', []);
         foreach($tags as $tag => $value ) {

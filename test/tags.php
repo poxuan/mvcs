@@ -7,8 +7,11 @@ function replaceTags($stub)
             return true;
         },
         'bar' => function ($model, $columns) {
-            return 0;
+            return "aaa";
         },
+        'foobar' => function() {
+            return true;
+        }
     ];
     foreach($tags as $tag => $value ) {
         if(is_callable($value)) {
@@ -22,6 +25,7 @@ function replaceTags($stub)
 
 function tagStacks($stub, $tag) 
 {
+    // 标签包围符,单空格区分前后缀
     $tags_fix = "{ }";
     list($tags_pre, $tags_post) = explode(' ', $tags_fix);
     $patton = '/'.$tags_pre.'((!|\/)?'.$tag.'(:[\w]*)?)'.$tags_post.'/';
