@@ -43,7 +43,7 @@ class MakeMvcsConsole extends Command
             return $this->myinfo('invalid_model', $model, 'error');
         }
         $service = new MvcsService();
-        $options = $this->getOptions();
+        $options = array_filter($this->options());
         $service->create($model, $options);
     }
 

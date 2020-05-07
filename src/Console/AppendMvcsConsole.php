@@ -39,7 +39,7 @@ class AppendMvcsConsole extends Command
             return $this->myinfo('param_lack', 'model', 'error');
         }
         $service = new MvcsService();
-        $options = $this->getOptions();
-        $service->create($model, $options);
+        $options = array_filter($this->options());
+        $service->append($model, $options);
     }
 }

@@ -217,11 +217,11 @@ class MvcsService
         //渲染模板文件,替换模板文件中变量值
         $params = $this->getTemplateParams();
         $res = false;
-        $len = count($this->only);
-        for($i =0 ; $i < $this->only; $i ++) {
+        $len = strlen($this->only);
+        for($i =0 ; $i < $len; $i ++) {
             $key  = $this->only[$i];
             // 文件放置位置
-            $path = $this->getSavePath($key);
+            $path = $this->getSaveFile($key);
             if (!file_exists($path)) {
                 $this->myinfo('file_not_exist', $this->getClassName($key));
                 continue;
@@ -234,7 +234,7 @@ class MvcsService
                 $hook = $this->replaceStubParams($params, $hook);
                 $content = \str_replace('#'.$filename.'_hook_' . $point, ltrim($hook), $content);
             }
-            $res = $this->files->put($this->getSavePath($key), $content);
+            $res = file_put_contents($this->getSaveFile($key), $content);
         }
         return $res;
     }

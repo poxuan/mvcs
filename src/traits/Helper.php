@@ -4,7 +4,7 @@ namespace Callmecsx\Mvcs\Traits;
 
 use Illuminate\Support\Facades\Config;
 
-trait Helper 
+trait Helper
 {
     // tab符
     public $spaces = '    ';
@@ -31,7 +31,7 @@ trait Helper
     }
 
     /**
-     * tab对齐
+     * 对齐
      *
      * @param integer $count
      * @param string $pre
@@ -96,31 +96,31 @@ trait Helper
         if ($param) {
             $message = sprintf($message, $param);
         }
-        echo $type . " : " . $message;
+        echo $type . " : " . $message . "\n";
     }
 
     /**
-     * 文件保存名
+     * 文件保存地址
      *
      * @param [type] $d
      * @return void
      * @author chentengfei
      * @since
      */
-    private function getSavePath($d)
+    private function getSaveFile($d)
     {
-        return $this->getDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
+        return $this->getSaveDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
     }
 
     /**
-     * 文件存储路径
+     * 文件存储目录
      *
      * @param [type] $d
      * @return void
      * @author chentengfei
      * @since
      */
-    private function getDirectory($d)
+    private function getSaveDirectory($d)
     {
         $path = $this->stubConfig($d, 'path');
         if (is_callable($path)) {
@@ -179,7 +179,7 @@ trait Helper
     private function getBaseUse($d)
     {
         $ens = $this->stubConfig($d, 'extends.namespace');
-        $en = $this->stubConfig($d, 'extends.name');
+        $en  = $this->stubConfig($d, 'extends.name');
         if (empty($ens) || $ens == $this->getNameSpace($d)) {
             return null;
         }
@@ -248,7 +248,7 @@ trait Helper
 
         for ($i = 0; $i < strlen($this->only); $i++) {
             $d = $this->only[$i];
-            $path = $this->getSavePath($d);
+            $path = $this->getSaveFile($d);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
             if (!is_dir($directory)) {
@@ -273,12 +273,12 @@ trait Helper
         $class = null;
         foreach ($templates as $key => $template) {
             // 文件放置位置
-            $path = $this->getSavePath($key);
+            $path = $this->getSaveFile($key);
             if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
                 $this->myinfo('file_exist', $this->getClassName($key));
                 continue;
             }
-            $class = file_put_contents($this->getSavePath($key), $template);
+            $class = file_put_contents($this->getSaveFile($key), $template);
         }
         return $class;
     }
