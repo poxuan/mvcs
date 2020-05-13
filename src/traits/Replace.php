@@ -2,8 +2,6 @@
 
 namespace Callmecsx\Mvcs\Traits;
 
-use Illuminate\Support\Facades\DB;
-
 trait Replace 
 {
     /**
@@ -61,52 +59,7 @@ trait Replace
         return array_merge($stubVar2, $stubVar);
     }
 
-    /**
-     * 获取数据库字段
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:16:11
-     * @return array
-     */
-    function getTableColumns()
-    {
-
-        try {
-            $this->connect = $this->connect ?: DB::getDefaultConnection();
-
-            $connect = $this->config('connections.' . $this->connect, '', 'database.');
-            DB::setDefaultConnection($this->connect);
-            switch ($connect['driver']) { //
-                case 'mysql':
-                    return DB::select('select COLUMN_NAME as Field,COLUMN_DEFAULT as \'Default\',
-                       IS_NULLABLE as \'Nullable\',COLUMN_TYPE as \'Type\',COLUMN_COMMENT as \'Comment\'
-                       from INFORMATION_SCHEMA.COLUMNS where table_name = :table and TABLE_SCHEMA = :schema',
-                        [':table' => $this->tableF, ':schema' => $connect['database']]);
-                case 'sqlsrv':
-                    return DB::select("SELECT a.name as Field,b.name as 'Type',COLUMNPROPERTY(a.id,a.name,'PRECISION') as L,
-                        isnull(COLUMNPROPERTY(a.id,a.name,'Scale'),0)  as L2,
-                        (case when a.isnullable=1 then 'YES' else 'NO' end) as Nullable,
-                        isnull(e.text,'') as Default,isnull(g.[value],'') as Comment
-                        FROM   syscolumns   a
-                        left   join   systypes   b   on   a.xusertype=b.xusertype
-                        inner  join   sysobjects   d   on   a.id=d.id     and   d.xtype='U'   and     d.name<>'dtproperties'
-                        left   join   syscomments   e   on   a.cdefault=e.id
-                        left   join   sys.extended_properties   g   on   a.id=g.major_id   and   a.colid=g.minor_id
-                        left   join   sys.extended_properties   f   on   d.id=f.major_id   and   f.minor_id=0
-                        where   d.name= :table order by a.id,a.colorder",
-                        [':table' => $this->tableF, ':schema' => $connect['database']]);
-                default:
-                    $this->myinfo('db_not_support', $connect['driver']);
-                    return [];
-            }
-
-        } catch (\Exception $e) {
-            $this->myinfo('db_disabled', $this->connect);
-            $this->myinfo('message', $e->getMessage(), 'error');
-            return [];
-        }
-
-    }
+    
 
     /**
      * 生成 内置配置
@@ -137,7 +90,8 @@ trait Replace
         
         foreach ($tableColumns as $column) {
             if (!in_array($column->Field, $this->ignoreColumns)) {
-                $validators[] = $this->getColumnInfo($column, $columns, $relaies);
+                $columns[] = $this->surround($column->Field);
+                $validators[] = $this->getColumnInfo($column, $relaies);
             }
         }
         
@@ -186,11 +140,11 @@ trait Replace
         return $result;
     }
 
-    function getColumnInfo($column, &$columns, & $relaies)
+    public function getColumnInfo($column, & $relaies = null)
     {
         $info = [];
         $info['column'] = $column->Field;
-        $columns[] = $this->surround($column->Field);
+        // 字段注释，需要把可能导致代码异常的字符去掉
         $info['comment'] = str_replace(['"', "'", "\n", "\t", "\r", "\\"], '', $column->Comment ?: $column->Field);
         $info['example'] = '';
         if ($column->Nullable == 'NO' && $column->Default === null) {
@@ -211,7 +165,7 @@ trait Replace
             } elseif (preg_match('/int/', $column->Type)) {
                 $info['default'] = 0;
             } elseif ($this->startsWith($column->Type, 'date') || $this->startsWith($column->Type, 'time')) {
-                $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
+                $info['default'] = "date('Y-m-d H:i:s')";
             }
         }
         if (preg_match("/char\((\d+)\)/", $column->Type, $match)) {
@@ -241,6 +195,9 @@ trait Replace
             $info['rule'][] = 'in:' . $info['enum'];
             $info['example'] = date('Y-m-d');
         }
+        /**
+         * 如果字段以 _id 结尾，认为是外键
+         */
         if ($this->endsWith($column->Field, '_id')) {
             $otherTable = str_replace('_id', '', $column->Field);
             $otherModel = $this->lineToHump($otherTable);

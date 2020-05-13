@@ -2,8 +2,6 @@
 
 namespace Callmecsx\Mvcs\Traits;
 
-use Illuminate\Support\Facades\Config;
-
 trait Helper
 {
     // tab符
@@ -64,20 +62,7 @@ trait Helper
         return $char.$str.$char;
     }
 
-    /**
-     * 获取配置
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:13:56
-     * @param string $d 模板简称
-     * @param string $key 配置项
-     * @param  mixed $default 默认值
-     * @return mixed
-     */
-    public function config(string $key, $default = '', $base = 'mvcs.')
-    {
-        return Config::get($base.$key, $default);
-    }
+    
 
     /**
      * 国际化的提示信息
@@ -119,7 +104,7 @@ trait Helper
      * @author chentengfei
      * @since
      */
-    private function getSaveFile($d)
+    public function getSaveFile($d)
     {
         return $this->getSaveDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
     }
@@ -175,7 +160,7 @@ trait Helper
      * @author chentengfei
      * @since
      */
-    private function getNameSpace($d)
+    public function getNameSpace($d)
     {
         return $this->stubConfig($d, 'namespace') . $this->extraSpace;
     }
@@ -188,7 +173,7 @@ trait Helper
      * @author chentengfei
      * @since
      */
-    private function getBaseUse($d)
+    public function getBaseUse($d)
     {
         $ens = $this->stubConfig($d, 'extends.namespace');
         $en  = $this->stubConfig($d, 'extends.name');
@@ -206,7 +191,7 @@ trait Helper
      * @author chentengfei
      * @since
      */
-    private function getExtends($d)
+    public function getExtends($d)
     {
         $en = $this->stubConfig($d, 'extends.name');
         if (empty($en)) {
@@ -232,30 +217,13 @@ trait Helper
     }
 
     /**
-     * 获取项目目录
-     *
-     * @param [type] $filepath
-     * @param string $base
-     * @return void
-     * @author chentengfei
-     * @since
-     */
-    public function projectPath($filepath, $base = 'base')
-    {
-        $pathfunc = $base.'_path';
-
-        return $pathfunc($filepath);
-    }
-
-
-    /**
      * 创建文件保存目录
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:17:37
      * @return bool
      */
-    private function createDirectory()
+    public function createDirectory()
     {
 
         for ($i = 0; $i < strlen($this->only); $i++) {

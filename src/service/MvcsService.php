@@ -2,6 +2,7 @@
 
 namespace Callmecsx\Mvcs\Service;
 
+use Callmecsx\Mvcs\Traits\Base;
 use Callmecsx\Mvcs\Traits\Helper;
 use Callmecsx\Mvcs\Traits\Replace;
 use Callmecsx\Mvcs\Traits\Route;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class MvcsService
 {
 
-    use Helper,Tag,Replace,Route;
+    use Base,Helper,Tag,Replace,Route;
 
     // 模型
     public $model;
