@@ -8,8 +8,8 @@ return [
     'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api', //默认
-    'style_config' => [ //配置
+    'style' => 'api', // 默认风格
+    'style_config' => [ // 风格默认配置
         'api' => [
             'desc'   => 'a default api template',
             'stubs'  => 'MVC', //默认模板
@@ -25,7 +25,7 @@ return [
     'common' => [
         // model 模板配置
         'M' => [
-            // stabs文件名,及替换参数前缀名
+            // stabs文件名,及repalce参数前缀名
             'name' => 'model',
             // 类名及文件名后缀
             'postfix' => '',
@@ -43,9 +43,10 @@ return [
             //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
             //     {name}_anno 行注释，{name}_traits 扩展
             // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
-            // PS3：{name}_append 作为扩展模式使用
+            // PS3：{name}_hook_{position} 作为扩展模式使用, 默认前缀是#，可以在各风格中中自定义各position的前后缀
             'replace' => [
                 // model_fillable 示例, 会覆盖预定义的值
+                // 建议：模板中，替换内容使用下划线式写法，正式内容使用驼峰式写法
                 'fillable' => function ($model, $columns) {
                     $res = "";
                     foreach ($columns as $column) {
@@ -144,6 +145,7 @@ return [
             'name' => 'from',
             'postfix' => '/form.balde', // 最终生成文件 {path}/{Model}{postfix}{ext|.php}
             // 'ext' => '.vue', // 通过定义文件后缀生成非 php 文件
+            'hook_fix' => ['js' => '///', 'body' => '<!-- -->'], // 分别定义js 和 html 里的扩展模式下的包围体，默认为【#】
             'path' => resource_path('views'),
             'replace' => [
                 'from' => function ($model, $columns) {
@@ -160,7 +162,7 @@ return [
         'sub_version'  => '1.0.' . date('ymd'),
         'create_date'  => date('Y-m-d H:i:s')
     ],
-    // 扩展配置，
+    // 扩展配置
     'traits' => [// 目录 => 简介
         'updown' => [
             'desc' => '更新数据状态接口',
@@ -203,6 +205,8 @@ return [
             ]
         ],
     ],
+    // 扩展模式下扩展名的前后缀，可以没有后缀
+    'hook_fix' => '#',
     // 标签功能配置
     'tags_fix' => '{ }',//单空格分割前后缀
     'tags' => [

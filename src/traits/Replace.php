@@ -280,16 +280,17 @@ trait Replace
     /**
      * 根据类型获取代码内容
      *
-     * @param [type] $filename
+     * @param char $d
      * @return void
      * @author chentengfei
      * @since
      */
-    function getTraitContent($type) {
+    function getTraitContent($d) {
+        $typeName = $this->stubConfig($d, 'name', '');
         $traitContent = [];
         if ($this->traits) {
             foreach ($this->traits as $trait) {
-                $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $type . '.stub';
+                $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $typeName . '.stub';
                 $handle = @fopen($traitPath, 'r+');
                 $point  = 'body';
                 if ($handle) {

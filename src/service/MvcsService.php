@@ -228,11 +228,12 @@ class MvcsService
             }
             $content  = \file_get_contents($path);
 
-            $filename = $this->stubConfig($key, 'name', '');
-            $traitContent = $this->getTraitContent($filename);
-            foreach($traitContent as $point => $hook) {
-                $hook = $this->replaceStubParams($params, $hook);
-                $content = \str_replace('#'.$filename.'_hook_' . $point, ltrim($hook), $content);
+            
+            $traitContent = $this->getTraitContent($key);
+            foreach($traitContent as $point => $hookBody) {
+                $hookBody = $this->replaceStubParams($params, $hookBody);
+                $hookName = $this->getHookName($key, $point);
+                $content = \str_replace($hookName, $hookName."\n\n".$hookBody, $content);
             }
             $res = file_put_contents($this->getSaveFile($key), $content);
         }

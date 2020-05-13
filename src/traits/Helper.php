@@ -269,4 +269,38 @@ trait Helper
         }
         return true;
     }
+
+    /**
+     * 获取扩展钩子名
+     *
+     * @param [type] $d
+     * @param [type] $point
+     * @return void
+     * @author chentengfei
+     * @sinced
+     */
+    public function getHookName($d, $point)
+    {
+        // 通过简名获取全名
+        $name = $this->stubConfig($d, 'name', '');
+        $hookFix = $this->stubConfig($d, 'hook_fix', '');
+        if ($hookFix && is_array($hookFix)) {
+            if (isset($hookFix[$point])) { // 设置模板专用包围物
+                $hookFix = $hookFix[$point];
+                $fixs = explode(' ', $hookFix);
+                return $fixs[0].$name.'_hook_'.$point.($fixs[1] ?? '');
+            } elseif (isset($hookFix['*'])) { // 设置模板通用包围物
+                $hookFix = $hookFix['*'];
+                $fixs = explode(' ', $hookFix);
+                return $fixs[0].$name.'_hook_'.$point.($fixs[1] ?? '');
+            }
+        } elseif ($hookFix && is_string($hookFix)) { // 是非空字符串 
+            $fixs = explode(' ', $hookFix);
+            return $fixs[0].$name.'_hook_'.$point.($fixs[1] ?? '');
+        }
+        // 全局通用包围物
+        $hookFix = $this->config('hook_fix', '#');
+        $fixs = explode(' ', $hookFix);
+        return $fixs[0].$name.'_hook_'.$point.($fixs[1] ?? '');
+    }
 }
