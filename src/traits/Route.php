@@ -2,7 +2,12 @@
 
 namespace Callmecsx\Mvcs\Traits;
 
-
+/**
+ * 非 lavavel 可能需重写此文件
+ *
+ * @author chentengfei
+ * @since
+ */
 trait Route 
 {
     /**
@@ -34,7 +39,7 @@ trait Route
             }
             $method = ['get', 'post', 'put', 'delete', 'patch'];
             $controller = $this->getClassName('C');
-            $routefile = @file_get_contents($this->projectPath("routes/$type.php"));
+            $routefile = @file_get_contents($this->getRouteFilename($type));
             foreach ($method as $met) {
                 $rs = $this->config('routes.' . $met, []);
                 foreach ($rs as $m => $r) {
@@ -69,7 +74,7 @@ trait Route
             if ($group) {
                 $routeStr .= "});\n\n";
             }
-            $handle = fopen($this->projectPath("routes/$type.php"), 'a+');
+            $handle = fopen($this->getRouteFilename($type), 'a+');
             fwrite($handle, $routeStr);
             fclose($handle);
         }

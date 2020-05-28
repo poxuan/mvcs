@@ -18,14 +18,14 @@ trait Replace
         ];
         $this->tableColumns = $this->getTableColumns();
         $stubs = array_keys($this->config('common') + $this->config('' . $this->style));
-        foreach ($stubs as $d) {
-            $name = $this->stubConfig($d, 'name');
-            $stubVar[$name . '_name'] = $this->getClassName($d);
-            $stubVar[$name . '_ns'] = $this->getNameSpace($d); // 后缀不能有包含关系，故不使用 _namespace 后缀
-            $stubVar[$name . '_use'] = $this->getBaseUse($d);
-            $stubVar[$name . '_extends'] = $this->getExtends($d);
-            $stubVar[$name . '_anno'] = stripos('_' . $this->only, $d) ? '' : '// '; //是否注释掉
-            $extra = $this->stubConfig($d, 'replace', []);
+        foreach ($stubs as $slug) {
+            $name = $this->stubConfig($slug, 'name');
+            $stubVar[$name . '_name'] = $this->getClassName($slug);
+            $stubVar[$name . '_ns'] = $this->getNameSpace($slug); // 后缀不能有包含关系，故不使用 _namespace 后缀
+            $stubVar[$name . '_use'] = $this->getBaseUse($slug);
+            $stubVar[$name . '_extends'] = $this->getExtends($slug);
+            $stubVar[$name . '_anno'] = stripos('_' . $this->only, $slug) ? '' : '// '; //是否注释掉
+            $extra = $this->stubConfig($slug, 'replace', []);
             foreach ($extra as $key => $func) {
                 $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
@@ -33,7 +33,7 @@ trait Replace
         $globalReplace = $this->config('global', []);
         foreach($globalReplace as $key => $val) {
             if ($val instanceof \Closure) {
-                $stubVar[$key] = $val($this->model, $this->tableColumns);
+                $stubVar[$key] = $val($this->model, $this->tableColumns, $this);
             } elseif(is_string($val)) {
                 $stubVar[$key] = $val;
             } else {
@@ -45,7 +45,7 @@ trait Replace
             if ($rep = $item['replace'] ?? '') {
                 foreach($rep as $key => $val) {
                     if ($val instanceof \Closure) {
-                        $stubVar[$key] = $val($this->model, $this->tableColumns);
+                        $stubVar[$key] = $val($this->model, $this->tableColumns, $this);
                     } elseif(is_string($val)) {
                         $stubVar[$key] = $val;
                     } else {
@@ -225,11 +225,11 @@ trait Replace
     function replaceStubParams($params, $stub)
     {
         // 先处理标签
-        $stub = $this->replaceTags($stub, $this->config('tags'));
         $this->tagFix = $this->config('tags_fix', '{ }');
+        $stub = $this->replaceTags($stub, $this->config('tags'));
+        $replacePrefix = $this->config('replace_prefix', '$');
         foreach ($params as $search => $replace) {
-            // 替换参数
-            $stub = str_replace('$' . $search, $replace, $stub);
+            $stub = str_replace($replacePrefix . $search, $replace, $stub);
         }
         return $stub;
     }
@@ -237,17 +237,17 @@ trait Replace
     /**
      * 根据类型获取代码内容
      *
-     * @param char $d
-     * @return void
+     * @param char $slug
+     * @return array
      * @author chentengfei
      * @since
      */
-    function getTraitContent($d) {
-        $typeName = $this->stubConfig($d, 'name', '');
+    function getTraitContent($slug) {
+        $typeName = $this->stubConfig($slug, 'name', '');
         $traitContent = [];
         if ($this->traits) {
             foreach ($this->traits as $trait) {
-                $traitPath = $this->projectPath('stubs/traits', 'resource') . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $typeName . '.stub';
+                $traitPath = $this->getTraitPath() . DIRECTORY_SEPARATOR . $trait . DIRECTORY_SEPARATOR . $typeName . '.stub';
                 $handle = @fopen($traitPath, 'r+');
                 $point  = 'body';
                 if ($handle) {

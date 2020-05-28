@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\DB;
  */
 trait Base
 {
-    
-
     /**
      * 获取数据库字段
      *
@@ -65,7 +63,6 @@ trait Base
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:13:56
-     * @param string $d 模板简称
      * @param string $key 配置项
      * @param  mixed $default 默认值
      * @return mixed
@@ -73,6 +70,17 @@ trait Base
     protected function config(string $key, $default = '', $base = 'mvcs.')
     {
         return Config::get($base.$key, $default);
+    }
+
+    /**
+     * 获取默认连接数据库配置名
+     *
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    protected function getDefaultConnection() {
+        return DB::getDefaultConnection();
     }
 
     /**
@@ -89,5 +97,39 @@ trait Base
         $pathfunc = $base.'_path';
 
         return $pathfunc($filepath);
+    }
+
+    /**
+     * 获取路由文件名
+     *
+     * @param string $type
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    protected function getRouteFilename($type) {
+        return $this->projectPath("routes/$type.php");
+    }
+
+    /**
+     * 获取模板文件位置
+     *
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    protected function getTraitPath() {
+        return $this->projectPath('stubs/traits', 'resource');
+    }
+
+    /**
+     * 返回模板文件位置
+     *
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    protected function getStubPath() {
+        return $this->projectPath('stubs', 'resource');
     }
 }

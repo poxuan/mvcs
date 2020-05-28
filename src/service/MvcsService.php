@@ -7,7 +7,6 @@ use Callmecsx\Mvcs\Traits\Helper;
 use Callmecsx\Mvcs\Traits\Replace;
 use Callmecsx\Mvcs\Traits\Route;
 use Callmecsx\Mvcs\Traits\Tag;
-use Illuminate\Support\Facades\DB;
 
 /**
  * 按模板生成文件脚本
@@ -32,8 +31,7 @@ class MvcsService
     // 语言
     public $language = 'zh-cn.php';
 
-    // 文件组
-
+    // 风格
     public $style = 'api';
     // 中间件
     public $middleware = [];
@@ -42,19 +40,19 @@ class MvcsService
     public $extraSpace = '';
     public $extraPath = '';
 
-    //强制覆盖文件组
+    // 强制覆盖文件
     public $force = '';
 
-    //默认生成文件组
+    // 默认生成文件
     public $only = '';
 
-    //数据库链接
+    // 数据库配置名
     public $connect = null;
 
-    //不该被用户填充的字段
+    // 不该被用户填充的字段
     public $ignoreColumns = [];
 
-    // 扩展
+    // 选装扩展
     public $traits = [];
 
     /**
@@ -64,66 +62,67 @@ class MvcsService
     public function __construct()
     {
         $this->ignoreColumns = $this->config('ignore_columns') ?: [];
-        $this->style = $this->config('style', 'api');
-        $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
-        $this->traits = $this->config('style_config.'.$this->style.'.traits', []);
-        $this->middleware = $this->config('routes.middlewares');
-        $this->language = $this->config('language', 'zh-cn');
+        $this->style         = $this->config('style', 'api');
+        $this->only          = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
+        $this->traits        = $this->config('style_config.'.$this->style.'.traits', []);
+        $this->middleware    = $this->config('routes.middlewares');
+        $this->language      = $this->config('language', 'zh-cn');
     }
 
     /**
-     * Execute the console command.
+     * 创建文件组
      *
      * @return mixed
      */
     public function create($model, $configs = [])
     {
-        $model = ucfirst($this->lineToHump($model));
-        if (empty($model)) {
-            return $this->myinfo('param_lack', 'model', 'error');
-        }
-        if (!preg_match('/^[a-z][a-z0-9]*$/i',$model)) {
-            return $this->myinfo('invalid_model', $model, 'error');
-        }
+        // 可能由多段组成  a/abc
         if (count($modelArray = explode('/', $model)) > 1) {
             $modelArray = array_map('ucfirst', $modelArray);
+            // 转成骆驼式
             $model = ucfirst(array_pop($modelArray));
+            // 其余部分组成额外的名字空间后缀和文件夹
             $this->extraSpace = '\\' . implode('\\', $modelArray);
             $this->extraPath = DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $modelArray);
         }
-        if ($style = $configs['style'] ?? '') {
+        if (!preg_match('/^[a-z][a-z0-9]*$/i',$model)) { // 只识别数字和字母
+            return $this->myinfo('invalid_model', $model, 'error');
+        }
+        if ($style = $configs['style'] ?? '') { // 选用非默认文件风格
             $this->style = $style;
             $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
             $this->traits = $this->config('style_config.'.$this->style.'.traits', []);
         }
-        if ($force = $configs['force'] ?? '') {
-            $this->force = $force;
+        if ($force = $configs['force'] ?? '') { // 自定义强制覆盖组
+            $this->force = strtoupper($force);
         }
-        if (($only = $configs['only'] ?? '') && $only != 'all') {
+        if (($only = $configs['only'] ?? '') && $only != 'all') { // 自定义生成文件组
             $this->only = strtoupper($only);
         }
-        if ($connect = $configs['connect'] ?? '') {
+        if ($connect = $configs['connect'] ?? '') { // 自定义数据库选择
             $this->connect = $connect;
-        } else {
-            $this->connect = DB::getDefaultConnection();
+        } else { // 选择默认数据库
+            $this->connect = $this->getDefaultConnection();
         }
-        if ($middleware = $configs['middleware'] ?? '') {
+        if ($middleware = $configs['middleware'] ?? '') { // 自定义中间件
             $this->middleware += explode(',', $middleware);
         }
         
-        if ($traits = $configs['traits'] ?? '') {
+        if ($traits = $configs['traits'] ?? '') { // 选装扩展
             $this->traits = array_unique(array_merge($this->traits, \explode(',', $traits)));
         }
         $this->model = $model;
+        // 完整表名
         $this->tableF = $this->config("connections." . $this->connect . '.prefix', '', 'database.') . $this->humpToLine($model);
+        // 表名
         $this->table = $this->humpToLine($model);
-        // 生成MVCS文件
+        // 生成文件组
         $this->writeMVCS();
 
     }
 
     /**
-     * Execute the console command.
+     * 扩展文件组
      *
      * @return mixed
      */
@@ -152,7 +151,7 @@ class MvcsService
         if ($connect = $configs['connect'] ?? '') {
             $this->connect = $connect;
         } else {
-            $this->connect = DB::getDefaultConnection();
+            $this->connect = $this->getDefaultConnection();
         }
         $this->traits = [];
         if ($traits = $configs['traits'] ?? '') {
@@ -199,6 +198,7 @@ class MvcsService
         if ($this->appendFiles()) {
             // 若生成成功,则输出信息
             $this->myinfo('success', $this->only);
+            // todo 扩展路由，未完成
             // $this->appendRoutes();
         } else {
             $this->myinfo('fail');
@@ -206,7 +206,7 @@ class MvcsService
     }
 
     /**
-     * 创建目标文件
+     * 扩展目标文件
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:16:56
@@ -220,23 +220,21 @@ class MvcsService
         $res = false;
         $len = strlen($this->only);
         for($i =0 ; $i < $len; $i ++) {
-            $key  = $this->only[$i];
+            $slug  = $this->only[$i];
             // 文件放置位置
-            $path = $this->getSaveFile($key);
+            $path = $this->getSaveFile($slug);
             if (!file_exists($path)) {
-                $this->myinfo('file_not_exist', $this->getClassName($key));
+                $this->myinfo('file_not_exist', $this->getClassName($slug));
                 continue;
             }
             $content  = \file_get_contents($path);
-
-            
-            $traitContent = $this->getTraitContent($key);
+            $traitContent = $this->getTraitContent($slug);
             foreach($traitContent as $point => $hookBody) {
                 $hookBody = $this->replaceStubParams($params, $hookBody);
-                $hookName = $this->getHookName($key, $point);
+                $hookName = $this->getHookName($slug, $point);
                 $content = \str_replace($hookName, $hookName."\n\n".$hookBody, $content);
             }
-            $res = file_put_contents($this->getSaveFile($key), $content);
+            $res = file_put_contents($this->getSaveFile($slug), $content);
         }
         return $res;
     }
@@ -254,14 +252,14 @@ class MvcsService
         //渲染模板文件,替换模板文件中变量值
         $stubs = $this->stubRender();
         $res = false;
-        foreach ($stubs as $key => $stub) {
+        foreach ($stubs as $slug => $content) {
             // 文件放置位置
-            $path = $this->getSaveFile($key);
-            if (file_exists($path) && strpos($this->force, $key) === false && $this->force != 'all') {
-                $this->myinfo('file_exist', $this->getClassName($key));
+            $path = $this->getSaveFile($slug);
+            if (file_exists($path) && strpos($this->force, $slug) === false && $this->force != 'all') {
+                $this->myinfo('file_exist', $this->getClassName($slug));
                 continue;
             }
-            $res = file_put_contents($this->getSaveFile($key), $stub);
+            $res = file_put_contents($this->getSaveFile($slug), $content);
         }
         return $res;
     }
@@ -282,16 +280,15 @@ class MvcsService
         // 获取需要替换的模板文件中变量
         $stubParams = $this->getStubParams();
         $renderStubs = [];
-        foreach ($stubs as $key => $stub) {
+        foreach ($stubs as $slug => $content) {
             // 进行模板渲染，替换字段
-            $renderStubs[$key] = $this->replaceStubParams($stubParams, $stub);
+            $renderStubs[$slug] = $this->replaceStubParams($stubParams, $content);
         }
-
         return $renderStubs;
     }
 
     /**
-     * 获取模板地址
+     * 获取模板内容
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:15:13
@@ -302,25 +299,25 @@ class MvcsService
     {
         $stubs = [];
         for ($i = 0; $i < strlen($this->only); $i++) {
-            $key = $this->only[$i];
-            $filename = $this->stubConfig($key, 'name', '');
-            if (!$filename) {
-                $this->myinfo('stub_not_found', $key, 'error');
+            $slug = $this->only[$i];
+            $name = $this->stubConfig($slug, 'name', '');
+            if (!$name) {
+                $this->myinfo('stub_not_found', $slug, 'error');
                 continue;
             }
-            $filePath = $this->projectPath('stubs', 'resource') . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $filename . '.stub';
+            $filePath = $this->getStubPath() . DIRECTORY_SEPARATOR . $this->style . DIRECTORY_SEPARATOR . $name . '.stub';
             if (!file_exists($filePath)) {
-                $this->myinfo('stub_not_found', $key, 'error');
+                $this->myinfo('stub_not_found', $slug, 'error');
                 continue;
             }
-            $traitContent = $this->getTraitContent($filename);
+            $traitContent = $this->getTraitContent($name);
             $tempContent = file_get_contents($filePath);
-            
+            $replacePrefix = $this->config('replace_prefix', '$');
             foreach($traitContent as $point => $content) {
-                $tempContent = \str_replace('$'.$filename.'_traits_' . $point, ltrim($content), $tempContent);
+                $tempContent = \str_replace($replacePrefix . $name.'_traits_' . $point, ltrim($content), $tempContent);
             }
-            // 把没用到的traits消掉
-            $stubs[$key] = \preg_replace('/\$'.$filename.'_traits_[a-z0-9_]*/i', '', $tempContent);
+            // 把没用到的traits都干掉
+            $stubs[$slug] = \preg_replace('/' . preg_quote($replacePrefix) .$name.'_traits_[a-z0-9_]*/i', '', $tempContent);
         }
         return $stubs;
     }

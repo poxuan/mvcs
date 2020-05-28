@@ -99,85 +99,85 @@ trait Helper
     /**
      * 文件保存地址
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getSaveFile($d)
+    public function getSaveFile($slug)
     {
-        return $this->getSaveDirectory($d) . DIRECTORY_SEPARATOR . $this->getClassName($d) . $this->getClassExt($d);
+        return $this->getSaveDirectory($slug) . DIRECTORY_SEPARATOR . $this->getClassName($slug) . $this->getClassExt($slug);
     }
 
     /**
      * 文件存储目录
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    private function getSaveDirectory($d)
+    private function getSaveDirectory($slug)
     {
-        $path = $this->stubConfig($d, 'path');
+        $path = $this->stubConfig($slug, 'path');
         if (is_callable($path)) {
             return $path($this->model, $this->extraPath);
         }
-        return $this->stubConfig($d, 'path') . $this->extraPath;
+        return $this->stubConfig($slug, 'path') . $this->extraPath;
     }
 
      /**
      * 获取类名
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getClassName($d)
+    public function getClassName($slug)
     {
-        return $this->model . $this->stubConfig($d, 'postfix');
+        return $this->model . $this->stubConfig($slug, 'postfix');
     }
 
     /**
      * 获取类后缀
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getClassExt($d)
+    public function getClassExt($slug)
     {
-        return $this->stubConfig($d, 'ext', '.php');
+        return $this->stubConfig($slug, 'ext', '.php');
     }
 
     /**
      * 获取类名字空间
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getNameSpace($d)
+    public function getNameSpace($slug)
     {
-        return $this->stubConfig($d, 'namespace') . $this->extraSpace;
+        return $this->stubConfig($slug, 'namespace') . $this->extraSpace;
     }
 
     /**
      * 获取类的基类use
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getBaseUse($d)
+    public function getBaseUse($slug)
     {
-        $ens = $this->stubConfig($d, 'extends.namespace');
-        $en  = $this->stubConfig($d, 'extends.name');
-        if (empty($ens) || $ens == $this->getNameSpace($d)) {
+        $ens = $this->stubConfig($slug, 'extends.namespace');
+        $en  = $this->stubConfig($slug, 'extends.name');
+        if (empty($ens) || $ens == $this->getNameSpace($slug)) {
             return null;
         }
         return 'use ' . $ens . '\\' . $en . ';';
@@ -186,14 +186,14 @@ trait Helper
     /**
      * 获取 extends
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @return void
      * @author chentengfei
      * @since
      */
-    public function getExtends($d)
+    public function getExtends($slug)
     {
-        $en = $this->stubConfig($d, 'extends.name');
+        $en = $this->stubConfig($slug, 'extends.name');
         if (empty($en)) {
             return null;
         }
@@ -205,15 +205,15 @@ trait Helper
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:13:56
-     * @param string $d 模板简称
+     * @param string $slug 模板简称
      * @param string $key 配置项
      * @param  mixed $default 默认值
      * @return mixed
      */
-    public function stubConfig($d, $key, $default = '')
+    public function stubConfig($slug, $key, $default = '')
     {
-        return $this->config("$d.$key", $default, "mvcs.{$this->style}.") 
-                ?: $this->config("$d.$key", $default, "mvcs.common.");
+        return $this->config("$slug.$key", $default, "mvcs.{$this->style}.") 
+                ?: $this->config("$slug.$key", $default, "mvcs.common.");
     }
 
     /**
@@ -227,8 +227,8 @@ trait Helper
     {
 
         for ($i = 0; $i < strlen($this->only); $i++) {
-            $d = $this->only[$i];
-            $path = $this->getSaveFile($d);
+            $slug = $this->only[$i];
+            $path = $this->getSaveFile($slug);
             $directory = dirname($path);
             //检查路径是否存在,不存在创建一个,并赋予775权限
             if (!is_dir($directory)) {
@@ -241,17 +241,17 @@ trait Helper
     /**
      * 获取扩展钩子名
      *
-     * @param [type] $d
+     * @param [type] $slug
      * @param [type] $point
      * @return void
      * @author chentengfei
      * @sinced
      */
-    public function getHookName($d, $point)
+    public function getHookName($slug, $point)
     {
         // 通过简名获取全名
-        $name = $this->stubConfig($d, 'name', '');
-        $hookFix = $this->stubConfig($d, 'hook_fix', '');
+        $name = $this->stubConfig($slug, 'name', '');
+        $hookFix = $this->stubConfig($slug, 'hook_fix', '');
         if ($hookFix && is_array($hookFix)) {
             if (isset($hookFix[$point])) { // 设置模板专用包围物
                 $hookFix = $hookFix[$point];
