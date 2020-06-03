@@ -312,12 +312,11 @@ class MvcsService
             }
             $traitContent = $this->getTraitContent($name);
             $tempContent = file_get_contents($filePath);
-            $replacePrefix = $this->config('replace_prefix', '$');
             foreach($traitContent as $point => $content) {
-                $tempContent = \str_replace($replacePrefix . $name.'_traits_' . $point, ltrim($content), $tempContent);
+                $tempContent = \str_replace($this->getReplaceName($name.'_traits_' . $point), ltrim($content), $tempContent);
             }
             // 把没用到的traits都干掉
-            $stubs[$slug] = \preg_replace('/' . preg_quote($replacePrefix) .$name.'_traits_[a-z0-9_]*/i', '', $tempContent);
+            $stubs[$slug] = \preg_replace('/' . $this->getReplaceRegex($name.'_traits_[a-z0-9_]*').'/i', '', $tempContent);
         }
         return $stubs;
     }

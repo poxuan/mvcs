@@ -212,8 +212,8 @@ trait Helper
      */
     public function stubConfig($slug, $key, $default = '')
     {
-        return $this->config("$slug.$key", $default, "mvcs.{$this->style}.") 
-                ?: $this->config("$slug.$key", $default, "mvcs.common.");
+        return $this->config("$slug.$key", $default, "stubs.{$this->style}.") 
+                ?: $this->config("$slug.$key", $default, "stubs.common.");
     }
 
     /**
@@ -270,5 +270,33 @@ trait Helper
         $hookFix = $this->config('hook_fix', '#');
         $fixs = explode(' ', $hookFix);
         return $fixs[0].$name.'_hook_'.$point.($fixs[1] ?? '');
+    }
+
+    /**
+     * 获取替换名
+     *
+     * @param [type] $name
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function getReplaceName($name) {
+        $replaceFix = $this->config('replace_fix', '$');
+        $fixs = explode(' ', $replaceFix);
+        return $fixs[0].$name.($fixs[1] ?? '');
+    }
+
+    /**
+     * 获取替换规则
+     *
+     * @param [type] $name
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function getReplaceRegex($preg) {
+        $replaceFix = $this->config('replace_fix', '$');
+        $fixs = explode(' ', $replaceFix);
+        return preg_quote($fixs[0]) . $preg . preg_quote($fixs[1] ?? '');
     }
 }

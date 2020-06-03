@@ -27,10 +27,10 @@ class MvcsServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $source = realpath($raw = __DIR__ . '/../config/mvcs.php') ?: $raw;
+        $source = realpath($raw = __DIR__ . '/../config') ?: $raw;
         $stubs  = realpath($raw = __DIR__ . '/../stubs') ?: $raw;
         if ($this->app instanceof LaravelApplication && $this->app->runningInConsole()) {
-            $this->publishes([$source => config_path('mvcs.php')]);
+            $this->publishes([$source => config_path()]);
             $this->publishes([$stubs  => resource_path('stubs')]);
             foreach(scandir($stubs) as $dir) {
                 if ($dir[0] != '.' && \is_dir($stubs.'/'.$dir)) {

@@ -30,7 +30,7 @@ trait Replace
                 $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
-        $globalReplace = $this->config('global', []);
+        $globalReplace = $this->config('global_replace', []);
         foreach($globalReplace as $key => $val) {
             if ($val instanceof \Closure) {
                 $stubVar[$key] = $val($this->model, $this->tableColumns, $this);
@@ -227,9 +227,9 @@ trait Replace
         // 先处理标签
         $this->tagFix = $this->config('tags_fix', '{ }');
         $stub = $this->replaceTags($stub, $this->config('tags'));
-        $replacePrefix = $this->config('replace_prefix', '$');
+        
         foreach ($params as $search => $replace) {
-            $stub = str_replace($replacePrefix . $search, $replace, $stub);
+            $stub = str_replace($this->getReplaceName($search), $replace, $stub);
         }
         return $stub;
     }
