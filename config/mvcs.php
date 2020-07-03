@@ -150,5 +150,28 @@ return [
         "table_postfix" => "",
         // 未定义varchar长度时的默认值。
         "default_varchar_length" => 50,
+        // 未定义decimal 精度时的默认值。
+        "default_decimal_pre" => 10,
+        "default_decimal_post" => 2,
+        // EXCEL第三行，类型映射
+        "type_transfar" => [
+            "短句" => "string",
+            "字符串" => "string",
+            "网址" => "string",
+            "地址" => "string",
+            "邮箱" => "string",
+            "图片" => "string",
+            "多媒体" => "string",
+            "字符" => "string",
+            "枚举" => "enum",
+            "列举" => "enum",
+            "数字" => "integer",
+            "整数" => "integer",
+            "小数" => "decimal",
+            "文章" => "text",
+            "内容" => "text",
+            "时间" => "datetime",
+            "日期" => "datetime",
+        ]
     ],
 ];

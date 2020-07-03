@@ -47,5 +47,23 @@ class MakeMvcsConsole extends Command
         $service->create($model, $options);
     }
 
-    
+    /**
+     * 国际化的输出
+     *
+     * @param [type] $info
+     * @param array $param
+     * @param string $type
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function myinfo($sign, $param = "", $type = 'info') 
+    {
+        $lang = require_once(__DIR__.'/../language/'.$this->language.'.php');
+        $message = $lang[$sign] ?? $param;
+        if ($param) {
+            $message = sprintf($message, $param);
+        }
+        $this->$type($message);
+    }
 }

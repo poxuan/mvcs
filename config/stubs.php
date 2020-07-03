@@ -99,13 +99,13 @@ return [
                     $arraylines = [];
                     foreach ($columns as $column) {
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            if (preg_match('/_id/i', $column->Field, $match)) {
+                            if (preg_match('/_id$/i', $column->Field, $match)) {
                                 // todo 外键展示
                             } elseif (preg_match('/char/i', $column->Type, $match)) {
                                 // todo 字符展示
                             } elseif (preg_match('/int/i', $column->Type, $match) || preg_match('/decimal/i', $column->Type, $match)) {
                                 // todo 数字展示
-                            } elseif (preg_match('/date(time)*/', $column->Type, $match)) {
+                            } elseif (preg_match('/date(time)*/i', $column->Type, $match)) {
                                 // todo 时间展示
                             }
                             // todo 其他展示

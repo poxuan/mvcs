@@ -124,8 +124,7 @@ PS: 第三行格式匹配失败时，当作字符尝试匹配字段类型 如 10
 
 user | 用户表 | -
 :-:|:-:|:-:
-*nickname#昵称|sex#性别1男2女|brith#生日
-string_20#unique|tinyint|date
+*nickname#string_20#昵称|sex#enum_male_female#性别:男or女|brith#日期#生日
 jack ma|1|1980-12-21
 
 [示例文件](./example.xlsx)

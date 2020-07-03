@@ -17,7 +17,7 @@ trait Replace
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
-        $stubs = array_keys($this->config('common') + $this->config('' . $this->style));
+        $stubs = array_keys($this->config('common', [], 'stubs.') + $this->config('' . $this->style, [], 'stubs.'));
         foreach ($stubs as $slug) {
             $name = $this->stubConfig($slug, 'name');
             $stubVar[$name . '_name'] = $this->getClassName($slug);
@@ -268,20 +268,5 @@ trait Replace
         return $traitContent;
     }
 
-    function startsWith(string $haystack, string $needle, bool $sensitive = true)
-    {
-        $substr = substr($haystack,0, strlen($needle));
-        if ($sensitive) 
-            return $substr == $needle;
-        return strtolower($substr) == strtolower($needle); 
-    }
-
-    function endsWith(string $haystack, string $needle, bool $sensitive = true)
-    {
-        $substr = substr($haystack, -1 * strlen($needle));
-        if ($sensitive) 
-            return $substr == $needle;
-        return strtolower($substr) == strtolower($needle); 
-    }
     
 }

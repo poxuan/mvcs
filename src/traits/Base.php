@@ -125,11 +125,22 @@ trait Base
     /**
      * 返回模板文件位置
      *
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
     protected function getStubPath() {
         return $this->projectPath('stubs', 'resource');
+    }
+
+    /**
+     * 返回迁移文件位置
+     *
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    protected function getMigrationPath() {
+        return $this->projectPath('migrations', 'database');
     }
 }

@@ -169,11 +169,11 @@ class ExcelService
      * @param [type] $file
      * @param integer $rowStart
      * @param integer $columnStart
-     * @return void
+     * @return array
      * @author chentengfei
      * @since
      */
-    public function getAllData($file, $rowStart = 0, $columnStart = 1)
+    public function getAllSheets($file, $rowStart = 0, $columnStart = 1)
     {
         $reader = IOFactory::createReader($this->type);
         $reader->setReadDataOnly(true);

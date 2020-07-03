@@ -51,7 +51,7 @@ class MvcsServiceProvider extends ServiceProvider
             $this->app->configure('mvcs');
         }
 
-        $this->mergeConfigFrom($source, 'mvcs');
+        // $this->mergeConfigFrom($source, 'mvcs');
     }
 
     /**

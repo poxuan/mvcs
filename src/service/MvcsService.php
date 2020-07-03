@@ -4,6 +4,7 @@ namespace Callmecsx\Mvcs\Service;
 
 use Callmecsx\Mvcs\Traits\Base;
 use Callmecsx\Mvcs\Traits\Helper;
+use Callmecsx\Mvcs\Traits\Import;
 use Callmecsx\Mvcs\Traits\Replace;
 use Callmecsx\Mvcs\Traits\Route;
 use Callmecsx\Mvcs\Traits\Tag;
@@ -17,7 +18,12 @@ use Callmecsx\Mvcs\Traits\Tag;
 class MvcsService
 {
 
-    use Base,Helper,Tag,Replace,Route;
+    use Base,Helper,Tag,Replace,Route,Import;
+
+    // 导入类型: 1 结构 2 数据 3结构和数据
+    const IMPORT_TYPE_STRUCTURE_ONLY = 1;
+    const IMPORT_TYPE_DATA_ONLY = 2;
+    const IMPORT_TYPE_STRUCTURE_DATA = 3;
 
     // 模型
     public $model;
@@ -165,6 +171,47 @@ class MvcsService
         // 生成MVCS文件
         $this->appendMVCS();
 
+    }
+
+    /**
+     * EXCEL文件生成
+     *
+     * @param string $file
+     * @param integer $type
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    public function import($file, $type = 0)
+    {
+        if (!is_file($file)) {
+            return $this->myinfo('param_invalid', 'file', 'error');
+        }
+        if (!in_array($type, [1,2,3])) {
+            $type = 3;
+        }
+        $excelService = new ExcelService('Xlsx');
+        $sheets = $excelService->getAllSheets($file);
+        if (empty($sheets)) {
+            return $this->myinfo('message', 'can not get data from file', 'error');
+        }
+        foreach($sheets as $key => $sheet) {
+            if ($type & 1 == 1) { // 表结构创建
+                echo "Creating Table start";
+                $this->myinfo('initing_structure');
+                $this->makeStruct($sheet);
+            }
+        }
+        $this->migrate();
+        foreach($sheets as $key => $sheet) {
+            if (($this->type & 2) == 2) { // 数据导入
+                echo "Inserting Data start";
+                $this->myinfo('importing_data');
+                $data = $this->makeImportData($sheet, $table);
+                $excelService->insertToTable($table, $data);
+            }
+        }
+        
     }
 
     /**
