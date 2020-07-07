@@ -119,7 +119,7 @@ class MvcsService
         }
         $this->model = $model;
         // 完整表名
-        $this->tableF = $this->config("connections." . $this->connect . '.prefix', '', 'database.') . $this->humpToLine($model);
+        $this->tableF = $this->getDatabasePrifix() . $this->humpToLine($model);
         // 表名
         $this->table = $this->humpToLine($model);
         // 生成文件组

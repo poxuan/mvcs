@@ -85,13 +85,15 @@ trait Replace
             ];
         }
         $validators = [];
-        $relaies = [];
+        $relaies = $this->getRelaies($tableColumns);
         $columns = [];
         
+        
+
         foreach ($tableColumns as $column) {
             if (!in_array($column->Field, $this->ignoreColumns)) {
                 $columns[] = $this->surround($column->Field);
-                $validators[] = $this->getColumnInfo($column, $relaies);
+                $validators[] = $this->getColumnInfo($column);
             }
         }
         
@@ -112,17 +114,17 @@ trait Replace
 
         $validatorExcel = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
             $nullable = $arr['nullable'] ? '选填' : '必填';
-            $columns = [
+            $rules = [
                 "'{$arr['comment']}#{$nullable}'",
                 "'{$arr['example']}'",
             ];
             if (isset($arr['enum'])) {
-                $columns[] = "{$arr['enum']}";
+                $rules[] = "{$arr['enum']}";
             } elseif (isset($arr['relate'])) {
-                $columns[] = "{$arr['relate']}";
-                $columns[] = "['rc' => 'name']"; // 关联表名
+                $rules[] = "{$arr['relate']}";
+                $rules[] = "['rc' => 'name']"; // 关联表名
             }
-            return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $columns) . ']';
+            return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $rules) . ']';
         }, $validators));
 
         $validatorExcelDefault = implode($this->tabs(3, ",\n"), array_map(function ($arr) {
@@ -140,7 +142,14 @@ trait Replace
         return $result;
     }
 
-    public function getColumnInfo($column, & $relaies = null)
+    /**
+     * 获取字段信息
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:14:08
+     * @param $column 字段
+     */
+    public function getColumnInfo($column)
     {
         $info = [];
         $info['column'] = $column->Field;
@@ -205,11 +214,45 @@ trait Replace
             $info['rule'][] = 'exists:' . $otherTable . ',id';
             $info['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
             $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-            $relaies[] = "public function $otherModel() {\n" 
-                . $this->tabs(2) . 'return $this->belongsTo("' . $fullOtherModel . '");' . "\n"
-                . $this->tabs(1) . "}\n";
+            
         }
         return $info;
+    }
+
+
+    public function getTableRelaies($columns) 
+    {
+        $relaies = [];
+        // 以键名查找外联表
+        $foreignKey = $this->humpToLine($this->model)."_id";
+        $foreignTables = $this->getTableByColumn($foreignKey);
+        $prefix = $this->getDatabasePrifix();
+        foreach($foreignTables as $foreignTable) {
+            $tableName = $foreignTable->TableName;
+            if ($prefix && $this->startsWith($tableName, $prefix)) {
+                $tableName = substr($tableName, strlen($prefix));
+            }
+            $foreignModel = $this->lineToHump($tableName);
+            $fullForeignModel = $this->getNameSpace('M') . '\\' . ucfirst($foreignModel);
+            // 转换为复数形式
+            $funcName = $this->lineToHump($this->plural($foreignModel)); 
+            $relaies[] = "public function $funcName() {\n" 
+                . $this->tabs(2) . 'return $this->hasMany("' . $fullForeignModel . '");' . "\n"
+                . $this->tabs(1) . "}\n";
+
+        }
+        // 
+        foreach($columns as $column) {
+            if ($this->endsWith($column->Field, '_id')) {
+                $otherTable = str_replace('_id', '', $column->Field);
+                $otherModel = $this->lineToHump($otherTable);
+                $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
+                $relaies[] = "public function $otherModel() {\n" 
+                    . $this->tabs(2) . 'return $this->belongsTo("' . $fullOtherModel . '");' . "\n"
+                    . $this->tabs(1) . "}\n";
+            }
+        }
+        return $relaies;
     }
 
 

@@ -29,7 +29,7 @@ return [
         'create_date'  => date('Y-m-d H:i:s')
     ],
     // 扩展配置
-    'traits' => [// 目录 => 简介
+    'traits' => [
         'updown' => [
             'desc' => '更新数据状态接口',
             'routes' => [ // 扩展路由规则
@@ -51,7 +51,7 @@ return [
             ]
         ],
         'reply' => [
-            'desc' => '老师回复',
+            'desc' => '回复',
             'routes' => [ // 扩展路由规则
                 'post' => [
                     'reply' => '{id}/reply',
@@ -73,7 +73,7 @@ return [
     ],
     // 替换参数前缀标识
     'replace_fix' => '$',
-    // 扩展模式下扩展名的前后缀，可以没有后缀
+    // 扩展模式下扩展名的前后缀，可以没有后缀，可在style中自定义
     'hook_fix' => '#',
     // 标签功能配置
     'tags_fix' => '{ }',//单空格分割前后缀

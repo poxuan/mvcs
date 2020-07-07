@@ -5,7 +5,7 @@ namespace $model_ns;
 {softdelete}
 use Illuminate\Database\Eloquent\SoftDeletes;
 {/softdelete}
-use App\Base\Traits\Scope;
+// use App\Base\Traits\Scope;
 $model_use
 $model_traits_head
 #model_hook_head

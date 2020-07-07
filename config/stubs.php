@@ -125,7 +125,7 @@ return [
             'name' => 'from',
             'postfix' => '/form.balde', // 最终生成文件 {path}/{Model}{postfix}{ext|.php}
             // 'ext' => '.vue', // 通过定义文件后缀生成非 php 文件
-            'hook_fix' => ['js' => '///', 'body' => '<!-- -->'], // 分别定义js 和 html 里的扩展模式下的包围体，默认为【#】
+            'hook_fix' => ['js' => '//#', 'body' => '<!-- -->'], // 分别定义js 和 html 里的扩展模式下的包围体，默认为【#】
             'path' => resource_path('views'),
             'replace' => [
                 'from' => function ($model, $columns) {

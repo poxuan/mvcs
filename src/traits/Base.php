@@ -58,6 +58,37 @@ trait Base
 
     }
 
+
+    /**
+     * 获取含有某字段的表名
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:16:11
+     * @return array
+     */
+    protected function getTableByColumn($column)
+    {
+        try {
+            $this->connect = $this->connect ?: DB::getDefaultConnection();
+            $connect = $this->config('connections.' . $this->connect, '', 'database.');
+            DB::setDefaultConnection($this->connect);
+            switch ($connect['driver']) { //
+                case 'mysql':
+                    return DB::select('select table_name as TableName from INFORMATION_SCHEMA.COLUMNS where COLUMN_NAME = :column and TABLE_SCHEMA = :schema',
+                        [':column' => $column, ':schema' => $connect['database']]);
+                default:
+                    $this->myinfo('db_not_support', $connect['driver']);
+                    return [];
+            }
+
+        } catch (\Exception $e) {
+            $this->myinfo('db_disabled', $this->connect);
+            $this->myinfo('message', $e->getMessage(), 'error');
+            return [];
+        }
+
+    }
+
     /**
      * 获取配置
      *
@@ -142,5 +173,28 @@ trait Base
      */
     protected function getMigrationPath() {
         return $this->projectPath('migrations', 'database');
+    }
+
+    /**
+     * 获取数据库表前缀
+     *
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    protected function getDatabasePrifix() {
+        return $this->config("connections." . $this->connect . '.prefix', '', 'database.');
+    }
+
+    /**
+     * 复数形式,依赖laravel助手函数
+     *
+     * @param string $name
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    function plural(string $name) {
+        return str_plural($name);
     }
 }

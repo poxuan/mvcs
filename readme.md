@@ -74,19 +74,6 @@ PS: 使用前应编辑stubs模板以适用自身项目
 PS: 使用前应建表,包括表中备注,脚本会使用部分表格字段生成一些数据,可以省去不少操作,暂时只适配了mysql 和 mssql（未测）
 ```
 
-通过该指令，默认将在app下自动生成 controller、validator、model、service 四个文件（或自己定义的任何文件）；
-
-如：执行 php artisan mvcs:make account
-
-将生成如下文件并构造好默认方法及数据
-
-> app/Http/Controller/AccountController \
-> app/Models/Account \
-> app/Validators/AccountValidator \
-> app/services/AccountService
-
-并按配置生成好路由，若模板无问题，可直接进行调用。
-
 ## mvcs:make_all 命令
 
 该命令用于将对于数据库中每张表和视图生成一次代码
@@ -105,16 +92,16 @@ PS: 使用前应建表,包括表中备注,脚本会使用部分表格字段生�
 
 > php artisan mvcs:excel {file} {--type=}
 
-```test
+```text
 > file 为需导入文件,请使用绝对路径
 > --type 导入类型,1:结构,2:数据,3:数据和结构（默认）
 
 excel 格式
 
 > 第一行 表英文名、表中文解释
-> 第二行 各列名 [* ]英文[#注释] 开头* 表示必填项
-> 第三行 字段格式  type_length1_length2 [#index|unique|primary]
-> 例: int、char#index 、varchar_255#unique、decimal_8_2
+> 第二行 各列名 [* ]英文[#格式[#注释]] 开头* 表示必填项
+> 例: *name#string_20#昵称, birth#date#生日
+> 第三行 示例行，如果你不会写[#格式[#注释]，将只会识别为 数字、小数、字符串、文本四类格式。
 > 第四行以后 待导入数据
 
 PS: 第三行格式匹配失败时，当作字符尝试匹配字段类型 如 100 将匹配为 int

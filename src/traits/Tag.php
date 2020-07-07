@@ -8,8 +8,16 @@ trait Tag
 
     public $tagFix = '{ }';
 
-    function replaceTags($stub, $tags) 
-    {
+    /**
+     * 替换所有标签
+     *
+     * @param [type] $stub
+     * @param [type] $tags
+     * @return void
+     * @author chentengfei
+     * @since
+     */
+    function replaceTags($stub, $tags) {
         // $tags = $this->config('tags', []);
         foreach($tags as $tag => $value ) {
             if(is_callable($value)) {
@@ -20,6 +28,15 @@ trait Tag
         return $stub;
     }
 
+    /**
+     * 标签栈
+     *
+     * @param [type] $stub
+     * @param [type] $tag
+     * @return array
+     * @author chentengfei
+     * @since
+     */
     function tagStacks($stub, $tag) {
          // $tags_fix = $this->config('tags_fix', '{ }');
         list($tags_pre, $tags_post) = explode(' ', $this->tagFix);
@@ -49,6 +66,16 @@ trait Tag
         return $stacks;
     }
     
+    /**
+     * 替换一个标签
+     *
+     * @param [type] $stub
+     * @param [type] $tag
+     * @param [type] $value
+     * @return void
+     * @author chentengfei
+     * @since
+     */
     function tagReplace($stub, $tag, $value) {
         $stacks = $this->tagStacks($stub, $tag);
         foreach($stacks as $stack) {
