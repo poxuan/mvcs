@@ -29,10 +29,10 @@ class MakeMvcsConsole extends Command
      */
     public function handle()
     {
-        if ($this->config('env', 'local','app.') == 'production') {
+        if (config('app.env', 'local') == 'production') {
             return $this->myinfo('deny', '', 'error');
         }
-        if ($this->config('version') < '2.0') {
+        if (config('mvcs.version', '0') < '2.0') {
             return $this->myinfo('version_deny', '2.0', 'error');
         }
         $model = ucfirst($this->lineToHump($this->argument('model')));

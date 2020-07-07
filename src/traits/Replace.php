@@ -85,7 +85,7 @@ trait Replace
             ];
         }
         $validators = [];
-        $relaies = $this->getRelaies($tableColumns);
+        $relaies = $this->getTableRelaies($tableColumns);
         $columns = [];
         
         
@@ -235,8 +235,8 @@ trait Replace
             $foreignModel = $this->lineToHump($tableName);
             $fullForeignModel = $this->getNameSpace('M') . '\\' . ucfirst($foreignModel);
             // 转换为复数形式
-            $funcName = $this->lineToHump($this->plural($foreignModel)); 
-            $relaies[] = "public function $funcName() {\n" 
+            $funcName = $this->plural($foreignModel); 
+            $relaies[$funcName] = "public function $funcName() {\n" 
                 . $this->tabs(2) . 'return $this->hasMany("' . $fullForeignModel . '");' . "\n"
                 . $this->tabs(1) . "}\n";
 
@@ -245,14 +245,14 @@ trait Replace
         foreach($columns as $column) {
             if ($this->endsWith($column->Field, '_id')) {
                 $otherTable = str_replace('_id', '', $column->Field);
-                $otherModel = $this->lineToHump($otherTable);
+                $otherModel = $otherTable;
                 $fullOtherModel = $this->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                $relaies[] = "public function $otherModel() {\n" 
+                $relaies[$otherModel] = "public function $otherModel() {\n" 
                     . $this->tabs(2) . 'return $this->belongsTo("' . $fullOtherModel . '");' . "\n"
                     . $this->tabs(1) . "}\n";
             }
         }
-        return $relaies;
+        return array_values($relaies);
     }
 
 
