@@ -17,8 +17,9 @@ trait Tag
      * @author chentengfei
      * @since
      */
-    function replaceTags($stub, $tags) {
+    protected function replaceTags($stub, $tags) {
         // $tags = $this->config('tags', []);
+        $this->tagFix = $this->config('tags_fix', '{ }');
         foreach($tags as $tag => $value ) {
             if(is_callable($value)) {
                 $value = $value($this->model, $this->tableColumns, $this);
@@ -37,7 +38,7 @@ trait Tag
      * @author chentengfei
      * @since
      */
-    function tagStacks($stub, $tag) {
+    protected function tagStacks($stub, $tag) {
          // $tags_fix = $this->config('tags_fix', '{ }');
         list($tags_pre, $tags_post) = explode(' ', $this->tagFix);
         $patton = '/'.$tags_pre.'((!|\/)?'.$tag.'(:[\w]*)?)'.$tags_post.'/i';
@@ -76,7 +77,7 @@ trait Tag
      * @author chentengfei
      * @since
      */
-    function tagReplace($stub, $tag, $value) {
+    protected function tagReplace($stub, $tag, $value) {
         $stacks = $this->tagStacks($stub, $tag);
         foreach($stacks as $stack) {
             $stack_start = $stack['start'];

@@ -117,7 +117,7 @@ trait Helper
      * @author chentengfei
      * @since
      */
-    private function getSaveDirectory($slug)
+    public function getSaveDirectory($slug)
     {
         $path = $this->stubConfig($slug, 'path');
         if (is_callable($path)) {
@@ -300,7 +300,7 @@ trait Helper
         return preg_quote($fixs[0]) . $preg . preg_quote($fixs[1] ?? '');
     }
 
-    function startsWith(string $haystack, string $needle, bool $sensitive = true)
+    public function startsWith(string $haystack, string $needle, bool $sensitive = true)
     {
         $substr = substr($haystack,0, strlen($needle));
         if ($sensitive) 
@@ -308,7 +308,7 @@ trait Helper
         return strtolower($substr) == strtolower($needle); 
     }
 
-    function endsWith(string $haystack, string $needle, bool $sensitive = true)
+    public function endsWith(string $haystack, string $needle, bool $sensitive = true)
     {
         $substr = substr($haystack, -1 * strlen($needle));
         if ($sensitive) 

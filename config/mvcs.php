@@ -28,6 +28,10 @@ return [
         'sub_version'  => '1.0.' . date('ymd'),
         'create_date'  => date('Y-m-d H:i:s')
     ],
+    // 替换类, 须实现替换类
+    'replace_classes' => [
+        Callmecsx\Mvcs\Impl\ExampleReplace::class,
+    ],
     // 扩展配置
     'traits' => [
         'updown' => [

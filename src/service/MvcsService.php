@@ -221,7 +221,7 @@ class MvcsService
      * @date   2018-08-13 18:17:55
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function writeMVCS()
+    protected function writeMVCS()
     {
         $this->createDirectory();
         if ($this->saveFiles()) {
@@ -240,7 +240,7 @@ class MvcsService
      * @date   2018-08-13 18:17:55
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function appendMVCS()
+    protected function appendMVCS()
     {
         if ($this->appendFiles()) {
             // 若生成成功,则输出信息
@@ -260,7 +260,7 @@ class MvcsService
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function appendFiles()
+    protected function appendFiles()
     {
         //渲染模板文件,替换模板文件中变量值
         $params = $this->getStubParams();
@@ -294,7 +294,7 @@ class MvcsService
      * @return int|null
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function saveFiles()
+    protected function saveFiles()
     {
         //渲染模板文件,替换模板文件中变量值
         $stubs = $this->stubRender();
@@ -320,7 +320,7 @@ class MvcsService
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function stubRender()
+    protected function stubRender()
     {
         // 获取模板文件内容
         $stubs = $this->getStubContents();
@@ -342,7 +342,7 @@ class MvcsService
      * @return array
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    private function getStubContents()
+    protected function getStubContents()
     {
         $stubs = [];
         for ($i = 0; $i < strlen($this->only); $i++) {

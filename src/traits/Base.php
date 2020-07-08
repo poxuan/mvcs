@@ -20,7 +20,7 @@ trait Base
      * @date   2018-08-13 18:16:11
      * @return array
      */
-    protected function getTableColumns()
+    public function getTableColumns()
     {
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
@@ -66,7 +66,7 @@ trait Base
      * @date   2018-08-13 18:16:11
      * @return array
      */
-    protected function getTableByColumn($column)
+    public function getTableByColumn($column)
     {
         try {
             $this->connect = $this->connect ?: DB::getDefaultConnection();
@@ -98,7 +98,7 @@ trait Base
      * @param  mixed $default 默认值
      * @return mixed
      */
-    protected function config(string $key, $default = '', $base = 'mvcs.')
+    public function config(string $key, $default = '', $base = 'mvcs.')
     {
         return Config::get($base.$key, $default);
     }
@@ -110,7 +110,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getDefaultConnection() {
+    public function getDefaultConnection() {
         return DB::getDefaultConnection();
     }
 
@@ -123,7 +123,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function projectPath($filepath, $base = 'base')
+    public function projectPath($filepath, $base = 'base')
     {
         $pathfunc = $base.'_path';
 
@@ -138,7 +138,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getRouteFilename($type) {
+    public function getRouteFilename($type) {
         return $this->projectPath("routes/$type.php");
     }
 
@@ -149,7 +149,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getTraitPath() {
+    public function getTraitPath() {
         return $this->projectPath('stubs/traits', 'resource');
     }
 
@@ -160,7 +160,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getStubPath() {
+    public function getStubPath() {
         return $this->projectPath('stubs', 'resource');
     }
 
@@ -171,7 +171,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getMigrationPath() {
+    public function getMigrationPath() {
         return $this->projectPath('migrations', 'database');
     }
 
@@ -182,7 +182,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    protected function getDatabasePrifix() {
+    public function getDatabasePrifix() {
         return $this->config("connections." . $this->connect . '.prefix', '', 'database.');
     }
 
@@ -194,7 +194,7 @@ trait Base
      * @author chentengfei
      * @since
      */
-    function plural(string $name) {
+    public function plural(string $name) {
         return str_plural($name);
     }
 }

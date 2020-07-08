@@ -23,7 +23,7 @@ trait Import
      * @author ctf <tengfei.chen@atommatrix.com>
      * @param $file
      */
-    private function makeStruct($sheet)
+    protected function makeStruct($sheet)
     {
         // 表名,取第一行第一列,行从1开始,列从0开始
         $table_name = strtolower(trim($sheet[1][0] ?: ""));
@@ -62,7 +62,7 @@ trait Import
      * @param array $columns 列名
      * @param array $rules 示例
      */
-    public function migrate() {
+    protected function migrate() {
         echo "Creating Table finish\n";
         $this->myinfo('migrating_table');
         Artisan::call('migrate');
@@ -75,7 +75,7 @@ trait Import
      * @param array $columns 列名
      * @param array $rules 示例
      */
-    private function makeMigrationFile($columns, $example, $table)
+    protected function makeMigrationFile($columns, $example, $table)
     {
         $has_primary = false; // 已有主键?
         foreach ($columns as $key => $column) {
@@ -231,7 +231,7 @@ trait Import
      * @author ctf <tengfei.chen@atommatrix.com>
      * @param $file
      */
-    private function makeImportData($sheet, & $table_name)
+    protected function makeImportData($sheet, & $table_name)
     {
         $table_name = strtolower(trim($sheet[1][0] ?: ""));
         if (!$table_name || !is_string($table_name) || !preg_match('/^[ a-zA-Z0-9\-_]*$/', $table_name)) {
