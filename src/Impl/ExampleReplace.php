@@ -7,6 +7,22 @@ use Callmecsx\Mvcs\Service\MvcsService;
 
 class ExampleReplace implements Replace {
 
+    public $hasMany = <<<'EOF'
+
+    public function %s() {
+        return $this->hasMany('%s');
+    }
+
+EOF;
+
+    public $belongsTo = <<<'EOF'
+
+    public function %s() {
+        return $this->belongsTo('%s');
+    }
+
+EOF;    
+
     /**
      * 获取替换数据数组
      */
@@ -75,7 +91,7 @@ class ExampleReplace implements Replace {
             'validator_excel_default' => trim($validatorExcelDefault),
             'validator_message' => trim($validatorMessages),
             'model_fillable' => implode(',', $columns),
-            'model_relation' => implode($service->tabs(1, "\n\n"), $relaies),
+            'model_relation' => trim(implode("\n", $relaies)),
         ];
         return $result;
     }
@@ -170,11 +186,8 @@ class ExampleReplace implements Replace {
             $foreignModel = $service->lineToHump($tableName);
             $fullForeignModel = $service->getNameSpace('M') . '\\' . ucfirst($foreignModel);
             // 转换为复数形式
-            $funcName = $service->plural($foreignModel); 
-            $relaies[$funcName] = "public function $funcName() {\n" 
-                . $service->tabs(2) . 'return $this->hasMany("' . $fullForeignModel . '");' . "\n"
-                . $service->tabs(1) . "}\n";
-
+            $funcName = $service->plural($tableName); 
+            $relaies[$funcName] = sprintf($this->hasMany, $funcName, $fullForeignModel);
         }
         // 
         foreach($columns as $column) {
@@ -182,9 +195,7 @@ class ExampleReplace implements Replace {
                 $otherTable = str_replace('_id', '', $column->Field);
                 $otherModel = $otherTable;
                 $fullOtherModel = $service->getNameSpace('M') . '\\' . ucfirst($otherModel);
-                $relaies[$otherModel] = "public function $otherModel() {\n" 
-                    . $service->tabs(2) . 'return $this->belongsTo("' . $fullOtherModel . '");' . "\n"
-                    . $service->tabs(1) . "}\n";
+                $relaies[$otherModel] = sprintf($this->belongsTo, $otherTable, $fullOtherModel);
             }
         }
         return array_values($relaies);
