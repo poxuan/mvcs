@@ -30,7 +30,8 @@ EOF;
     {
         if (empty($tableColumns)) {
             return [
-                'validator_rule' => '',
+                'validator_create_rule' => '',
+                'validator_update_rule' => '',
                 'validator_excel_rule' => '',
                 'validator_excel_default' => '',
                 'validator_message' => '',
@@ -51,10 +52,13 @@ EOF;
             }
         }
         
-        $validatorRule = implode($service->tabs(3), array_map(function ($arr) {
+        $validatorCreateRule = implode($service->tabs(3), array_map(function ($arr) {
             $rule = str_pad("'{$arr['column']}'", 25) . " => '" . implode('|', $arr['rule']) . "',";
             return str_pad($rule, 80) . '    //' . $arr['comment']."\n"; // 补充注释
         }, $validators));
+
+        $validatorUpdateRule = str_replace("required", "sometimes", $validatorCreateRule);
+
 
         $validatorMessages = implode('', array_map(function ($arr) use ($service) {
             $messages = '';
@@ -86,7 +90,8 @@ EOF;
         }, array_filter($validators, function($item) { return is_null($item['default']);})));
 
         $result = [
-            'validator_rule' => trim($validatorRule),
+            'validator_create_rule' => trim($validatorCreateRule),
+            'validator_update_rule' => trim($validatorUpdateRule),
             'validator_excel_rule' => trim($validatorExcel),
             'validator_excel_default' => trim($validatorExcelDefault),
             'validator_message' => trim($validatorMessages),

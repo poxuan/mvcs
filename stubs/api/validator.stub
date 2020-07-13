@@ -24,7 +24,7 @@ class $validator_name $validator_extends
     public static function store($data)
     {
         Validator::make($data,[
-            $validator_rule
+            $validator_create_rule
         ],self::$messages)->validate();
     }
     /**
@@ -39,7 +39,7 @@ class $validator_name $validator_extends
     public static function update($data,$id)
     {
         Validator::make($data,[
-            $validator_rule
+            $validator_update_rule
         ],self::$messages)->validate();
         $model = $model_name::findOrFail($id);
         {usercheck:author}
@@ -92,5 +92,5 @@ class $validator_name $validator_extends
 
     $validator_traits_body
 
-#validator_hook_body
+    #validator_hook_body
 }

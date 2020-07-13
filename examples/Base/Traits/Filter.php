@@ -181,12 +181,7 @@ trait Filter
         if ($compare == 'like') {
             $value = "%{$value}%";
         }
-        $values = Db::table($table)->where($column, $compare, $value)->pluck($foreignKey)->toArray();
-        if ($values) {
-            $model->whereIn($ownerKey, $values);
-        } else {
-            $model->whereIn($ownerKey, []);
-        }
+        $model->whereRaw("$ownerKey in (select $foreignKey from $table where $column $compare ?)", [$value]);
     }
 
     /**
@@ -202,7 +197,6 @@ trait Filter
      */
     protected function filterRaw ($model, $column, $value, $raw)
     {
-        echo $raw;die;
         $model->whereRaw($raw, is_array($value) ? $value : [$value]);
     } 
 

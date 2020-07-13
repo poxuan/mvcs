@@ -2,9 +2,7 @@
 
 namespace $resource_ns;
 
-// use Illuminate\Http\Resources\Json\Resource;
 $resource_use
-
 
 class $resource_name $resource_extends
 {
@@ -23,5 +21,5 @@ class $resource_name $resource_extends
 
     $resource_traits_body
     
-#resource_hook_body
+    #resource_hook_body
 }

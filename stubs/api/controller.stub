@@ -148,5 +148,5 @@ class $controller_name $controller_extends
 
     $controller_traits_body
 
-#controller_hook_body
+    #controller_hook_body
 }

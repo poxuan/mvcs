@@ -35,10 +35,11 @@ class $service_name $service_extends
         $page = array_get($filter,'page',1);
         $pageSize = array_get($filter,'pageSize',config('app.pageSize',15));
         $validator_name::select($filter);
-        $model = $model_name::with('creator');
+        // $model = $model_name::with('xxx');
+        $model = $model_name::query();
         // 定义默认查询操作及搜索条件
-        // $model = $model->default();
-        // $model = $this->makeSearch($model,$filter);
+        // $model->default();
+        // $this->makeSearch($model,$filter);
 
         $count = $model->count();
         $offset = ($page - 1)* $pageSize;
@@ -260,5 +261,5 @@ class $service_name $service_extends
 
     $service_traits_body
 
-#service_hook_body
+    #service_hook_body
 }
