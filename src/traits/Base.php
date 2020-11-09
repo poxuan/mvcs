@@ -4,6 +4,8 @@ namespace Callmecsx\Mvcs\Traits;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 /**
  * 尽量使迁移时，只改此文件的配置
@@ -57,7 +59,6 @@ trait Base
         }
 
     }
-
 
     /**
      * 获取含有某字段的表名
@@ -166,6 +167,17 @@ trait Base
     }
 
     /**
+     * 返回模板文件位置
+     *
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    public function getStoragePath($path = '') {
+        return $this->projectPath($path, 'storage');
+    }
+
+    /**
      * 返回迁移文件位置
      *
      * @return string
@@ -196,7 +208,7 @@ trait Base
      * @since
      */
     public function plural(string $name) {
-        return str_plural($name);
+        return Str::plural($name);
     }
 
     /**
@@ -218,15 +230,48 @@ trait Base
 
     /**
      * 获取代码风格配置
+     * 
+     * @param $style 风格
+     * @param $key   键
+     * @param $dafault 默认值
+     * @return mixed
      */
-    public function styleConfig(String $style, String $name = '', $default = null) {
+    public function styleConfig(string $style, String $key = '', $default = null) {
         $bathpath = $this->getStubPath();
         $baseConfig = require $bathpath.DIRECTORY_SEPARATOR.'config.php';
         $spConfig = require $bathpath.DIRECTORY_SEPARATOR.$style.DIRECTORY_SEPARATOR.'config.php';
-        $config = array_merge($spConfig, $baseConfig);
-        if ($name) {
-            return array_get($config, $name, $default);
+        $spConfig['modules'] = array_merge($baseConfig['modules'], $spConfig['modules']);
+        if ($key) {
+            return Arr::get($spConfig, $key, $default);
         }
-        return $config ?: $default;
+        return $spConfig ?: $default;
     }
+
+    /**
+     * 数组剔除字段
+     * 
+     * @param $array
+     * @param $keys
+     * @return array
+     */
+    public function arrayExcept($array, $keys) 
+    {
+        return Arr::except($array,$keys);
+    }
+
+    /**
+     * 获取模板配置
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param string $slug 模板简称
+     * @param string $key 配置项
+     * @param  mixed $default 默认值
+     * @return mixed
+     */
+    public function stubConfig($slug, $key, $default = '')
+    {
+        return $this->styleConfig($this->style, "modules.$slug.$key", $default);
+    }
+
 }

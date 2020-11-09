@@ -44,7 +44,7 @@ class MakeMvcsAllConsole extends Command
      */
     public function handle()
     {
-        if (config('app.env') == 'production') {
+        if (Config::get('app.env') == 'production') {
             die("禁止在线上环境运行!");
         }
         $tables = $this->getTables();

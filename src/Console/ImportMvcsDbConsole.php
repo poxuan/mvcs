@@ -52,7 +52,7 @@ class ImportMvcsDbConsole extends Command
      */
     public function handle()
     {
-        if (config('app.env') == 'production') {
+        if (Config::get('app.env') == 'production') {
             return $this->myinfo('deny');
         }
         $file = $this->argument('file');

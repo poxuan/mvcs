@@ -201,22 +201,6 @@ trait Helper
     }
 
     /**
-     * 获取模板配置
-     *
-     * @author chentengfei <tengfei.chen@atommatrix.com>
-     * @date   2018-08-13 18:13:56
-     * @param string $slug 模板简称
-     * @param string $key 配置项
-     * @param  mixed $default 默认值
-     * @return mixed
-     */
-    public function stubConfig($slug, $key, $default = '')
-    {
-        return $this->config("$slug.$key", $default, "stubs.{$this->style}.") 
-                ?: $this->config("$slug.$key", $default, "stubs.common.");
-    }
-
-    /**
      * 创建文件保存目录
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>

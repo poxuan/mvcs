@@ -21,7 +21,7 @@ return [
                     $lines = [];
                     foreach ($columns as $column) {
                         $field = $column->Field;
-                        if (ends_with($column->Field, '_id')) {
+                        if (substr($column->Field, -3) == '_id') {
                             $field = substr($column->Field, 0, -3);
                         }
                         $lines[] = "'" . $field . "'  => \$this->" . $field;

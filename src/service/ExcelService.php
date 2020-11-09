@@ -5,6 +5,7 @@
 
 namespace Callmecsx\Mvcs\Service;
 
+use Callmecsx\Mvcs\Traits\Base;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -13,10 +14,11 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Callmecsx\Mvcs\Traits\ExcelRules;
 use Callmecsx\Mvcs\Traits\ExcelData;
+use Illuminate\Support\Facades\Storage;
 
 class ExcelService
 {
-    use ExcelRules,ExcelData; //额外规则
+    use ExcelRules,ExcelData,Base; //额外规则
 
     public $error_lines = [];  //错误行错误原因
     public $update_lines = []; //更新行数据
@@ -226,15 +228,15 @@ class ExcelService
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-15 18:18:00
-     * @param \App\Models\BaseModel $model
+     * @param mixed $model
      * @param array $unsetColumn 不可用键
      * @param string $updateKey
      */
-    public function updateByModel(Builder $model, $unsetColumn = [], $updateKey = 'id')
+    public function updateByModel($model, $unsetColumn = [], $updateKey = 'id')
     {
         foreach ($this->update_lines as $key => $item) {
             try {
-                $model->where($updateKey, '=', $item[$updateKey])->update(array_except($item, $unsetColumn));
+                $model->where($updateKey, '=', $item[$updateKey])->update($this->arrayExcept($item, $unsetColumn));
             } catch (\Exception $e) {
                 $this->error_lines[] = '第 ' . $key . ' 行 更新失败';
             }
@@ -327,8 +329,9 @@ class ExcelService
         } else {
             $filename = $name . '.' . strtolower($this->type);
             $writer = IOFactory::createWriter($spreadSheet, $this->type);
-            $writer->save(storage_path('data/' . $filename));
-            return storage_path('data/' . $filename);
+            $fullname = $this->getStoragePath('data/' . $filename);
+            $writer->save($fullname);
+            return $fullname;
         }
     }
 
@@ -375,8 +378,9 @@ class ExcelService
         } else {
             $filename = $name . '.' . strtolower($this->type);
             $writer = IOFactory::createWriter($spreadSheet, $this->type);
-            $writer->save(storage_path('data/' . $filename));
-            return storage_path('data/' . $filename);
+            $fullname = $this->getStoragePath('data/' . $filename);
+            $writer->save($fullname);
+            return $fullname;
         }
     }
 

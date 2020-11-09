@@ -4,6 +4,7 @@ namespace Callmecsx\Mvcs\Console;
 
 use Callmecsx\Mvcs\Service\MvcsService;
 use Callmecsx\Mvcs\Traits\Helper;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -29,10 +30,10 @@ class MakeMvcsConsole extends Command
      */
     public function handle()
     {
-        if (config('app.env', 'local') == 'production') {
+        if (Config::get('app.env', 'local') == 'production') {
             return $this->myinfo('deny', '', 'error');
         }
-        if (config('mvcs.version', '0') < '3.0') {
+        if (Config::get('mvcs.version', '0') < '3.0') {
             return $this->myinfo('version_deny', '3.0', 'error');
         }
         $model = ucfirst($this->lineToHump($this->argument('model')));
