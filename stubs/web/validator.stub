@@ -5,7 +5,7 @@ namespace $validator_ns;
 $validator_use
 use $model_ns\$model_name;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class $validator_name $validator_extends
 {

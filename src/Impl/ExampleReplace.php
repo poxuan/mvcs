@@ -87,7 +87,7 @@ EOF;
 
         $validatorExcelDefault = implode($service->tabs(3), array_map(function ($arr) {
             return str_pad("'{$arr['column']}'", 25) . ' => ' . $arr['default'] . ",\n";
-        }, array_filter($validators, function($item) { return is_null($item['default']);})));
+        }, array_filter($validators, function($item) { return !is_null($item['default']);})));
 
         $result = [
             'validator_create_rule' => trim($validatorCreateRule),

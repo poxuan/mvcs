@@ -102,7 +102,7 @@ class MvcsService
             $this->traits = $this->styleConfig($this->style, 'traits', []);
         }
         if ($force = $configs['force'] ?? '') { // 自定义强制覆盖组
-            $this->force = strtoupper($force);
+            $this->force = $force;
         }
         if (($only = $configs['only'] ?? '') && $only != 'all') { // 自定义生成文件组
             $this->only = strtoupper($only);
@@ -359,7 +359,7 @@ class MvcsService
                 $this->myinfo('stub_not_found', $slug, 'error');
                 continue;
             }
-            $traitContent = $this->getTraitContent($name);
+            $traitContent = $this->getTraitContent($slug);
             $tempContent = file_get_contents($filePath);
             foreach($traitContent as $point => $content) {
                 $tempContent = \str_replace($this->getReplaceName($name.'_traits_' . $point), ltrim($content), $tempContent);

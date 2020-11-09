@@ -10,7 +10,7 @@
     public static function excel(array $data)
     {
         Validator::make($data,[
-            $validator_rule
+            $validator_create_rule
         ],self::$messages)->validate();
     }
 

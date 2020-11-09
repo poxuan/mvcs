@@ -17,7 +17,7 @@ trait Replace
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
-        $stubs = array_keys($this->config('common', [], 'stubs.') + $this->config('' . $this->style, [], 'stubs.'));
+        $stubs = array_keys($this->styleConfig($this->style, 'modules'));
         foreach ($stubs as $slug) {
             $name = $this->stubConfig($slug, 'name');
             $stubVar[$name . '_name'] = $this->getClassName($slug);

@@ -22,7 +22,8 @@ class MakeMvcsConsole extends Command
     // 脚本描述
     protected $description = '根据预定的文件模板创建文件';
 
-    
+    private $language = 'zh-cn';
+
     /**
      * Execute the console command.
      *

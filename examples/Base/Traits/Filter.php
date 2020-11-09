@@ -27,7 +27,7 @@ trait Filter
      *
      * @param Model $model
      * @param array $queries
-     * @return void
+     * @return Model
      * @author chentengfei
      * @since
      */
