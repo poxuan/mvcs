@@ -51,7 +51,7 @@ trait Route
             }
             // 添加trait对应的路由
             foreach ($this->traits as $trait) {
-                $routes = $this->config('traits.' . $trait.'.routes');
+                $routes = $this->styleConfig($this->style, 'traits.' . $trait.'.routes');
                 if ($routes) {
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];

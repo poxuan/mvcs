@@ -72,7 +72,7 @@ class MvcsService
         $this->style         = $this->config('style', 'api');
         $this->tableStyle    = $this->config('table_style', 'single');
         $this->only          = $this->styleConfig($this->style, 'stubs', 'MVCS');
-        $this->traits        = $this->styleConfig($this->style, 'traits', []);
+        $this->traits        = $this->styleConfig($this->style, 'default_traits', []);
         $this->middleware    = $this->config('routes.middlewares');
         $this->language      = $this->config('language', 'zh-cn');
     }
