@@ -143,14 +143,15 @@ trait Base
     }
 
     /**
-     * 获取模板文件位置
+     * 获取扩展文件位置
      *
      * @return string
      * @author chentengfei
      * @since
      */
-    public function getTraitPath() {
-        return $this->projectPath('stubs/traits', 'resource');
+    public function getTraitPath($style = '') {
+        $style = $style ?: $this->style;
+        return $this->getStubPath(). DIRECTORY_SEPARATOR . $style . DIRECTORY_SEPARATOR . 'traits';
     }
 
     /**
@@ -196,5 +197,36 @@ trait Base
      */
     public function plural(string $name) {
         return str_plural($name);
+    }
+
+    /**
+     * 获取表名
+     *
+     * @param $model
+     * @param $style
+     * @return string
+     * @author chentengfei
+     * @since
+     */
+    public function getTableName($model, $style = 'single') {
+        $name = $this->humpToLine($model);
+        if ($style == 'plural') {
+            $name = $this->plural($name);
+        }
+        return $name;
+    }
+
+    /**
+     * 获取代码风格配置
+     */
+    public function styleConfig(String $style, String $name = '', $default = null) {
+        $bathpath = $this->getStubPath();
+        $baseConfig = require $bathpath.DIRECTORY_SEPARATOR.'config.php';
+        $spConfig = require $bathpath.DIRECTORY_SEPARATOR.$style.DIRECTORY_SEPARATOR.'config.php';
+        $config = array_merge($spConfig, $baseConfig);
+        if ($name) {
+            return array_get($config, $name, $default);
+        }
+        return $config ?: $default;
     }
 }

@@ -32,8 +32,8 @@ class MakeMvcsConsole extends Command
         if (config('app.env', 'local') == 'production') {
             return $this->myinfo('deny', '', 'error');
         }
-        if (config('mvcs.version', '0') < '2.0') {
-            return $this->myinfo('version_deny', '2.0', 'error');
+        if (config('mvcs.version', '0') < '3.0') {
+            return $this->myinfo('version_deny', '3.0', 'error');
         }
         $model = ucfirst($this->lineToHump($this->argument('model')));
         if (empty($model)) {

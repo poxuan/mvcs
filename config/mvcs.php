@@ -3,24 +3,13 @@
 return [
     /* 使用前请务必阅读 readme 文件 */
     // 版本信息
-    'version'  => '2.2',
+    'version'  => '3.0',
     // 语言包，目前只有这一个包。
     'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
     'style' => 'api', // 默认风格
-    'style_config' => [ // 风格默认配置
-        'api' => [
-            'desc'   => 'a default api template',
-            'stubs'  => 'MVC', //默认模板
-            'traits' => ['toggle',], //默认扩展
-        ],
-        'web' => [
-            'desc'   => 'a default web template (not yet complate)',
-            'stubs'  => 'MVCIF',
-            'traits' => [],
-        ]
-    ],
+    'table_style' => 'single', // 表名风格， 只支持plural 和 single
     // 模板全局替换参数
     'global_replace' => [
         'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),

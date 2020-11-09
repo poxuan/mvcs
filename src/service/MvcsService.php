@@ -39,6 +39,7 @@ class MvcsService
 
     // 风格
     public $style = 'api';
+    public $tableStyle = 'single';
     // 中间件
     public $middleware = [];
 
@@ -69,8 +70,9 @@ class MvcsService
     {
         $this->ignoreColumns = $this->config('ignore_columns') ?: [];
         $this->style         = $this->config('style', 'api');
-        $this->only          = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
-        $this->traits        = $this->config('style_config.'.$this->style.'.traits', []);
+        $this->tableStyle    = $this->config('table_style', 'single');
+        $this->only          = $this->styleConfig($this->style, 'stubs', 'MVCS');
+        $this->traits        = $this->styleConfig($this->style, 'traits', []);
         $this->middleware    = $this->config('routes.middlewares');
         $this->language      = $this->config('language', 'zh-cn');
     }
@@ -96,8 +98,8 @@ class MvcsService
         }
         if ($style = $configs['style'] ?? '') { // 选用非默认文件风格
             $this->style = $style;
-            $this->only = $this->config('style_config.'.$this->style.'.stubs', 'MVCS');
-            $this->traits = $this->config('style_config.'.$this->style.'.traits', []);
+            $this->only = $this->styleConfig($this->style, 'stubs', 'MVCS');
+            $this->traits = $this->styleConfig($this->style, 'traits', []);
         }
         if ($force = $configs['force'] ?? '') { // 自定义强制覆盖组
             $this->force = strtoupper($force);
@@ -119,9 +121,9 @@ class MvcsService
         }
         $this->model = $model;
         // 完整表名
-        $this->tableF = $this->getDatabasePrifix() . $this->humpToLine($model);
+        $this->tableF = $this->getDatabasePrifix() . $this->getTableName($model, $this->tableStyle);
         // 表名
-        $this->table = $this->humpToLine($model);
+        $this->table = $this->getTableName($model, $this->tableStyle);
         // 生成文件组
         $this->writeMVCS();
 

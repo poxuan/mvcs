@@ -1,0 +1,84 @@
+@@head
+use Callmecsx\Mvcs\Service\ExcelService;
+@@body
+    /**
+     * 导入数据
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function import(Request $request)
+    {
+        $file = $request->file('file');
+        if (empty($file)) {
+            return $this->error(40008, '文件未上传');
+        }
+        $mimeType = $file->getClientMimeType();
+        if ($mimeType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+            $type = 'Xlsx';
+        } elseif ($mimeType == 'application/vnd.ms-excel') {
+            $type = 'Xls';
+        } else {
+            return $this->error(40009, '请上传 xls 或 xlsx 文件,不支持的文件类型:'.$mimeType);
+        }
+        // 是否覆盖
+        $cover = $request->post('cover', 0) ? true : false;
+        // 本地临时存储
+        $filePath = $file->getRealPath('$table_name-' . time());
+        $excelService = new ExcelService($type);
+        $result = 0;
+        do {
+            $data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
+            if ($data) {
+                // 额外规则,如:sku字段需要unique
+                // $excelService->ruleUnique($data, 'sku', $model_name::class);
+                // 过滤字段
+                $unsetColumn = [];
+                // 批量导入数据库,成功一次就认为导入成功!
+                $excelService->insertToTable($data,$validator_name::excelDefault(), '$table_name', $unsetColumn) && $result++;
+                if ($cover) {
+                    $excelService->updateByModel($model_name::default(), $unsetColumn) && $result++; // 加default 防止跨角色更新
+                } else {
+                    // 将需要更新行设为失败状态
+                    $excelService->failUpdateLines();
+                }
+                // 是否还要导入其他数据
+            }
+        } while ($excelService->hasMore());
+        @unlink($filePath);
+        return $this->success($excelService->error_lines);
+    }
+
+    /**
+     * 获取模板
+     *
+     * @author $author_info
+     * @since  $sub_version
+     */
+    public function template()
+    {
+        $excelService = new ExcelService();
+        $excelService->template('$table_name - temp', $validator_name::excelColumn());
+    }
+
+    /**
+     * 导出数据
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  $request_name  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function export(Request $request)
+    {
+        $params = $request->input() ?: [];
+        $validator_name::list($params);
+        $data = $this->filter($model_name::query(), $params)->get()->toArray();
+        //todo datafix
+        $excelService = new ExcelService();
+        $excelService->export('$table_name-' . time(), $data, $validator_name::excelColumn());
+
+    }
+

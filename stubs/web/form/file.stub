@@ -1,0 +1,2 @@
+@@form
+<input class="form-file $field_class" type="file" name="$field_name" placeholder="请输入$field_comment">

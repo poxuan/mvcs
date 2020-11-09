@@ -1,0 +1,13 @@
+@include('xxx')
+
+<!--form_hook_head-->
+<form class="form" action="$form_action" >
+   $form_htmls
+   <input class="form-submit" type="submit" value="提交">
+</form>
+
+<!--form_hook_foot-->
+<script>
+$form_js
+<!--form_hook_js-->
+</script>

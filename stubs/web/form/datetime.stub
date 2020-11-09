@@ -1,0 +1,2 @@
+@@form
+<input class="form-datetime $field_class" type="text" name="$field_name" placeholder="请输入$field_comment">

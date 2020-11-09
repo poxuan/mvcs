@@ -1,0 +1,17 @@
+@@body
+    /**
+     * 批处理验证规则
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  int $id 
+     * @return void
+     */
+    public static function batch($data)
+    {
+        $message = ['ids.required' => '批量处理ID必填','ids.array' => '批量处理ID必须是数组'];
+        Validator::make($data,[
+            'ids' => 'required|array',
+        ],$message)->validate();
+    }
+

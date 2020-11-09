@@ -1,0 +1,2 @@
+@@form
+<input class="form-checkbox $field_class" type="checkbox" name="$field_name" placeholder="请输入$field_comment">

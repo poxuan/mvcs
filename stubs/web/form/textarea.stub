@@ -1,0 +1,2 @@
+@@form
+<textarea class="form-textarea $field_class" name="$field_name" placeholder="请输入$field_comment">$field_value</textarea>

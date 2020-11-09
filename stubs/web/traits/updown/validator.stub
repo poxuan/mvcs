@@ -1,0 +1,14 @@
+@@body
+    /**
+     * 启用/停用验证规则
+     *
+     * @author $author_info
+     * @since  $sub_version
+     * @param  int $id 
+     * @return void
+     */
+    public static function upDown($id)
+    {
+        $models = $model_name::findOrFail($id);
+    }
+
