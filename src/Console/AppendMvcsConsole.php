@@ -22,6 +22,7 @@ class AppendMvcsConsole extends Command
     // 脚本描述
     protected $description = '扩展模板代码';
 
+    private $language = 'zh-cn';
     /**
      * Execute the console command.
      *

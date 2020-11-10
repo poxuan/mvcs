@@ -67,23 +67,22 @@ trait Base
      * @date   2018-08-13 18:16:11
      * @return array
      */
-    public function getTableByColumn($column)
+    public function getTableByColumn($column, $connect = 'default')
     {
         try {
-            $this->connect = $this->connect ?: DB::getDefaultConnection();
-            $connect = $this->config('connections.' . $this->connect, '', 'database.');
-            DB::setDefaultConnection($this->connect);
-            switch ($connect['driver']) { //
+            $config = $this->config('connections.' . $connect, '', 'database.');
+            DB::setDefaultConnection($connect);
+            switch ($config['driver']) { //
                 case 'mysql':
                     return DB::select('select table_name as TableName from INFORMATION_SCHEMA.COLUMNS where COLUMN_NAME = :column and TABLE_SCHEMA = :schema',
-                        [':column' => $column, ':schema' => $connect['database']]);
+                        [':column' => $column, ':schema' => $config['database']]);
                 default:
-                    $this->myinfo('db_not_support', $connect['driver']);
+                    $this->myinfo('db_not_support', $config['driver']);
                     return [];
             }
 
         } catch (\Exception $e) {
-            $this->myinfo('db_disabled', $this->connect);
+            $this->myinfo('db_disabled', $connect);
             $this->myinfo('message', $e->getMessage(), 'error');
             return [];
         }

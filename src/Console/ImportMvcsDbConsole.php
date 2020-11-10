@@ -36,6 +36,8 @@ class ImportMvcsDbConsole extends Command
     // 当前表名
     protected $table;
 
+    private $language = 'zh-cn';
+    
     /**
      * Create a new command instance.
      *

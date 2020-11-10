@@ -4,8 +4,12 @@ namespace Callmecsx\Mvcs\Impl;
 
 use Callmecsx\Mvcs\Interfaces\Replace;
 use Callmecsx\Mvcs\Service\MvcsService;
+use Callmecsx\Mvcs\Traits\Base;
+use Callmecsx\Mvcs\Traits\Helper;
 
 class ExampleReplace implements Replace {
+
+    use Base,Helper;
 
     public $hasMany = <<<'EOF'
 
@@ -43,11 +47,9 @@ EOF;
         $relaies = $this->getTableRelaies($tableColumns, $service);
         $columns = [];
         
-        
-
         foreach ($tableColumns as $column) {
             if (!in_array($column->Field, $service->ignoreColumns)) {
-                $columns[] = $service->surround($column->Field);
+                $columns[] = $this->surround($column->Field);
                 $validators[] = $this->getColumnInfo($column, $service);
             }
         }
@@ -128,11 +130,11 @@ EOF;
                 if ($column->Default == 'CURRENT_TIMESTAMP') {
                     $info['default'] = "Db::raw('CURRENT_TIMESTAMP')";
                 } else {
-                    $info['default'] = $service->surround(str_replace("'","\\'", $column->Default));
+                    $info['default'] = $this->surround(str_replace("'","\\'", $column->Default));
                 }
             } elseif (preg_match('/int/', $column->Type)) {
                 $info['default'] = 0;
-            } elseif ($service->startsWith($column->Type, 'date') || $service->startsWith($column->Type, 'time')) {
+            } elseif ($this->startsWith($column->Type, 'date') || $this->startsWith($column->Type, 'time')) {
                 $info['default'] = "date('Y-m-d H:i:s')";
             }
         }
@@ -166,9 +168,9 @@ EOF;
         /**
          * 如果字段以 _id 结尾，认为是外键
          */
-        if ($service->endsWith($column->Field, '_id')) {
+        if ($this->endsWith($column->Field, '_id')) {
             $otherTable = str_replace('_id', '', $column->Field);
-            $otherModel = $service->lineToHump($otherTable);
+            $otherModel = $this->lineToHump($otherTable);
             $info['relate'] = '\\' . $service->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
             $info['rule'][] = 'exists:' . $otherTable . ',id';
             $info['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
@@ -180,23 +182,23 @@ EOF;
     {
         $relaies = [];
         // 以键名查找外联表
-        $foreignKey = $service->humpToLine($service->model)."_id";
-        $foreignTables = $service->getTableByColumn($foreignKey);
-        $prefix = $service->getDatabasePrifix();
+        $foreignKey = $this->humpToLine($service->model)."_id";
+        $foreignTables = $this->getTableByColumn($foreignKey, $service->connect);
+        $prefix = $this->getDatabasePrifix();
         foreach($foreignTables as $foreignTable) {
             $tableName = $foreignTable->TableName;
-            if ($prefix && $service->startsWith($tableName, $prefix)) {
+            if ($prefix && $this->startsWith($tableName, $prefix)) {
                 $tableName = substr($tableName, strlen($prefix));
             }
-            $foreignModel = $service->lineToHump($tableName);
+            $foreignModel = $this->lineToHump($tableName);
             $fullForeignModel = $service->getNameSpace('M') . '\\' . ucfirst($foreignModel);
             // 转换为复数形式
-            $funcName = $service->plural($tableName); 
+            $funcName = $this->plural($tableName); 
             $relaies[$funcName] = sprintf($this->hasMany, $funcName, $fullForeignModel);
         }
         // 
         foreach($columns as $column) {
-            if ($service->endsWith($column->Field, '_id')) {
+            if ($this->endsWith($column->Field, '_id')) {
                 $otherTable = str_replace('_id', '', $column->Field);
                 $otherModel = $otherTable;
                 $fullOtherModel = $service->getNameSpace('M') . '\\' . ucfirst($otherModel);
@@ -205,6 +207,5 @@ EOF;
         }
         return array_values($relaies);
     }
-
 }
 
