@@ -54,7 +54,7 @@ EOF;
             }
         }
         
-        $validatorCreateRule = implode($service->tabs(3), array_map(function ($arr) {
+        $validatorCreateRule = implode($this->tabs(3), array_map(function ($arr) {
             $rule = str_pad("'{$arr['column']}'", 25) . " => '" . implode('|', $arr['rule']) . "',";
             return str_pad($rule, 80) . '    //' . $arr['comment']."\n"; // 补充注释
         }, $validators));
@@ -66,13 +66,13 @@ EOF;
             $messages = '';
             if ($arr['messages'] ?? []) {
                 foreach ($arr['messages'] as $key => $message) {
-                    $messages .= str_pad($service->tabs(2) . "'$key'", 28) . " => '$message',\n";
+                    $messages .= str_pad($this->tabs(2) . "'$key'", 28) . " => '$message',\n";
                 }
             }
             return $messages;
         }, $validators));
 
-        $validatorExcel = implode($service->tabs(3), array_map(function ($arr) {
+        $validatorExcel = implode($this->tabs(3), array_map(function ($arr) {
             $nullable = $arr['nullable'] ? '选填' : '必填';
             $rules = [
                 "'{$arr['comment']}#{$nullable}'",
@@ -87,7 +87,7 @@ EOF;
             return str_pad("'{$arr['column']}'", 25) . ' => [' . implode(', ', $rules) . "],\n";
         }, $validators));
 
-        $validatorExcelDefault = implode($service->tabs(3), array_map(function ($arr) {
+        $validatorExcelDefault = implode($this->tabs(3), array_map(function ($arr) {
             return str_pad("'{$arr['column']}'", 25) . ' => ' . $arr['default'] . ",\n";
         }, array_filter($validators, function($item) { return !is_null($item['default']);})));
 
@@ -156,21 +156,24 @@ EOF;
             $info['rule'][] = 'date';
             $info['example'] = date('Y-m-d');
         } elseif (preg_match('/enum/', $column->Type, $match)) {
-            $enum = str_replace(['enum', '(', ')', ' ', "'"], '', $column->Type);
+            $enum = substr($column->Type, 5, -1);
+            $str  = str_replace([' ','"',"'"], '', $enum);
             $enum = explode(',', $enum);
             $enum = array_map(function($item) {
-                return "'$item' => '$item'";
+                return "$item => $item";
             },$enum);
             $info['enum'] = "[ ".implode(',', $enum)." ]";
-            $info['rule'][] = 'in:' . $info['enum'];
-            $info['example'] = date('Y-m-d');
+            $info['rule'][] = 'in:' . $str;
+            $info['example'] = explode(",", $str)[0];
         }
         /**
          * 如果字段以 _id 结尾，认为是外键
+         * if a column like xxx_id, regard as foreign key of xxx model
          */
         if ($this->endsWith($column->Field, '_id')) {
             $otherTable = str_replace('_id', '', $column->Field);
             $otherModel = $this->lineToHump($otherTable);
+            $otherTable = $this->getTableName($otherTable, $this->config('table_style', 'single'));
             $info['relate'] = '\\' . $service->getNameSpace('M') . '\\' . ucfirst($otherModel).'::class';
             $info['rule'][] = 'exists:' . $otherTable . ',id';
             $info['messages'][$column->Field . '.exists'] = $otherTable . ' 不存在';
@@ -200,7 +203,7 @@ EOF;
         foreach($columns as $column) {
             if ($this->endsWith($column->Field, '_id')) {
                 $otherTable = str_replace('_id', '', $column->Field);
-                $otherModel = $otherTable;
+                $otherModel = $this->lineToHump($otherTable);
                 $fullOtherModel = $service->getNameSpace('M') . '\\' . ucfirst($otherModel);
                 $relaies[$otherModel] = sprintf($this->belongsTo, $otherTable, $fullOtherModel);
             }

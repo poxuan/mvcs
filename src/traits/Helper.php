@@ -34,7 +34,7 @@ trait Helper
      * @param integer $count
      * @param string $pre
      * @param string $post
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -53,7 +53,7 @@ trait Helper
      * @param integer $count
      * @param string $pre
      * @param string $post
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -100,7 +100,7 @@ trait Helper
      * 文件保存地址
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -113,7 +113,7 @@ trait Helper
      * 文件存储目录
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -130,7 +130,7 @@ trait Helper
      * 获取类名
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -143,7 +143,7 @@ trait Helper
      * 获取类后缀
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -156,7 +156,7 @@ trait Helper
      * 获取类名字空间
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -169,7 +169,7 @@ trait Helper
      * 获取类的基类use
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -187,7 +187,7 @@ trait Helper
      * 获取 extends
      *
      * @param [type] $slug
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -227,7 +227,7 @@ trait Helper
      *
      * @param [type] $slug
      * @param [type] $point
-     * @return void
+     * @return string
      * @author chentengfei
      * @sinced
      */
@@ -260,7 +260,7 @@ trait Helper
      * 获取替换名
      *
      * @param [type] $name
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -274,7 +274,7 @@ trait Helper
      * 获取替换规则
      *
      * @param [type] $name
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
