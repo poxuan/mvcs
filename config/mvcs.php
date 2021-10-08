@@ -3,7 +3,7 @@
 return [
     /* 使用前请务必阅读 readme 文件 */
     // 版本信息
-    'version'  => '3.0',
+    'version'  => '3.1',
     // 语言包，目前只有这一个包。
     'language' => 'zh-cn',
     /* 模板相关配置 */
@@ -13,19 +13,19 @@ return [
     // 模板全局替换参数
     'global_replace' => [
         'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
-        'main_version' => '1.0',
-        'sub_version'  => '1.0.' . date('ymd'),
+        'main_version' => '1.0', 
+        'sub_version'  => '1.0.' . date('ymd'), 
         'create_date'  => date('Y-m-d H:i:s')
     ],
     // 替换类, 须实现替换类
     'replace_classes' => [
         Callmecsx\Mvcs\Impl\ExampleReplace::class,
     ],
-    // 替换参数前缀标识
-    'replace_fix' => '$',
+    // 替换参数标识
+    'replace_fix' => '$[ ]',
     // 扩展模式下扩展名的前后缀，可以没有后缀，可在style中自定义
-    'hook_fix' => '#',
-    // 标签功能配置
+    'hook_fix' => '#[ ]',
+    // 标签功能标志
     'tags_fix' => '{ }',//单空格分割前后缀
     'tags' => [
         // 支持不同标签嵌套，同名嵌套会报错
@@ -82,7 +82,7 @@ return [
         'middlewares' => [],
         // 公共路由前缀
         'prefix' => '',
-        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 test
+        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 Test
         'namespace' => '',
     ],
 
@@ -121,7 +121,7 @@ return [
             "文章" => "text",
             "内容" => "text",
             "时间" => "datetime",
-            "日期" => "datetime",
+            "日期" => "date",
         ]
     ],
 ];

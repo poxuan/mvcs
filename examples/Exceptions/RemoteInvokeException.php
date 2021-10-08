@@ -9,7 +9,7 @@ use Exception;
  * Class RemoteInvokeException
  * @package App\Exceptions
  */
-class RemoteInvokeException extends Exception
+class RemoteInvokeException extends CustomException
 {
     //
     protected $code = 50031;

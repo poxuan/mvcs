@@ -66,7 +66,7 @@ class Handler extends ExceptionHandler
         $errcode = intval($exception->getCode()) ?: Code::FATAL_ERROR;
         $errmsg  = $exception->getMessage() ?: Code::defaultMsg($errcode);
         // 自定义异常
-        if($exception instanceof CustomException || $exception instanceof RemoteInvokeException) {
+        if($exception instanceof CustomException) {
             return responseErr($errcode, $errmsg,false,$request->all());
         }
         // 不明异常,记入日志

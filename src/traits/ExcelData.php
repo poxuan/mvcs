@@ -168,7 +168,7 @@ trait ExcelData
         }
         foreach ($data as & $item) {
             $item = array_merge($defaultColumn, $item, $baseColumns);
-            $item = array_except($item, $unsetColumn);
+            $item = $this->arrayExcept($item, $unsetColumn);
         }
         return DB::table($table)->insert($data);
     }

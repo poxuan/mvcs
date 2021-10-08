@@ -11,8 +11,8 @@ trait Tag
     /**
      * 替换所有标签
      *
-     * @param [type] $stub
-     * @param [type] $tags
+     * @param string $stub
+     * @param array $tags
      * @return void
      * @author chentengfei
      * @since
@@ -32,8 +32,8 @@ trait Tag
     /**
      * 标签栈
      *
-     * @param [type] $stub
-     * @param [type] $tag
+     * @param string $stub
+     * @param string $tag
      * @return array
      * @author chentengfei
      * @since
@@ -70,9 +70,9 @@ trait Tag
     /**
      * 替换一个标签
      *
-     * @param [type] $stub
-     * @param [type] $tag
-     * @param [type] $value
+     * @param string $stub
+     * @param string $tag
+     * @param string $value
      * @return void
      * @author chentengfei
      * @since

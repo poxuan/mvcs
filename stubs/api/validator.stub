@@ -1,37 +1,37 @@
 <?php
 
-namespace $validator_ns;
+namespace $[validator_ns];
 
-$validator_use
-use $model_ns\$model_name;
+$[validator_use]
+use $[model_ns]\$[model_name];
 use Illuminate\Support\Facades\Validator;
 
-class $validator_name $validator_extends
+class $[validator_name] $[validator_extends]
 {
 
     protected static $messages = [
-        $validator_message
+        $[validator_message]
     ];
 
     /**
      * 添加验证规则
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array $data 验证字段
      * @return void
      */
     public static function store($data)
     {
         Validator::make($data,[
-            $validator_create_rule
+            $[validator_create_rule]
         ],self::$messages)->validate();
     }
     /**
      * 更新验证规则
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array $data 验证数据
      * @param  int   $id 要更新的行
      * @return void
@@ -39,16 +39,16 @@ class $validator_name $validator_extends
     public static function update($data,$id)
     {
         Validator::make($data,[
-            $validator_update_rule
+            $[validator_update_rule]
         ],self::$messages)->validate();
-        $model = $model_name::findOrFail($id);
+        $model = $[model_name]::findOrFail($id);
         {usercheck:author}
         if ($model->author_id != user()->id) {
-            throw new \Exception('',40300);
+            throw new \Exception('无权操作',40300);
         }
         {usercheck}
         if ($model->user_id != user()->id) {
-            throw new \Exception('',40300);
+            throw new \Exception('无权操作',40300);
         }
         {/usercheck}
     }
@@ -56,21 +56,21 @@ class $validator_name $validator_extends
     /**
      * 删除验证规则
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  int $id 要删除的行
      * @return void
      */
     public static function destroy($id)
     {
-        $model = $model_name::findOrFail($id);
+        $model = $[model_name]::findOrFail($id);
         {usercheck:author}
         if ($model->author_id != user()->id) {
-            throw new \Exception('',40300);
+            throw new \Exception('无权操作',40300);
         }
         {usercheck}
         if ($model->user_id != user()->id) {
-            throw new \Exception('',40300);
+            throw new \Exception('无权操作',40300);
         }
         {/usercheck}
     }
@@ -78,8 +78,8 @@ class $validator_name $validator_extends
     /**
      * 筛选验证规则
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array $filter 要筛选字段
      * @return void
      */
@@ -90,7 +90,7 @@ class $validator_name $validator_extends
        ])->validate();
     }
 
-    $validator_traits_body
+    $[validator_traits_body]
 
-    #validator_hook_body
+    #[validator_hook_body]
 }

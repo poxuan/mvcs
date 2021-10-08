@@ -30,7 +30,7 @@ EOF;
     /**
      * 获取替换数据数组
      */
-    public function getReplaceData(array $tableColumns, MvcsService $service) : array
+    public function getReplaceArr(array $tableColumns, MvcsService $service) : array
     {
         if (empty($tableColumns)) {
             return [

@@ -67,8 +67,8 @@ trait Helper
     /**
      * 国际化的提示信息
      *
-     * @param [type] $info
-     * @param array $param
+     * @param string $sign
+     * @param string $param
      * @param string $type
      * @return void
      * @author chentengfei
@@ -99,7 +99,7 @@ trait Helper
     /**
      * 文件保存地址
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -112,7 +112,7 @@ trait Helper
     /**
      * 文件存储目录
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -129,7 +129,7 @@ trait Helper
      /**
      * 获取类名
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -142,7 +142,7 @@ trait Helper
     /**
      * 获取类后缀
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -155,7 +155,7 @@ trait Helper
     /**
      * 获取类名字空间
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -168,7 +168,7 @@ trait Helper
     /**
      * 获取类的基类use
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -186,7 +186,7 @@ trait Helper
     /**
      * 获取 extends
      *
-     * @param [type] $slug
+     * @param string $slug
      * @return string
      * @author chentengfei
      * @since
@@ -225,8 +225,8 @@ trait Helper
     /**
      * 获取扩展钩子名
      *
-     * @param [type] $slug
-     * @param [type] $point
+     * @param string $slug
+     * @param string $point
      * @return string
      * @author chentengfei
      * @sinced
@@ -259,7 +259,7 @@ trait Helper
     /**
      * 获取替换名
      *
-     * @param [type] $name
+     * @param string $name
      * @return string
      * @author chentengfei
      * @since
@@ -273,7 +273,7 @@ trait Helper
     /**
      * 获取替换规则
      *
-     * @param [type] $name
+     * @param string $name
      * @return string
      * @author chentengfei
      * @since
@@ -300,4 +300,46 @@ trait Helper
         return strtolower($substr) == strtolower($needle); 
     }
     
+    /**
+     * 数组剔除字段
+     * 
+     * @param array $array
+     * @param array $keys
+     * @return array
+     */
+    public function arrayExcept($array, $keys) 
+    {
+        foreach($keys as $column) {
+            unset($array[$column]);
+        }
+        return $array;
+    }
+
+    /**
+     * 数组剔除字段
+     * 
+     * @param array $array
+     * @param array $keys
+     * @return array
+     */
+    public function arrayGet($array, $key = null, $default= null) 
+    {
+        if (is_null($key)) {
+            return $array;
+        }
+        if (isset($array[$key])) {
+            return $array[$key];
+        }
+        if (strpos($key, '.') === false) {
+            return $array[$key] ?? $default;
+        }
+        foreach (explode('.', $key) as $segment) {
+            if (is_array($array) && isset($array[$segment])) {
+                $array = $array[$segment];
+            } else {
+                return $default;
+            }
+        }
+        return $array;
+    }
 }

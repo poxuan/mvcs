@@ -2,15 +2,15 @@
     /**
      * Change the data status up.
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function up(Request $request, $id)
     {
-        $result = $model_name::whereIn('id', $id)->up(['status' => 1]);
+        $result = $[model_name]::whereIn('id', $id)->up(['status' => 1]);
         $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
         return response()->json($ret);
     }
@@ -18,15 +18,15 @@
     /**
      * Change the data status down.
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function down(Request $request, $id)
     {
-        $result = $model_name::where('id', $id)->up(['status' => 0]);
+        $result = $[model_name]::where('id', $id)->up(['status' => 0]);
         $ret = $result ? ['code' => 0, 'message' => ''] : ['code' => 400, 'message' => ''];
         return response()->json($ret);
     }

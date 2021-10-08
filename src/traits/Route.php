@@ -51,7 +51,7 @@ trait Route
             }
             // 添加trait对应的路由
             foreach ($this->traits as $trait) {
-                $routes = $this->styleConfig($this->style, 'traits.' . $trait.'.routes');
+                $routes = $this->traitConfig($this->style, $trait, 'routes');
                 if ($routes) {
                     foreach ($method as $met) {
                         $rs = $routes[$met] ?? [];
@@ -64,6 +64,7 @@ trait Route
                     }
                 }
             }
+            // Resource 放最后
             if (!strpos($routefile, "source('{$this->table}'")) {
                 if ($this->config('routes.apiResource')) {
                     $routeStr .= "    Route::apiResource('{$this->table}','{$controller}');\n";

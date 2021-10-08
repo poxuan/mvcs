@@ -32,31 +32,29 @@ trait Replace
         }
         $globalReplace = $this->config('global_replace', []);
         foreach($globalReplace as $key => $val) {
-            if ($val instanceof \Closure) {
-                $stubVar[$key] = $val($this->model, $this->tableColumns, $this);
-            } elseif(is_string($val)) {
-                $stubVar[$key] = $val;
-            } else {
-                $stubVar[$key] = strval($val);
-            }
+            $stubVar[$key] = $this->getReplaceVal($val);
         }
         foreach ($this->traits as $trait) {
             $item = $this->config('tags.'.$trait);
             if ($rep = $item['replace'] ?? '') {
                 foreach($rep as $key => $val) {
-                    if ($val instanceof \Closure) {
-                        $stubVar[$key] = $val($this->model, $this->tableColumns, $this);
-                    } elseif(is_string($val)) {
-                        $stubVar[$key] = $val;
-                    } else {
-                        $stubVar[$key] = strval($val);
-                    }
+                    $stubVar[$key] = $this->getReplaceVal($val);
                 }
             }
         }
         // 根据数据库字段生成一些模板数据。
         $stubVar2 = $this->getBuiltInData($this->tableColumns);
         return array_merge($stubVar2, $stubVar);
+    }
+
+    public function getReplaceVal($val) {
+        if ($val instanceof \Closure) {
+            return $val($this->model, $this->tableColumns, $this);
+        } elseif(is_string($val)) {
+            return $val;
+        } else {
+            return strval($val);
+        }
     }
 
     /**

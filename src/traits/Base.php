@@ -4,7 +4,6 @@ namespace Callmecsx\Mvcs\Traits;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 /**
@@ -241,21 +240,32 @@ trait Base
         $spConfig = require $bathpath.DIRECTORY_SEPARATOR.$style.DIRECTORY_SEPARATOR.'config.php';
         $spConfig['modules'] = array_merge($baseConfig['modules'], $spConfig['modules']);
         if ($key) {
-            return Arr::get($spConfig, $key, $default);
+            return $this->arrayGet($spConfig, $key, $default);
         }
         return $spConfig ?: $default;
     }
 
     /**
-     * 数组剔除字段
+     * 获取代码风格配置
      * 
-     * @param $array
-     * @param $keys
-     * @return array
+     * @param $style 风格
+     * @param $key   键
+     * @param $dafault 默认值
+     * @return mixed
      */
-    public function arrayExcept($array, $keys) 
-    {
-        return Arr::except($array,$keys);
+    public function traitConfig(string $style, string $name, String $key = '', $default = null) {
+        $bathpath = $this->getStubPath($style);
+        $ds = DIRECTORY_SEPARATOR;
+        $styleConfig = require $bathpath.$ds.'config.php';
+        if(in_array($name, $styleConfig['traits'])) {
+            $traitConfig = require $bathpath.$ds.'traits'.$ds.$name.$ds.'config.php';
+            if ($key) {
+                return $this->arrayGet($traitConfig, $key, $default);
+            }
+            return $traitConfig ?? $default;
+        }
+        
+        return $default;
     }
 
     /**

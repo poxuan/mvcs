@@ -1,13 +1,13 @@
 <?php
 
-namespace $service_ns;
+namespace $[service_ns];
 
-$service_use
-use $model_ns\$model_name;
-$validator_annouse $validator_ns\$validator_name;
+$[service_use]
+use $[model_ns]\$[model_name];
+$[validator_annouse] $[validator_ns]\$[validator_name];
 use Callmecsx\Mvcs\Service\ExcelService;
 
-class $service_name $service_extends
+class $[service_name] $[service_extends]
 {
     // 返回数据
     private $response = [
@@ -16,15 +16,15 @@ class $service_name $service_extends
     ];
     // 可用的查询规则,在基类中构造查询
     protected $searchRule = [
-        '$table_name_name'   => 'like',
-        '$table_name_status' => 'eq',
+        '$[table_name]_name'   => 'like',
+        '$[table_name]_status' => 'eq',
     ];
 
     /**
      *  获取显示列表
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array $filter
      * @param  int   $page
      * @param  int   $limit
@@ -34,12 +34,11 @@ class $service_name $service_extends
     {
         $page = array_get($filter,'page',1);
         $pageSize = array_get($filter,'pageSize',config('app.pageSize',15));
-        $validator_name::select($filter);
-        // $model = $model_name::with('xxx');
-        $model = $model_name::query();
+        $[validator_name]::select($filter);
+        $model = $[model_name]::query();
         // 定义默认查询操作及搜索条件
         // $model->default();
-        // $this->makeSearch($model,$filter);
+        $this->makeSearch($model,$filter);
 
         $count = $model->count();
         $offset = ($page - 1)* $pageSize;
@@ -62,20 +61,20 @@ class $service_name $service_extends
     /**
      *  创建新数据
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param $post
      * @return array
      */
     public function store(array $post)
     {
         $this->postClear($post);
-        $validator_name::store($post);
+        $[validator_name]::store($post);
         // 设置全局属性
         // $post['org_id'] = defined('CURRENT_ORG_ID') ? CURRENT_ORG_ID : 0;
         // $post['created_by'] = session('user_id') ?: 0;
 
-        $result = $model_name::create($post);
+        $result = $[model_name]::create($post);
         if ($result) {
             // $this->response['data'] = $result->toArray();
             $this->response['message'] = '添加成功!';
@@ -89,8 +88,8 @@ class $service_name $service_extends
     /**
      *  更新一条记录
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param array $post
      * @param int   $id
      * @return array
@@ -98,8 +97,8 @@ class $service_name $service_extends
     public function update(array $post,int $id)
     {
         $this->postClear($post);
-        $validator_name::update($post,$id);
-        $result = $model_name::where('id','=',$id)->update($post);
+        $[validator_name]::update($post,$id);
+        $result = $[model_name]::where('id','=',$id)->update($post);
         if ($result) {
             $this->response['data'] = [];
             $this->response['message'] = '更新成功!';
@@ -113,14 +112,14 @@ class $service_name $service_extends
     /**
      *  获取一条记录详情
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  int  $id
      * @return array
      */
     public function show(int $id)
     {
-        $result = $model_name::find($id);
+        $result = $[model_name]::find($id);
         if ($result) {
             $data = $result->toArray();
             //todo 其他数据获取及格式转换
@@ -137,15 +136,15 @@ class $service_name $service_extends
     /**
      *  删除一条或多条数据
      *
-     * @author
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  int|array  $id
      * @return array
      */
     public function destroy($id)
     {
-        $validator_name::destroy($id);
-        $result = $model_name::destroy($id);
+        $[validator_name]::destroy($id);
+        $result = $[model_name]::destroy($id);
         $this->response['message'] = '删除成功!';
         if (!$result) {
             $this->response['code']    = -1;
@@ -157,18 +156,18 @@ class $service_name $service_extends
     /**
      *  启用(或审批)一条或多条数据
      *
-     * @author
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array  $ids
      * @return array
      */
     public function up(array $ids, $status = 1)
     {
-        $validator_name::upDown($ids);
+        $[validator_name]::upDown($ids);
         $data['status'] = $status;
         // todo 添加其他更新信息
 
-        $result = $model_name::whereIn('id', $ids)->update($data);
+        $result = $[model_name]::whereIn('id', $ids)->update($data);
         $this->response['message'] = '更新成功!';
         if (!$result) {
             $this->response['code']    = -1;
@@ -180,18 +179,18 @@ class $service_name $service_extends
     /**
      *  停用一条或多条数据
      *
-     * @author
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array  $ids
      * @return array
      */
     public function down(array $ids, int $status = 0)
     {
-        $validator_name::upDown($ids);
+        $[validator_name]::upDown($ids);
         $data['status'] = $status;
         // todo 添加其他更新信息
 
-        $result = $model_name::whereIn('id', $ids)->update($data);
+        $result = $[model_name]::whereIn('id', $ids)->update($data);
         $this->response['message'] = '更新成功!';
         if (!$result) {
             $this->response['code']    = -1;
@@ -203,7 +202,7 @@ class $service_name $service_extends
     /**
      * 导入数据
      *
-     * @author $author_info
+     * @author $[author_info]
      * @since  2018-08-07 15:55:54
      * @param string $file_path 文件名
      * @param string $type 文件类型
@@ -216,7 +215,7 @@ class $service_name $service_extends
         $excelService = new ExcelService($type);
         $result = false;
         do {
-            $validator_anno$data = $excelService->importData($filePath, $validator_name::excelColumn(), $validator_name::class);
+            $[validator_anno]$data = $excelService->importData($filePath, $[validator_name]::excelColumn(), $[validator_name]::class);
             if ($data) {
                 // 额外规则,如:sku字段需要unique
                 // $excelService->ruleUnique($data, 'sku');
@@ -226,9 +225,9 @@ class $service_name $service_extends
                 // 批量导入数据库,成功一次就认为导入成功!
                 // 添加时过滤字段
                 $unsetColumn = [];
-                $validator_anno$result = $excelService->insertToSql($data,$validator_name::excelDefault(),'$table_name',$unsetColumn) || $result;
+                $validator_anno$result = $excelService->insertToSql($data,$[validator_name]::excelDefault(),'$table_name',$unsetColumn) || $result;
                 if ($cover) {
-                    $excelService->updateByModel($model_name::default(),$unsetColumn); // 加default 防止跨组织更新
+                    $excelService->updateByModel($[model_name]::default(),$unsetColumn); // 加default 防止跨组织更新
                     $result = true;
                 } else {
                     $excelService->failUpdateLines();
@@ -250,13 +249,13 @@ class $service_name $service_extends
     /**
      * 导出模板
      *
-     * @author $author_info
+     * @author $[author_info]
      * @since  2018-08-07 15:56:10
      */
     public function template()
     {
         $excelService = new ExcelService();
-        $validator_anno$excelService->template('XX模板',$validator_name::excelColumn());
+        $[validator_anno]$excelService->template('XX模板',$validator_name::excelColumn());
     }
 
     $service_traits_body

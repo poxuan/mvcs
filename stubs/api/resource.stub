@@ -1,10 +1,10 @@
 <?php
 
-namespace $resource_ns;
+namespace $[resource_ns];
 
-$resource_use
+$[resource_use]
 
-class $resource_name $resource_extends
+class $[resource_name] $[resource_extends]
 {
     /**
      * Transform the resource into an array.
@@ -15,11 +15,11 @@ class $resource_name $resource_extends
     public function toArray($request)
     {
         return [
-            $resource_array
+            $[resource_array]
         ];
     }
 
-    $resource_traits_body
+    $[resource_traits_body]
     
-    #resource_hook_body
+    #[resource_hook_body]
 }

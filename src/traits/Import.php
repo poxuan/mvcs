@@ -84,7 +84,7 @@ trait Import
         $tableColumn = array_merge($tableColumn, $this->config("excel.extra_columns", []));
         $r_path = $this->getMigrationPath();
         $files = scandir($r_path);
-        // 注意！！！这里偷懒了，默认情况下，最后一个文件是刚建的migration
+        // 正常情况下，最后一个文件是刚建的migration
         $file = $r_path . DIRECTORY_SEPARATOR . array_pop($files);
         $content = file_get_contents($file);
         if ($has_primary) { //删除ID索引
@@ -176,7 +176,7 @@ trait Import
         }
         $defaultVarcharLength = $this->config('excel.default_varchar_length', 50);
         $c_type = $type[0];
-        if (\in_array($c_type, ['string', 'varchar'])) { //根据规则创建字段
+        if (\in_array($c_type, ['string', 'varchar', 's'])) { //根据规则创建字段
             $length = $type[1] ?? $defaultVarcharLength;
             return '$' . "table->string('$column',$length){$columnPostfix}";
         } elseif (\in_array($c_type, ['decimal', 'double', 'float'])) { // 小数一律存decimal
@@ -230,12 +230,6 @@ trait Import
      */
     protected function makeImportData($sheet, & $table_name)
     {
-        $table_name = strtolower(trim($sheet[1][0] ?: ""));
-        if (!$table_name || !is_string($table_name) || !preg_match('/^[ a-zA-Z0-9\-_]*$/', $table_name)) {
-            $this->myinfo('excel_table_error', $table_name);
-            return ;
-        }
-        $table_name = $this->config('excel.table_prefix', '') . $table_name . $this->config('excel.table_postfix', '');
         $columns = [];
         $header = array_map('trim', $sheet[2]);
         $example = array_map('trim', $sheet[3]);

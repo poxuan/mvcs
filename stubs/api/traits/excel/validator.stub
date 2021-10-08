@@ -2,23 +2,23 @@
     /**
      * 批量导入验证规则
      *
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @param  array $data 要验证的数据
      * @return void
      */
     public static function excel(array $data)
     {
         Validator::make($data,[
-            $validator_create_rule
+            $[validator_create_rule]
         ],self::$messages)->validate();
     }
 
     /**
      * 产品导入导出字段及其规则
      * 
-     * @author $author_info
-     * @since  $sub_version
+     * @author $[author_info]
+     * @since  $[sub_version]
      * @return array
      */
     public static function excelColumn()
@@ -29,18 +29,18 @@
         *    //1. 键名 =>【描述，表格示例值】
         *    'nickname' => ['昵称','小王'], 
         *    //2. 键名 => 【描述，表格示例，数值转换】
-        *    'sex'  => ['性别','男',[1 => '男', 2 => '女', 3 => '未知']],
+        *    'sex'  => ['性别','男',[1 => '男', 2 => '女', 0 => '未知']],
         *    //3. 键名 => 【描述，表格示例，关联MODEL，关联表替换列等属性】
         *    'city_id' => ['城市', '北京', App\Models\City::class, ['column' => 'city']], 
         *    'inviter_id' => ['邀请人ID', 5],
         *    //4. 键名#xxx => 【描述，表格示例，MODEL，替换列】引申字段,导入时忽略，目前只支持一级关联且值为另一表的主键
-        *    'inviter_id#1' => ['邀请人', '小李', App\Models\User::class, ['column' => 'nickname']],
+        *    'inviter_id#nickname' => ['邀请人', '小李', App\Models\User::class, ['column' => 'nickname']],
         *    //5. 键名 => 【描述，表格示例，表格转换到数据库时的方法，数据库转换到表格方法】
         *    'created_at' => ['创建时间', '2019-12-31 12:00:00','strtotime', function($value) { return date('Y-m-d H:i:s', $value); }],
         * }
         */
         return [
-            $validator_excel_rule
+            $[validator_excel_rule]
         ];
     }
 
@@ -54,7 +54,7 @@
     public static function excelDefault()
     {
         return  [
-            $validator_excel_default
+            $[validator_excel_default]
         ];
     }
 

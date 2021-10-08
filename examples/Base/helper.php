@@ -61,7 +61,7 @@ if(!function_exists('signatureCheck')) {
         if ($signature != $sign) {
             return \App\Base\Code::INVALID_SIGN;
         }
-        return 0;
+        return \App\Base\Code::OK;
     }
 }
 
@@ -69,7 +69,7 @@ if(!function_exists('signatureGenerate')) {
     // 生成签名
     function signatureGenerate(array & $queries,$secret = null) {
         if (!isset($queries['nonce'])) {
-            $queries['nonce'] = uniqid() . uniqid();
+            $queries['nonce'] = uniqid();
         }
         if (!isset($queries['timestamp'])) {
             $queries['timestamp'] = time();
@@ -150,7 +150,7 @@ if(!function_exists('curlPost')) {
             
             logger()->error('remote invoking failed',['url'=>$url,'params'=>$params,'error'=>$error]);
             curl_close($curl);
-            throw new \App\Exceptions\RemoteInvokeException();
+            throw new \App\Exceptions\RemoteInvokeException($error);
         }
         curl_close($curl);
         $json = json_decode($data, true);
