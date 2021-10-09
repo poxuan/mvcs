@@ -22,7 +22,7 @@ trait Tag
         $this->tagFix = $this->config('tags_fix', '{ }');
         foreach($tags as $tag => $value ) {
             if(is_callable($value)) {
-                $value = $value($this->model, $this->tableColumns, $this);
+                $value = $value($this->tableColumns, $this);
             }
             $stub = $this->tagReplace($stub, $tag, $value);
         }

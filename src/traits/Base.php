@@ -150,7 +150,7 @@ trait Base
      */
     public function getTraitPath($style = '') {
         $style = $style ?: $this->style;
-        return $this->getStubPath(). DIRECTORY_SEPARATOR . $style . DIRECTORY_SEPARATOR . 'traits';
+        return $this->getStubPath($style . DIRECTORY_SEPARATOR . 'traits');
     }
 
     /**
@@ -160,8 +160,12 @@ trait Base
      * @author chentengfei
      * @since
      */
-    public function getStubPath() {
-        return $this->projectPath('stubs', 'resource');
+    public function getStubPath($path = '') {
+        if ($path) {
+            return $this->projectPath('stubs/'.$path, 'resource');
+        } else {
+            return $this->projectPath('stubs', 'resource');
+        }
     }
 
     /**

@@ -32,6 +32,7 @@ EOF;
      */
     public function getReplaceArr(array $tableColumns, MvcsService $service) : array
     {
+        $this->connect = $service->connect;
         if (empty($tableColumns)) {
             return [
                 'validator_create_rule' => '',

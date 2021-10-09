@@ -24,19 +24,19 @@ return [
     // 替换参数标识
     'replace_fix' => '$[ ]',
     // 扩展模式下扩展名的前后缀，可以没有后缀，可在style中自定义
-    'hook_fix' => '#[ ]',
+    'hook_fix' => '#{ }',
     // 标签功能标志
-    'tags_fix' => '{ }',//单空格分割前后缀
+    'tags_fix' => '@{ }',//单空格分割前后缀
     'tags' => [
         // 支持不同标签嵌套，同名嵌套会报错
         // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
         // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
-        'style' => function ($model, $columns, $obj) {
+        'style' => function ($columns, $obj) {
             return $obj->style;
         },
         'user' => false,
         'usercheck' => false,
-        'status' => function ($model, $columns) {
+        'status' => function ($columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'status') {
                     return true;
@@ -44,7 +44,7 @@ return [
             }
             return false;
         },
-        'softdelete' => function ($model, $columns) {
+        'softdelete' => function ($columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'deleted_at') {
                     return true;
@@ -52,7 +52,7 @@ return [
             }
             return false;
         },
-        'mytoarray' => true,
+        'mytoarray' => false,
         'resource' => false,
     ],
     

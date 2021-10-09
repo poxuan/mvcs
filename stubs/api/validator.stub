@@ -42,15 +42,15 @@ class $[validator_name] $[validator_extends]
             $[validator_update_rule]
         ],self::$messages)->validate();
         $model = $[model_name]::findOrFail($id);
-        {usercheck:author}
+        @{usercheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        {usercheck}
+        @{usercheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        {/usercheck}
+        @{/usercheck}
     }
 
     /**
@@ -64,15 +64,15 @@ class $[validator_name] $[validator_extends]
     public static function destroy($id)
     {
         $model = $[model_name]::findOrFail($id);
-        {usercheck:author}
+        @{usercheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        {usercheck}
+        @{usercheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        {/usercheck}
+        @{/usercheck}
     }
 
     /**
@@ -92,5 +92,5 @@ class $[validator_name] $[validator_extends]
 
     $[validator_traits_body]
 
-    #[validator_hook_body]
+    #{validator_hook_body}
 }

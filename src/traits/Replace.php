@@ -73,7 +73,7 @@ trait Replace
         $result = [];
         $replaceClasses = $this->config('replace_classes', []);
         foreach($replaceClasses as $clazz) {
-            $replaceData = (new $clazz())->getReplaceData($tableColumns, $this);
+            $replaceData = (new $clazz())->getReplaceArr($tableColumns, $this);
             $result = array_merge($result, $replaceData);
         }
         return $result;

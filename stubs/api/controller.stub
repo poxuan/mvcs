@@ -6,15 +6,15 @@ $[controller_use]
 
 use $[validator_ns]\$[validator_name];
 use $[model_ns]\$[model_name];
-{resource}
+@{resource}
 use $[resource_ns]\$[resource_name];
-{/resource}
+@{/resource}
 use App\Base\Traits\Filter;
 use App\Base\Traits\Response;
 use Illuminate\Http\Request;
 
 $[controller_traits_head]
-#[controller_hook_head]
+#{controller_hook_head}
 
 /**
  * $[controller_name]
@@ -46,10 +46,12 @@ class $[controller_name] $[controller_extends]
     {
         $params = $request->input() ?: [];
         $[validator_name]::list($params);
-        $collection = $this->filter($[model_name]::query(), $params)->paginate($request->get('limit',10));
-        {resource}
+        $collection = $[model_name]::query()
+        ->filter($this->filterRule, $params, $this->filterDefault)
+        ->paginate($request->get('limit',10));
+        @{resource}
         return $[resource_name]::collection($collection);
-        {!resource}
+        @{!resource}
         $list = $collection->toArray();
         return $this->success([
             "list" => $list['data'],
@@ -57,7 +59,7 @@ class $[controller_name] $[controller_extends]
             'page'  => $request->get('page',1),
             'limit'  => $request->get('limit',1),
         ]);
-        {/resource}
+        @{/resource}
     }
 
     /**
@@ -73,12 +75,12 @@ class $[controller_name] $[controller_extends]
         $post   = $request->input();
         $[validator_name]::store($post);
         $obj = $[model_name]::create($post);
-        {resource}
+        @{resource}
         return new $[resource_name]($obj);
-        {!resource}
+        @{!resource}
         $info = $obj->toArray();
         return $this->success($info);
-        {/resource}
+        @{/resource}
     }
 
     /**
@@ -92,12 +94,12 @@ class $[controller_name] $[controller_extends]
     public function show($id)
     {
         $obj = $[model_name]::findOrFail($id);
-        {resource}
+        @{resource}
         return new $[resource_name]($obj);
-        {!resource}
+        @{!resource}
         $info = $obj->toArray();
         return $this->success($info);
-        {/resource}
+        @{/resource}
     }
 
     /**
@@ -148,5 +150,5 @@ class $[controller_name] $[controller_extends]
 
     $[controller_traits_body]
 
-    #[controller_hook_body]
+    #{controller_hook_body}
 }
