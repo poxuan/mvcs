@@ -2,8 +2,8 @@
 
 return [
     'desc'   => 'a default api template',
-    'stubs'  => 'MVC', //默认模板
-    'default_traits' => ['toggle',], //默认扩展
+    'stubs'  => 'MVCR', //默认模板
+    'default_traits' => ['excel',], //默认扩展
     'modules' => [
         // 资源层模板
         'R' => [
@@ -13,7 +13,7 @@ return [
             'namespace' => 'App\Resources',
             'extends' => [
                 'namespace' => 'Illuminate\Http\Resources\Json',
-                'name' => 'Resource',
+                'name' => 'JsonResource',
             ],
             'replace' => [
                 'array' => function ($model, $columns) {

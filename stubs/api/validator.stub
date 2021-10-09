@@ -5,6 +5,7 @@ namespace $[validator_ns];
 $[validator_use]
 use $[model_ns]\$[model_name];
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class $[validator_name] $[validator_extends]
 {
