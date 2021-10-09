@@ -21,7 +21,7 @@ trait Replace
         foreach ($stubs as $slug) {
             $name = $this->stubConfig($slug, 'name');
             $stubVar[$name . '_name'] = $this->getClassName($slug);
-            $stubVar[$name . '_ns'] = $this->getNameSpace($slug); // 后缀不能有包含关系，故不使用 _namespace 后缀
+            $stubVar[$name . '_namespace'] = $this->getNameSpace($slug); // 后缀不能有包含关系，故不使用 _namespace 后缀
             $stubVar[$name . '_use'] = $this->getBaseUse($slug);
             $stubVar[$name . '_extends'] = $this->getExtends($slug);
             $stubVar[$name . '_anno'] = stripos('_' . $this->only, $slug) ? '' : '// '; //是否注释掉

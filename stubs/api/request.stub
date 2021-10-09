@@ -1,0 +1,39 @@
+<?php
+
+namespace $[request_namespace];
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class $[request_name] extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        $actionName = request()->route()->getActionName();
+        list($controller, $action) = explode('@',$actionName);
+        if ($action == 'store') {
+            return [
+                $[validator_create_rule]
+            ];
+        } elseif ($action == 'update') {
+            return [
+                $[validator_update_rule]
+            ];
+        }
+        return [];
+    }
+}

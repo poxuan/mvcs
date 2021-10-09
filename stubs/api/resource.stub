@@ -1,6 +1,6 @@
 <?php
 
-namespace $[resource_ns];
+namespace $[resource_namespace];
 
 $[resource_use]
 #{resource_hook_head}

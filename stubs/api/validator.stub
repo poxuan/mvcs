@@ -1,9 +1,9 @@
 <?php
 
-namespace $[validator_ns];
+namespace $[validator_namespace];
 
 $[validator_use]
-use $[model_ns]\$[model_name];
+use $[model_namespace]\$[model_name];
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace $[controller_ns];
+namespace $[controller_namespace];
 
 $[controller_use]
 
-use $[validator_ns]\$[validator_name];
-use $[model_ns]\$[model_name];
+use $[validator_namespace]\$[validator_name];
+use $[model_namespace]\$[model_name];
 @{resource}
-use $[resource_ns]\$[resource_name];
+use $[resource_namespace]\$[resource_name];
 @{/resource}
 use App\Base\Traits\Filter;
 use App\Base\Traits\Response;

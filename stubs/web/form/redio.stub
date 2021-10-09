@@ -1,3 +1,0 @@
-@@form
-
-<input type="radio" name="$field_name" value="$field_value" placeholder="请输入$field_comment">

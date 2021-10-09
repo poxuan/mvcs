@@ -1,4 +1,0 @@
-@@form
-<select class="form-select $field_class" name="$field_name">
-   $field_options
-</select>
