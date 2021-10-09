@@ -1,6 +1,6 @@
 {
     "name": "callmecsx/mvcs",
-    "description": "Laravel MVCS command to Laravel.",
+    "description": "A fast file creator for Laravel.",
     "keywords": ["laravel", "mvcs"],
     "license": "MIT",
     "support": {
@@ -19,7 +19,7 @@
         "illuminate/validation": ">=5.5",
         "illuminate/filesystem": ">=5.5",
         "illuminate/console": ">=5.5",
-        "phpoffice/phpspreadsheet": "^1.4"
+        "phpoffice/phpspreadsheet": "^1.16"
     },
     "require-dev": {
         "mockery/mockery": "~0.9",
