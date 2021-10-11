@@ -7,7 +7,7 @@ return [
             'toggle' => '{id}/toggle',
         ],
         'post' => [
-            'batch_toggle' => 'batch_toggle',
+            'batch' => 'batch',
         ],
     ]
 ];
