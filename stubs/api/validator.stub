@@ -7,6 +7,16 @@ use $[model_namespace]\$[model_name];
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
+$[validator_traits_head]
+#{validator_hook_head}
+
+/**
+ * class $[validator_name]
+ *
+ * @author  $[author_info]
+ * @version $[main_version]
+ * @since   $[sub_version]
+ */
 class $[validator_name] $[validator_extends]
 {
 
@@ -17,10 +27,10 @@ class $[validator_name] $[validator_extends]
     /**
      * 添加验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  array $data 验证字段
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function store($data)
     {
@@ -31,11 +41,11 @@ class $[validator_name] $[validator_extends]
     /**
      * 更新验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  array $data 验证数据
      * @param  int   $id 要更新的行
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function update($data,$id)
     {
@@ -43,46 +53,46 @@ class $[validator_name] $[validator_extends]
             $[validator_update_rule]
         ],self::$messages)->validate();
         $model = $[model_name]::findOrFail($id);
-        @{usercheck:author}
+        @{authcheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        @{usercheck}
+        @{authcheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        @{/usercheck}
+        @{/authcheck}
     }
 
     /**
      * 删除验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  int $id 要删除的行
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function destroy($id)
     {
         $model = $[model_name]::findOrFail($id);
-        @{usercheck:author}
+        @{authcheck:author}
         if ($model->author_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        @{usercheck}
+        @{authcheck}
         if ($model->user_id != user()->id) {
             throw new \Exception('无权操作',40300);
         }
-        @{/usercheck}
+        @{/authcheck}
     }
 
     /**
      * 筛选验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  array $filter 要筛选字段
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function list($filter) {
         Validator::make($filter,[

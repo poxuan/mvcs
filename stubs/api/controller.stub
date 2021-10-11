@@ -3,17 +3,19 @@
 namespace $[controller_namespace];
 
 $[controller_use]
-
-use $[validator_namespace]\$[validator_name];
-use $[model_namespace]\$[model_name];
-@{resource}
-use $[resource_namespace]\$[resource_name];
-@{/resource}
-use App\Base\Traits\Filter;
+@{base}
 use App\Base\Traits\Response;
+@{/base}
+@{V}use $[validator_namespace]\$[validator_name];@{/V}
+use $[model_namespace]\$[model_name];
+@{R}use $[resource_namespace]\$[resource_name];@{/R}
+@{Q}
+use $[request_namespace]\$[request_name] as Request;
+@{!Q}
 use Illuminate\Http\Request;
-
+@{/Q}
 $[controller_traits_head]
+
 #{controller_hook_head}
 
 /**
@@ -25,33 +27,42 @@ $[controller_traits_head]
  */
 class $[controller_name] $[controller_extends]
 {
-    use Filter,Response;
+    @{base}
+    use Response;
     // 默认查询规则
     public $filterDefault = [
         'sort' => 'recent'
     ];
     // 可用查询规则
     public $filterRule = [
-        'name'   => 'like',
-        'status' => '=',
+        // 'name'   => 'like',
+        // 'status' => '=',
         'sort'   => 'scope:MyOrder'
     ];
+    @{/base}
 
     /**
      * Display a listing of the resource.
+     *
      * @param  \Illuminate\Http\Request  $request
      * @return $[resource_name]|array
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public function index(Request $request)
     {
         $params = $request->input() ?: [];
-        $[validator_name]::list($params);
+        @{V}$[validator_name]::list($params);@{/V}
         $collection = $[model_name]::query()
+        @{base}
         ->filter($this->filterRule, $params, $this->filterDefault)
+        @{!base}
+        //todo ADD SEARCH rules
+        @{/base}
         ->paginate($request->get('limit',10));
-        @{resource}
+        @{R}
         return $[resource_name]::collection($collection);
-        @{!resource}
+        @{!R}
         $list = $collection->toArray();
         return $this->success([
             "list" => $list['data'],
@@ -59,62 +70,62 @@ class $[controller_name] $[controller_extends]
             'page'  => $request->get('page',1),
             'limit'  => $request->get('limit',1),
         ]);
-        @{/resource}
+        @{/R}
     }
 
     /**
      * Store a newly created resource in storage.
      *
+     * @param  Request  $request
+     * @return $[resource_name]|array
      * @author $[author_info]
      * @since  $[sub_version]
-     * @param  \Illuminate\Http\Request  $request
-     * @return $[resource_name]|array
      */
     public function store(Request $request)
     {
         $post   = $request->input();
-        $[validator_name]::store($post);
+        @{V}$[validator_name]::store($post);@{/V}
         $obj = $[model_name]::create($post);
-        @{resource}
+        @{R}
         return new $[resource_name]($obj);
-        @{!resource}
+        @{!R}
         $info = $obj->toArray();
         return $this->success($info);
-        @{/resource}
+        @{/R}
     }
 
     /**
      * Display the specified resource.
      *
-     * @author $author_info
-     * @since  $sub_version
      * @param  int  $id
      * @return $resource_name
+     * @author $author_info
+     * @since  $sub_version
      */
     public function show($id)
     {
         $obj = $[model_name]::findOrFail($id);
-        @{resource}
+        @{R}
         return new $[resource_name]($obj);
-        @{!resource}
+        @{!R}
         $info = $obj->toArray();
         return $this->success($info);
-        @{/resource}
+        @{/R}
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  int  $id
      * @return $[resource_name]
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public function update(Request $request,int $id)
     {
         $post   = $request->post();
-        $[validator_name]::update($post, $id);
+        @{V}$[validator_name]::update($post, $id);@{/V}
         $result = $[model_name]::where('id', $id)->update($post);
         return $this->success($result);
     }
@@ -122,30 +133,16 @@ class $[controller_name] $[controller_extends]
     /**
      * Remove the specified resource from storage.
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  int  $id
      * @return \Illuminate\Http\Response
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public function destroy(int $id)
     {
-        $[validator_name]::destroy($id);
+        @{V}$[validator_name]::destroy($id);@{/V}
         $result = $[model_name]::destroy($id);
         return $this->success($result);
-    }
-
-    /**
-     * Display a simple listing of the resource.
-     * 
-     * @param  \Illuminate\Http\Request  $request
-     * @return array
-     */
-    public function simple(Request $request)
-    {
-        $params = $request->input() ?: [];
-        $[validator_name]::list($params);
-        $list = $this->filter($[model_name]::query(), $params)->limit($params['limit'] ?? 500)->get()->toArray();
-        return $this->success($list);
     }
 
     $[controller_traits_body]

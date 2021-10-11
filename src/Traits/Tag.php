@@ -41,7 +41,7 @@ trait Tag
     protected function tagStacks($stub, $tag) {
          // $tags_fix = $this->config('tags_fix', '{ }');
         list($tags_pre, $tags_post) = explode(' ', $this->tagFix);
-        $patton = '/'.$tags_pre.'((!|\/)?'.$tag.'(:[\w]*)?)'.$tags_post.'/i';
+        $patton = '/'. preg_quote($tags_pre).'((!|\/)?'.$tag.'(:[\w]*)?)'.preg_quote($tags_post).'/i';
         $m = preg_match_all($patton, $stub, $matches);
         $stacks = [];
         if ($m) {

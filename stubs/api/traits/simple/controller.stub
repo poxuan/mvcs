@@ -1,0 +1,25 @@
+@@body
+    /**
+     * Display a simple listing of the resource.
+     * 
+     * @param  Request  $request
+     * @return array
+     * @author $[author_info]
+     * @since  $[sub_version]
+     */
+    public function simple(Request $request)
+    {
+        $params = $request->input() ?: [];
+        @{V}$[validator_name]::list($params);@{/V}
+        $list = $[model_name]::query()
+        @{base}
+        ->filter($this->filterRule, $params, $this->filterDefault)
+        @{!base}
+        //todo ADD SEARCH rules
+        @{/base}
+        ->limit($params['limit'] ?? 500)
+        ->select(['id','name'])
+        ->get()->toArray();
+        return $this->success($list);
+    }
+

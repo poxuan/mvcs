@@ -17,8 +17,9 @@ trait Replace
             'table_name' => $this->table
         ];
         $this->tableColumns = $this->getTableColumns();
-        $stubs = array_keys($this->styleConfig($this->style, 'modules'));
-        foreach ($stubs as $slug) {
+        $slugs = $this->getSlugs($this->style);
+        // 各模板替换数组
+        foreach ($slugs as $slug) {
             $name = $this->stubConfig($slug, 'name');
             $stubVar[$name . '_name'] = $this->getClassName($slug);
             $stubVar[$name . '_namespace'] = $this->getNameSpace($slug); // 后缀不能有包含关系，故不使用 _namespace 后缀
@@ -30,10 +31,12 @@ trait Replace
                 $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
             }
         }
+        // 全局替换数组
         $globalReplace = $this->config('global_replace', []);
         foreach($globalReplace as $key => $val) {
             $stubVar[$key] = $this->getReplaceVal($val);
         }
+        // 标签替换数组
         foreach ($this->traits as $trait) {
             $item = $this->config('tags.'.$trait);
             if ($rep = $item['replace'] ?? '') {
@@ -42,14 +45,14 @@ trait Replace
                 }
             }
         }
-        // 根据数据库字段生成一些模板数据。
+        // 预定类替换数组
         $stubVar2 = $this->getBuiltInData($this->tableColumns);
         return array_merge($stubVar2, $stubVar);
     }
 
     public function getReplaceVal($val) {
         if ($val instanceof \Closure) {
-            return $val($this->model, $this->tableColumns, $this);
+            return $val($this->tableColumns, $this);
         } elseif(is_string($val)) {
             return $val;
         } else {
@@ -58,7 +61,7 @@ trait Replace
     }
 
     /**
-     * 生成 预置配置
+     * 替换类替换词
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:14:08
@@ -91,7 +94,12 @@ trait Replace
     function replaceStubParams($params, $stub)
     {
         // 先处理标签
-        $stub = $this->replaceTags($stub, $this->config('tags'));
+        $tags = $this->config('tags');
+        $slugs = $this->getSlugs($this->style);
+        foreach ($slugs as $slug) {
+            $tags[$slug] = stripos('_' . $this->only, $slug) ? true : false;
+        }
+        $stub = $this->replaceTags($stub, $tags);
         
         foreach ($params as $search => $replace) {
             $stub = str_replace($this->getReplaceName($search), $replace, $stub);
@@ -100,7 +108,7 @@ trait Replace
     }
 
     /**
-     * 根据类缩写获取代码内容
+     * 根据模板缩写获取扩展代码
      *
      * @param char $slug
      * @return array

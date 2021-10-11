@@ -2,7 +2,7 @@
 
 return [
     'desc'   => 'a default api template',
-    'stubs'  => 'MVCR', //默认模板
+    'stubs'  => 'MVC', //默认模板
     'default_traits' => ['excel',], //默认扩展
     'modules' => [
         // 资源层模板
@@ -16,7 +16,7 @@ return [
                 'name' => 'JsonResource',
             ],
             'replace' => [
-                'array' => function ($model, $columns) {
+                'array' => function ($columns) {
                     // todo
                     $lines = [];
                     foreach ($columns as $column) {
@@ -33,7 +33,7 @@ return [
         ],
     ],
     'traits' => [
-        'updown',
+        'simple',
         'toggle',
         'excel',
     ]

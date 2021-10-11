@@ -2,10 +2,10 @@
     /**
      * 批处理验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  int $id 
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function batch($data)
     {

@@ -4,6 +4,13 @@ namespace $[request_namespace];
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * class $[request_name]
+ *
+ * @author  $[author_info]
+ * @version $[main_version]
+ * @since   $[sub_version]
+ */
 class $[request_name] extends FormRequest
 {
     /**
@@ -25,15 +32,25 @@ class $[request_name] extends FormRequest
     {
         $actionName = request()->route()->getActionName();
         list($controller, $action) = explode('@',$actionName);
-        if ($action == 'store') {
-            return [
-                $[validator_create_rule]
-            ];
-        } elseif ($action == 'update') {
-            return [
-                $[validator_update_rule]
-            ];
+        switch($action) {
+            case 'store':
+                return [
+                    $[validator_create_rule]
+                ];
+            case 'update':
+                return [
+                    $[validator_update_rule]
+                ];
+            $[request_traits_case]
+            #{request_hook_case}
+            default:
+                return [];
         }
         return [];
     }
+
+    
+    $[request_traits_body]
+    
+    #{request_hook_body}
 }

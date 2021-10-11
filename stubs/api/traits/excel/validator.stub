@@ -2,10 +2,10 @@
     /**
      * 批量导入验证规则
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  array $data 要验证的数据
      * @return void
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public static function excel(array $data)
     {
@@ -17,9 +17,9 @@
     /**
      * 产品导入导出字段及其规则
      * 
+     * @return array
      * @author $[author_info]
      * @since  $[sub_version]
-     * @return array
      */
     public static function excelColumn()
     {
@@ -47,9 +47,9 @@
     /**
      * 导入时可选字段默认值
      *
+     * @return array
      * @author $author_info
      * @since  $sub_version
-     * @return array
      */
     public static function excelDefault()
     {

@@ -4,10 +4,10 @@ use Callmecsx\Mvcs\Service\ExcelService;
     /**
      * 导入数据
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  Request $request
      * @return \Illuminate\Http\Response
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public function import(Request $request)
     {
@@ -66,19 +66,24 @@ use Callmecsx\Mvcs\Service\ExcelService;
     /**
      * 导出数据
      *
-     * @author $[author_info]
-     * @since  $[sub_version]
      * @param  Request  $request
      * @return \Illuminate\Http\Response
+     * @author $[author_info]
+     * @since  $[sub_version]
      */
     public function export(Request $request)
     {
         $params = $request->input() ?: [];
         $[validator_name]::list($params);
-        $data = $this->filter($[model_name]::query(), $params)->get()->toArray();
+        $data = $[model_name]::query()
+        @{base}
+        ->filter($this->filterRule, $params, $this->filterDefault)
+        @{!base}
+        //todo ADD SEARCH rules
+        @{/base}
+        ->get()->toArray();
         //todo datafix
         $excelService = new ExcelService();
         $excelService->export('$[table_name]-' . time(), $data, $[validator_name]::excelColumn());
-
     }
 

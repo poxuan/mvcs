@@ -28,7 +28,7 @@ return [
             'replace' => [
                 // model_fillable 示例, 会覆盖预定义的值
                 // 建议：模板中，替换内容使用下划线式写法，正式内容使用驼峰式写法
-                'fillable' => function ($model, $columns) {
+                'fillable' => function ($columns) {
                     $res = "";
                     foreach ($columns as $column) {
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
@@ -58,7 +58,7 @@ return [
             'namespace' => 'App\Validators',
             'extends' => [],
         ],
-        // 请求模板
+        // 请求层模板
         'Q' => [
             'name' => 'request',
             'postfix' => 'Request',
@@ -74,7 +74,7 @@ return [
         //     'hook_fix' => ['js' => '///', '*' => '<!-- -->'], // 分别定义js 和 html 里的扩展模式下的包围体，默认为【#】
         //     'path' => resource_path('views'),
         //     'replace' => [
-        //         'from' => function ($model, $columns) {
+        //         'from' => function ($columns) {
         //             // todo
         //             return "";
         //         },

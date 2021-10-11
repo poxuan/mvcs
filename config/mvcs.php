@@ -31,19 +31,7 @@ return [
         // 支持不同标签嵌套，同名嵌套会报错
         // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
         // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
-        'style' => function ($columns, $obj) {
-            return $obj->style;
-        },
-        'user' => false,
-        'usercheck' => false,
-        'status' => function ($columns) {
-            foreach ($columns as $column) {
-                if ($column->Field == 'status') {
-                    return true;
-                }
-            }
-            return false;
-        },
+        'authcheck' => false,
         'softdelete' => function ($columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'deleted_at') {
@@ -52,8 +40,7 @@ return [
             }
             return false;
         },
-        'mytoarray' => false,
-        'resource' => false,
+        'base' => false,
     ],
     
     // 表中不该用户填充的字段

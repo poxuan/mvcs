@@ -287,4 +287,17 @@ trait Base
         return $this->styleConfig($this->style, "modules.$slug.$key", $default);
     }
 
+    /**
+     * 获取所有定义模板简称
+     *
+     * @author chentengfei <tengfei.chen@atommatrix.com>
+     * @date   2018-08-13 18:13:56
+     * @param string $slug 模板简称
+     * @param string $key 配置项
+     * @param  mixed $default 默认值
+     * @return mixed
+     */
+    function getSlugs($style){
+        return array_keys($this->styleConfig($style, 'modules'));
+    }
 }
