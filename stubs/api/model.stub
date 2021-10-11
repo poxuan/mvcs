@@ -16,6 +16,7 @@ $[model_traits_head]
 /**
  * class $[model_name]
  *
+ $[model_properties]
  * @author  $[author_info]
  * @version $[main_version]
  * @since   $[sub_version]

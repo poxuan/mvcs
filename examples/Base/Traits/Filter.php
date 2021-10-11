@@ -31,10 +31,10 @@ trait Filter
      * @author chentengfei
      * @since
      */
-    protected function filter($model, array $queries) 
+    public function scopeFilter($query,array $rules, array $queries, $default = []) 
     {
-        $queries = array_merge($this->filterDefault, $queries);
-        foreach($this->filterRule as $column => $rule) {
+        $queries = array_merge($default, $queries);
+        foreach($rules as $column => $rule) {
             if (isset($queries[$column])) {
                 $value = $queries[$column];
                 if (is_array($rule)) { // 规则是array，则按入参取
@@ -47,13 +47,13 @@ trait Filter
                 }
                 $func  = 'filter' . $rs[0];
                 if (method_exists($this, $func)) {
-                    $this->$func($model, $column, $value, $rs[1] ?? '');
+                    $this->$func($query, $column, $value, $rs[1] ?? '');
                 } else {
-                    $model->where($column, $rs[0], $value);
+                    $query->where($column, $rs[0], $value);
                 }
             }
         }
-        return $model;
+        return $query;
     }
 
     /**
@@ -107,7 +107,7 @@ trait Filter
 
     protected function filterNull($model, string $column, string $value) 
     {
-        if ($value == 1) {
+        if ($value) {
             $model->whereNull($column);
         } else {
             $model->whereNotNull($column);

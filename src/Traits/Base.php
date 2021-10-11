@@ -19,7 +19,7 @@ trait Base
      *
      * @author chentengfei <tengfei.chen@atommatrix.com>
      * @date   2018-08-13 18:16:11
-     * @return array
+     * @return array 
      */
     public function getTableColumns()
     {

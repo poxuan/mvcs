@@ -31,12 +31,28 @@ return [
                 'fillable' => function ($columns) {
                     $res = "";
                     foreach ($columns as $column) {
+                        // column expample:
+                        // Field => id
+                        // Type => int(11)
+                        // Default => null
+                        // Nullable => NO
+                        // Comment => 主键ID
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
                             $res .= "'" . $column->Field . "',";
                         }
                     }
                     return $res;
                 },
+                'properties' => function ($columns) {
+                    $properties = [];
+                    foreach ($columns as $column) {
+                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
+                            $type = strpos($column->Type, 'int') !== false ? 'int' : 'string';
+                            $properties[] .= " * @property $type $" . $column->Field . "";
+                        }
+                    }
+                    return implode("\n", $properties);
+                }
             ],
         ],
         // 控制器模板
