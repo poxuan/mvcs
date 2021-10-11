@@ -63,10 +63,11 @@ class $[controller_name] $[controller_extends]
         @{R}
         return $[resource_name]::collection($collection);
         @{!R}
-        $list = $collection->toArray();
+        $total = $collection->total();
+        $list = $collection->items();
         return $this->success([
-            "list" => $list['data'],
-            'total' => $list['total'],
+            "list" => $list,
+            'total' => $total,
             'page'  => $request->get('page',1),
             'limit'  => $request->get('limit',1),
         ]);

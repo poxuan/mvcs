@@ -9,8 +9,8 @@ return [
             'name' => 'model',
             // 类名及文件名后部
             'postfix' => '',
-            // 文件格式，默认是.php
-            'ext' => '',
+            // 文件格式，默认是.php，可省略
+            'ext' => '.php',
             // 文件放置地址
             'path' => app_path() . DIRECTORY_SEPARATOR . 'Models',
             // 基础名字空间

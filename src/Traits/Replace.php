@@ -28,7 +28,7 @@ trait Replace
             $stubVar[$name . '_anno'] = stripos('_' . $this->only, $slug) ? '' : '// '; //是否注释掉
             $extra = $this->stubConfig($slug, 'replace', []);
             foreach ($extra as $key => $func) {
-                $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->model, $this->tableColumns, $this) : $func;
+                $stubVar[$name . '_' . $key] = \is_callable($func) ? $func($this->tableColumns, $this) : $func;
             }
         }
         // 全局替换数组

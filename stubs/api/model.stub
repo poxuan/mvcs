@@ -24,7 +24,7 @@ class $[model_name] $[model_extends]
 {
     @{base}
     use Scope,Filter;
-    @{base}
+    @{/base}
     @{softdelete}
     use SoftDeletes;
     @{/softdelete}
