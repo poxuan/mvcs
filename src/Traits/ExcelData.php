@@ -1,7 +1,4 @@
 <?php
-/**
- * @var ${TYPE_HINT} ExcelData
- */
 
 namespace Callmecsx\Mvcs\Traits;
 
@@ -49,7 +46,7 @@ trait ExcelData
      * @param mixed $value
      * @param string $modelClass
      * @param array $extra
-     * @return void
+     * @return mixed
      * @author chentengfei
      * @since
      */
@@ -124,7 +121,7 @@ trait ExcelData
      * @param mixed $currentValue
      * @param string $modelClass
      * @param array $extra
-     * @return void
+     * @return mixed
      * @author chentengfei
      * @since
      */

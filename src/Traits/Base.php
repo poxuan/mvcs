@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * 尽量使迁移时，只改此文件的配置
+ * 尽量使迁移时，只改 此文件、ExcelData、Import、Route 文件 
  *
  * @author chentengfei
  * @since
@@ -118,7 +118,7 @@ trait Base
      *
      * @param [type] $filepath
      * @param string $base
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -205,7 +205,7 @@ trait Base
      * 复数形式,依赖laravel助手函数
      *
      * @param string $name
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */

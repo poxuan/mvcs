@@ -3,7 +3,6 @@
      * Display a simple listing of the resource.
      * 
      * @param  Request  $request
-     * @return array
      * @author $[author_info]
      * @since  $[sub_version]
      */

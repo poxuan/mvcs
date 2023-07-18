@@ -3,7 +3,7 @@
 return [
     // 模板公共配置
     'modules' => [
-        // model 模板配置
+        // model 模板配置, 每个模板文件使用一个大写字母标识，所以一套模板最多支持26个模板文件
         'M' => [
             // 模板文件名,同时也是替换参数前缀
             'name' => 'model',
@@ -48,7 +48,7 @@ return [
                     foreach ($columns as $column) {
                         if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
                             $type = strpos($column->Type, 'int') !== false ? 'int' : 'string';
-                            $properties[] .= " * @property $type $" . $column->Field . "";
+                            $properties[] = " * @property $type $" . $column->Field . "";
                         }
                     }
                     return implode("\n", $properties);

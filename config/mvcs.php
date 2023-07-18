@@ -17,7 +17,7 @@ return [
         'sub_version'  => '1.0.' . date('ymd'), 
         'create_date'  => date('Y-m-d H:i:s')
     ],
-    // 替换类, 须实现替换类
+    // 额外的替换类, 根据表格内容进行精细替换，须实现替换类
     'replace_classes' => [
         Callmecsx\Mvcs\Impl\ExampleReplace::class,
     ],
@@ -31,6 +31,17 @@ return [
         // 支持不同标签嵌套，同名嵌套会报错
         // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
         // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
+        //
+        // 'authcheck' => function ($columns) { // 操作限制于自己的
+        //     foreach ($columns as $column) {
+        //         if ($column->Field == 'author_id') {
+        //             return "author_id";
+        //         } else if ($column->Field == 'user_id') {
+        //             return "user_id";
+        //         }
+        //     }
+        //     return false;
+        // },
         'authcheck' => false,
         'softdelete' => function ($columns) {
             foreach ($columns as $column) {
@@ -40,7 +51,7 @@ return [
             }
             return false;
         },
-        'base' => false,
+        'base' => true, // 默认把
     ],
     
     // 表中不该用户填充的字段

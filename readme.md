@@ -123,52 +123,52 @@ jack ma|1|1980-12-21
 ```PHP
 <?php
 // 名字空间，由config.common.C.namespace 和 指令 model 决定
-namespace $controller_ns;
+namespace $[controller_ns];
 
 // 引用基类，没有基类返回空
-$controller_use
-// 引用自定义模板类
-use $service_ns\$service_name;
+$[controller_use]
+// 如果构建包含包括 S（service）模板，则注入此块
+@{S}use $[service_ns]\$[service_name];@{/S}
 // 引用laravel类
 use Illuminate\Http\Request;
 
-$controller_traits_head
+$[controller_traits_head]
 
-#controller_hook_head 扩展锚点
+#{controller_hook_head} 头部扩展锚点
 
 /**
- * $controller_name
+ * $[controller_name]
  *
- * @author  $author_info
- * @version $main_version
- * @since   $sub_version
+ * @author  $[author_info]
+ * @version $[main_version]
+ * @since   $[sub_version]
  */
 class $controller_name $controller_extends
 {
     // 根据 config.tags.foo 的返回值控制哪个块显示
-    {foo:a}
+    @{foo:a}
     protected $foo = 'fooA';
-    {foo}
+    @{foo}
     protected $foo = 'foo';
-    {!foo}
+    @{!foo}
     protected $bar = 'bar';
-    {/foo}
+    @{/foo}
 
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, $service_name $service)
+    public function index(Request $request, $[service_name] $service)
     {
         $result = $service->list($request->all());
         return response()->json($result);
     }
 
     // 根据config.traits 和指令行参数 加载额外代码块
-    $controller_traits_body
+    $[controller_traits_body]
 
-#controller_hook_body 扩展锚点
+#{controller_hook_body} 内部扩展锚点
 }
 
 ```
@@ -180,10 +180,10 @@ class $controller_name $controller_extends
 ```PHP
 // 每套扩展可能有多个文件，以 reply/controller 文件为例
 
-// 双@@ 在行首，表示锚点，替换内容为 $[file]_traits_head
-// 扩展模式下 mvcs:append 替换内容为 #[file]_hook_head
+// 双@@ 在行首，表示锚点，替换内容为 $[controller_traits_head]
+// 扩展模式下 mvcs:append 替换内容为 #{controller_hook_head}
 @@head
-use Illuminate\Http\Request;
+use App\Base\Code;
 @@body
     /**
      * teacher reply
@@ -198,8 +198,8 @@ use Illuminate\Http\Request;
         $params = $request->input() ?: [];
         // 扩展文件同样可以使用预定的值和标签写法
         // 在扩展模式下，少部分原生内置的值不再提供，如：validator_rule、model_fillable 等
-        $validator_name::reply($params);
-        $info = $model_name::findOrfail($id);
+        $[validator_name]::reply($params);
+        $info = $[model_name]::findOrfail($id);
         $info->reply = $params['reply'];
         $info->reply_teacher = $params['reply_teacher'];
         $res = $info->save();
@@ -210,7 +210,7 @@ use Illuminate\Http\Request;
     }
 ```
 
-> 编写文件后，须将其在config 文件中定义
+> 编写新的模板文件后，须将其在 config 文件中定义
 
 ## 配置编写
 
@@ -218,100 +218,38 @@ use Illuminate\Http\Request;
 <?php
 
 return [
-    // 配置版本信息, 部分版本配置向前不兼容
-    'version'  => '2.0',
+    /* 使用前请务必阅读 readme 文件 */
+    // 版本信息
+    'version'  => '3.1',
     // 语言包，目前只有这一个包。
     'language' => 'zh-cn',
     /* 模板相关配置 */
     // 模板风格
-    'style' => 'api',   // 默认风格
-    'style_config' => [ // 配置
-        'api' => [
-            'desc'   => 'a default api template', // 描述
-            'stubs'  => 'MVC',       // 默认模板，模板大写字母任意组合
-            'traits' => ['toggle',], // 默认扩展
-        ],
-        // 略
-    ],
-    // 模板公共配置
-    'common' => [
-        // model 模板配置，单大写字母定义，
-        'M' => [
-            // stabs文件名,及替换参数前缀名
-            'name' => 'model',
-            // 类名及文件名后缀，默认为php，可定义为 '.vue', 返回vue文件
-            'postfix' => '',
-            // 文件放置地址
-            'path' => app_path() . DIRECTORY_SEPARATOR . 'Models',
-            // 基础名字空间
-            'namespace' => 'App\Models',
-            // 继承基类。可以为空
-            'extends' => [
-                'namespace' => 'Illuminate\Database\Eloquent', // 基类名字空间
-                'name' => 'Model', // 基类类名
-            ],
-            // 模板中的替换字段
-            // PS：各模板均已预定义如下字段，部分模板还预定了其他一些字段
-            //     {name}_name 类名,{name}_ns 名字空间,{name}_use 基类use,{name}_extends 基类继承,
-            //     {name}_anno 行注释，{name}_traits_* 扩展
-            // PS2：请不要共用任何前缀，如定义 namespace 可能会被替换为 ${name}_name 的结果 + space
-            // PS3：#{name}_hook_* 在扩展模式使用使用，此元素对 html、js 等不友好，酌情使用
-            'replace' => [
-                // model_fillable 原生内置提供，自定义会覆盖
-                'fillable' => function ($model, $columns) {
-                    $res = "";
-                    foreach ($columns as $column) {
-                        if (!in_array($column->Field, config('mvcs.ignore_columns'))) {
-                            $res .= "'" . $column->Field . "',";
-                        }
-                    }
-                    return $res;
-                },
-            ],
-        ],
-        // 控制器模板 略
-        // 过滤器模板 略
-    ],
-    // api 风格模板组配置
-    'api' => [
-        // 资源层模板
-        'R' => [
-            // 略
-        ],
-    ],
+    'style' => 'api', // 默认风格
+    'table_style' => 'single', // 表名风格， 只支持plural 和 single
     // 模板全局替换参数
-    'global' => [
+    'global_replace' => [
         'author_info'  => env('AUTHOR', 'foo <foo@example.com>'),
-        'main_version' => '1.0', // 当前代码主版本号
-        'sub_version'  => '1.0.' . date('ymd'), // 当前代码副版本号
+        'main_version' => '1.0', 
+        'sub_version'  => '1.0.' . date('ymd'), 
         'create_date'  => date('Y-m-d H:i:s')
-        ... // 定义任何值
     ],
-    // 扩展配置，
-    'traits' => [// 目录 => 简介
-        'toggle' => [
-            'desc' => '状态更新接口',
-            'routes' => [ // 扩展路由
-                'put' => [
-                    'toggle_something' => '{id}/toggle_something', // 方法 =》 路由格式
-                ],
-                'post' => [
-                    'batch_something' => 'batch_something',
-                ],
-            ]
-        ],
-        // 略
+    // 替换类, 须实现替换类
+    'replace_classes' => [
+        Callmecsx\Mvcs\Impl\ExampleReplace::class,
     ],
-    // 标签功能配置
-    'tags_fix' => '{ }',//单空格分割前后缀
+    // 替换参数标识
+    'replace_fix' => '$[ ]',
+    // 扩展模式下扩展名的前后缀，可以没有后缀，可在style中自定义
+    'hook_fix' => '#{ }',
+    // 标签功能标志
+    'tags_fix' => '@{ }',//单空格分割前后缀
     'tags' => [
         // 支持不同标签嵌套，同名嵌套会报错
-        // {foo} xxx {!foo} yyy {/foo} 返回为空 yyy保留 返回true xxx保留
-        // {style:api} xxx {style:web} yyy {/style} 返回api xxx保留 返回web yyy保留 返回其他 全部块删除
-        'style' => function ($model, $columns, $obj) {
-            return $obj->style;
-        },
-        'softdelete' => function ($model, $columns) {
+        // @{foo} xxx @{!foo} yyy @{/foo} 返回为空 yyy保留 返回true xxx保留
+        // @{style:api} xxx @{style:web} yyy @{/style} api xxx保留 返回web yyy保留 返回其他 全部块删除
+        'authcheck' => false,
+        'softdelete' => function ($columns) {
             foreach ($columns as $column) {
                 if ($column->Field == 'deleted_at') {
                     return true;
@@ -319,8 +257,9 @@ return [
             }
             return false;
         },
-        // 略
+        'base' => true,
     ],
+    
     // 表中不该用户填充的字段
     "ignore_columns" => ['id', 'created_at', 'updated_at', 'deleted_at'],
 
@@ -347,7 +286,7 @@ return [
         'middlewares' => [],
         // 公共路由前缀
         'prefix' => '',
-        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 test
+        // 公共名字空间，如使用 mvcs:make test/miniProgram 还会添加额外的一级名字空间 Test
         'namespace' => '',
     ],
 
@@ -365,17 +304,43 @@ return [
         "table_postfix" => "",
         // 未定义varchar长度时的默认值。
         "default_varchar_length" => 50,
+        // 未定义decimal 精度时的默认值。
+        "default_decimal_pre" => 10,
+        "default_decimal_post" => 2,
+        // EXCEL第三行，类型映射
+        "type_transfar" => [
+            "短句" => "string",
+            "字符串" => "string",
+            "网址" => "string",
+            "地址" => "string",
+            "邮箱" => "string",
+            "图片" => "string",
+            "多媒体" => "string",
+            "字符" => "string",
+            "枚举" => "enum",
+            "列举" => "enum",
+            "数字" => "integer",
+            "整数" => "integer",
+            "小数" => "decimal",
+            "文章" => "text",
+            "内容" => "text",
+            "时间" => "datetime",
+            "日期" => "date",
+        ]
     ],
 ];
+
 
 ```
 
 ## 更新
 
 ```text
-2.0.0 配置文件向前不兼容
+3.1.0 配置文件向前不兼容
+    - 将风格化的配置移动到 stubs 目录下
+2.0 配置文件向前不兼容
     - 增加了一些自己使用到的内容
-1.5.0 功能拓展及问题修复
+1.5 功能拓展及问题修复
     - 扩展模板增加了新的写法 ::body 用于指定插入位置
 ```
 

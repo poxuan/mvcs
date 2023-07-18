@@ -3,17 +3,13 @@
 namespace $[controller_namespace];
 
 $[controller_use]
-@{base}
-use App\Base\Traits\Response;
-@{/base}
+
+@{base}use App\Base\Traits\Response;@{/base}
 @{V}use $[validator_namespace]\$[validator_name];@{/V}
-use $[model_namespace]\$[model_name];
 @{R}use $[resource_namespace]\$[resource_name];@{/R}
-@{Q}
-use $[request_namespace]\$[request_name] as Request;
-@{!Q}
-use Illuminate\Http\Request;
-@{/Q}
+@{Q}use $[request_namespace]\$[request_name] as Request;
+@{!Q}use Illuminate\Http\Request;@{/Q}
+use $[model_namespace]\$[model_name];
 $[controller_traits_head]
 
 #{controller_hook_head}
@@ -45,7 +41,6 @@ class $[controller_name] $[controller_extends]
      * Display a listing of the resource.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return $[resource_name]|array
      * @author $[author_info]
      * @since  $[sub_version]
      */
@@ -78,7 +73,6 @@ class $[controller_name] $[controller_extends]
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return $[resource_name]|array
      * @author $[author_info]
      * @since  $[sub_version]
      */
@@ -99,7 +93,6 @@ class $[controller_name] $[controller_extends]
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return $resource_name
      * @author $author_info
      * @since  $sub_version
      */
@@ -119,7 +112,6 @@ class $[controller_name] $[controller_extends]
      *
      * @param  Request  $request
      * @param  int  $id
-     * @return $[resource_name]
      * @author $[author_info]
      * @since  $[sub_version]
      */
@@ -135,15 +127,14 @@ class $[controller_name] $[controller_extends]
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
      * @author $[author_info]
      * @since  $[sub_version]
      */
     public function destroy(int $id)
     {
         @{V}$[validator_name]::destroy($id);@{/V}
-        $result = $[model_name]::destroy($id);
-        return $this->success($result);
+        $[model_name]::destroy($id);
+        return $this->success();
     }
 
     $[controller_traits_body]

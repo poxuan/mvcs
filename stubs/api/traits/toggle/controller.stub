@@ -4,8 +4,7 @@
      *
      * @param  Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
-    * @author $[author_info]
+     * @author $[author_info]
      * @since  $[sub_version]
      */
     public function toggle(Request $request,$id)

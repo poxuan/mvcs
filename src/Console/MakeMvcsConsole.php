@@ -52,8 +52,8 @@ class MakeMvcsConsole extends Command
     /**
      * 国际化的输出
      *
-     * @param [type] $info
-     * @param array $param
+     * @param string $info
+     * @param string $param
      * @param string $type
      * @return void
      * @author chentengfei

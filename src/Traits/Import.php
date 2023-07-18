@@ -101,7 +101,7 @@ trait Import
      * @param string $column
      * @param string $rule
      * @param array $type
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
@@ -160,7 +160,7 @@ trait Import
      * @param string $header 表头
      * @param string $example 示例
      * @param string $has_primary 是否有主键
-     * @return void
+     * @return string
      * @author chentengfei
      * @since
      */
